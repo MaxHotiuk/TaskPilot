@@ -1,6 +1,7 @@
 using Application;
 using Infrastructure;
 using Presentation;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,10 +14,15 @@ builder.Services
     .AddInfrastructure()
     .AddPresentation();
 
+builder.Host.UseSerilog((context, configuration) =>
+    configuration.ReadFrom.Configuration(context.Configuration));
+
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
 }
+
+app.UseSerilogRequestLogging();
 
 app.UseHttpsRedirection();
 
