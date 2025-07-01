@@ -18,7 +18,7 @@ public class BoardMemberConfiguration : IEntityTypeConfiguration<BoardMember>
             .IsRequired()
             .HasDefaultValue("Member");
             
-        builder.Property(bm => bm.JoinedAt)
+        builder.Property(bm => bm.CreatedAt)
             .IsRequired()
             .HasDefaultValueSql("GETUTCDATE()");
             
