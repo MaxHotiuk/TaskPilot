@@ -119,8 +119,8 @@ CREATE NONCLUSTERED INDEX [IX_BoardMembers_User_Role]
 ON [BoardMembers] ([UserId], [Role]);
 
 -- Composite index for board members ordered by join date
-CREATE NONCLUSTERED INDEX [IX_BoardMembers_Board_JoinedAt] 
-ON [BoardMembers] ([BoardId], [JoinedAt] DESC);
+CREATE NONCLUSTERED INDEX [IX_BoardMembers_Board_CreatedAt] 
+ON [BoardMembers] ([BoardId], [CreatedAt] DESC);
 
 -- ====================
 -- STATES TABLE INDEXES
