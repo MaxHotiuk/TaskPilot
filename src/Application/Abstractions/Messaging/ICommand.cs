@@ -1,13 +1,13 @@
+using MediatR;
+
 namespace Application.Abstractions.Messaging;
 
-public interface ICommand : IBaseCommand
+// Command without response
+public interface ICommand : IRequest
 {
 }
 
-public interface ICommand<TResponse> : IBaseCommand
-{
-}
-
-public interface IBaseCommand
+// Command with response
+public interface ICommand<out TResponse> : IRequest<TResponse>
 {
 }
