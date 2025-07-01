@@ -126,6 +126,14 @@ ON [BoardMembers] ([BoardId], [JoinedAt] DESC);
 -- STATES TABLE INDEXES
 -- ====================
 
--- Index for state name lookups (though small table, good for completeness)
-CREATE NONCLUSTERED INDEX [IX_States_Name] 
-ON [States] ([Name]);
+-- Index for board-specific state queries
+CREATE NONCLUSTERED INDEX [IX_States_BoardId] 
+ON [States] ([BoardId]);
+
+-- Index for state name lookups within a board
+CREATE NONCLUSTERED INDEX [IX_States_Board_Name] 
+ON [States] ([BoardId], [Name]);
+
+-- Index for state order within a board
+CREATE NONCLUSTERED INDEX [IX_States_Board_Order] 
+ON [States] ([BoardId], [Order]);

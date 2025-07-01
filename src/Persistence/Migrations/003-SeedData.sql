@@ -3,19 +3,6 @@
 -- ========================================
 
 -- ====================
--- SEED STATES
--- ====================
-
--- Insert default task states
-INSERT INTO [States] ([Name]) VALUES 
-('To Do'),
-('In Progress'),
-('Review'),
-('Done'),
-('Blocked'),
-('Cancelled');
-
--- ====================
 -- SEED DEMO USERS
 -- ====================
 
@@ -46,6 +33,35 @@ INSERT INTO [Boards] ([Id], [Name], [Description], [OwnerId]) VALUES
 (@Board3Id, 'Customer Support Issues', 'Track and resolve customer support tickets and feature requests', @User2Id);
 
 -- ====================
+-- SEED STATES (Per Board)
+-- ====================
+
+-- Insert default task states for each board with proper ordering
+-- Board 1: TaskPilot Development
+INSERT INTO [States] ([BoardId], [Name], [Order]) VALUES 
+(@Board1Id, 'To Do', 1),
+(@Board1Id, 'In Progress', 2),
+(@Board1Id, 'Review', 3),
+(@Board1Id, 'Done', 4),
+(@Board1Id, 'Blocked', 5),
+(@Board1Id, 'Cancelled', 6);
+
+-- Board 2: Marketing Campaign Q3
+INSERT INTO [States] ([BoardId], [Name], [Order]) VALUES 
+(@Board2Id, 'To Do', 1),
+(@Board2Id, 'In Progress', 2),
+(@Board2Id, 'Review', 3),
+(@Board2Id, 'Done', 4);
+
+-- Board 3: Customer Support Issues
+INSERT INTO [States] ([BoardId], [Name], [Order]) VALUES 
+(@Board3Id, 'To Do', 1),
+(@Board3Id, 'In Progress', 2),
+(@Board3Id, 'Escalated', 3),
+(@Board3Id, 'Resolved', 4),
+(@Board3Id, 'Done', 5);
+
+-- ====================
 -- SEED BOARD MEMBERS
 -- ====================
 
@@ -69,12 +85,23 @@ INSERT INTO [BoardMembers] ([BoardId], [UserId], [Role]) VALUES
 -- SEED DEMO TASKS
 -- ====================
 
--- Get state IDs for task creation
-DECLARE @ToDoStateId INT = (SELECT [Id] FROM [States] WHERE [Name] = 'To Do');
-DECLARE @InProgressStateId INT = (SELECT [Id] FROM [States] WHERE [Name] = 'In Progress');
-DECLARE @ReviewStateId INT = (SELECT [Id] FROM [States] WHERE [Name] = 'Review');
-DECLARE @DoneStateId INT = (SELECT [Id] FROM [States] WHERE [Name] = 'Done');
-DECLARE @BlockedStateId INT = (SELECT [Id] FROM [States] WHERE [Name] = 'Blocked');
+-- Get state IDs for task creation (Board-specific states)
+-- Board 1 States
+DECLARE @Board1_ToDoStateId INT = (SELECT [Id] FROM [States] WHERE [BoardId] = @Board1Id AND [Name] = 'To Do');
+DECLARE @Board1_InProgressStateId INT = (SELECT [Id] FROM [States] WHERE [BoardId] = @Board1Id AND [Name] = 'In Progress');
+DECLARE @Board1_ReviewStateId INT = (SELECT [Id] FROM [States] WHERE [BoardId] = @Board1Id AND [Name] = 'Review');
+DECLARE @Board1_DoneStateId INT = (SELECT [Id] FROM [States] WHERE [BoardId] = @Board1Id AND [Name] = 'Done');
+DECLARE @Board1_BlockedStateId INT = (SELECT [Id] FROM [States] WHERE [BoardId] = @Board1Id AND [Name] = 'Blocked');
+
+-- Board 2 States
+DECLARE @Board2_ToDoStateId INT = (SELECT [Id] FROM [States] WHERE [BoardId] = @Board2Id AND [Name] = 'To Do');
+DECLARE @Board2_InProgressStateId INT = (SELECT [Id] FROM [States] WHERE [BoardId] = @Board2Id AND [Name] = 'In Progress');
+DECLARE @Board2_DoneStateId INT = (SELECT [Id] FROM [States] WHERE [BoardId] = @Board2Id AND [Name] = 'Done');
+
+-- Board 3 States
+DECLARE @Board3_ToDoStateId INT = (SELECT [Id] FROM [States] WHERE [BoardId] = @Board3Id AND [Name] = 'To Do');
+DECLARE @Board3_InProgressStateId INT = (SELECT [Id] FROM [States] WHERE [BoardId] = @Board3Id AND [Name] = 'In Progress');
+DECLARE @Board3_ResolvedStateId INT = (SELECT [Id] FROM [States] WHERE [BoardId] = @Board3Id AND [Name] = 'Resolved');
 
 -- Insert demo tasks
 DECLARE @Task1Id UNIQUEIDENTIFIER = NEWID();
@@ -88,20 +115,20 @@ DECLARE @Task8Id UNIQUEIDENTIFIER = NEWID();
 
 -- TaskPilot Development Board Tasks
 INSERT INTO [Tasks] ([Id], [BoardId], [Title], [Description], [StateId], [AssigneeId], [DueDate]) VALUES 
-(@Task1Id, @Board1Id, 'Implement User Authentication', 'Set up Azure AD integration for user authentication and authorization', @InProgressStateId, @AdminUserId, DATEADD(day, 7, GETUTCDATE())),
-(@Task2Id, @Board1Id, 'Create Task Management API', 'Develop REST API endpoints for CRUD operations on tasks', @ToDoStateId, @User1Id, DATEADD(day, 14, GETUTCDATE())),
-(@Task3Id, @Board1Id, 'Design Database Schema', 'Finalize database schema and create migration scripts', @DoneStateId, @User2Id, NULL),
-(@Task4Id, @Board1Id, 'Fix Comment Threading Bug', 'Comments are not displaying in correct threaded order', @ReviewStateId, @User1Id, DATEADD(day, 3, GETUTCDATE()));
+(@Task1Id, @Board1Id, 'Implement User Authentication', 'Set up Azure AD integration for user authentication and authorization', @Board1_InProgressStateId, @AdminUserId, DATEADD(day, 7, GETUTCDATE())),
+(@Task2Id, @Board1Id, 'Create Task Management API', 'Develop REST API endpoints for CRUD operations on tasks', @Board1_ToDoStateId, @User1Id, DATEADD(day, 14, GETUTCDATE())),
+(@Task3Id, @Board1Id, 'Design Database Schema', 'Finalize database schema and create migration scripts', @Board1_DoneStateId, @User2Id, NULL),
+(@Task4Id, @Board1Id, 'Fix Comment Threading Bug', 'Comments are not displaying in correct threaded order', @Board1_ReviewStateId, @User1Id, DATEADD(day, 3, GETUTCDATE()));
 
 -- Marketing Campaign Board Tasks
 INSERT INTO [Tasks] ([Id], [BoardId], [Title], [Description], [StateId], [AssigneeId], [DueDate]) VALUES 
-(@Task5Id, @Board2Id, 'Social Media Content Calendar', 'Plan and schedule social media posts for Q3', @ToDoStateId, @User3Id, DATEADD(day, 10, GETUTCDATE())),
-(@Task6Id, @Board2Id, 'Email Campaign Setup', 'Configure email marketing automation for new feature announcements', @InProgressStateId, @User1Id, DATEADD(day, 5, GETUTCDATE()));
+(@Task5Id, @Board2Id, 'Social Media Content Calendar', 'Plan and schedule social media posts for Q3', @Board2_ToDoStateId, @User3Id, DATEADD(day, 10, GETUTCDATE())),
+(@Task6Id, @Board2Id, 'Email Campaign Setup', 'Configure email marketing automation for new feature announcements', @Board2_InProgressStateId, @User1Id, DATEADD(day, 5, GETUTCDATE()));
 
 -- Customer Support Board Tasks
 INSERT INTO [Tasks] ([Id], [BoardId], [Title], [Description], [StateId], [AssigneeId], [DueDate]) VALUES 
-(@Task7Id, @Board3Id, 'Customer Onboarding Guide', 'Create comprehensive onboarding documentation for new users', @BlockedStateId, @User2Id, DATEADD(day, 21, GETUTCDATE())),
-(@Task8Id, @Board3Id, 'Support Ticket Integration', 'Integrate with helpdesk system for automatic ticket creation', @ToDoStateId, NULL, DATEADD(day, 30, GETUTCDATE()));
+(@Task7Id, @Board3Id, 'Customer Onboarding Guide', 'Create comprehensive onboarding documentation for new users', @Board3_ToDoStateId, @User2Id, DATEADD(day, 21, GETUTCDATE())),
+(@Task8Id, @Board3Id, 'Support Ticket Integration', 'Integrate with helpdesk system for automatic ticket creation', @Board3_ToDoStateId, NULL, DATEADD(day, 30, GETUTCDATE()));
 
 -- ====================
 -- SEED DEMO COMMENTS

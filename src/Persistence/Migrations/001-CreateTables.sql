@@ -11,7 +11,8 @@ CREATE TABLE [Users] (
     [Username] NVARCHAR(100) NOT NULL,
     [Email] NVARCHAR(150) NOT NULL UNIQUE,
     [Role] NVARCHAR(50) NOT NULL,
-    [CreatedAt] DATETIME2 NOT NULL DEFAULT GETUTCDATE()
+    [CreatedAt] DATETIME2 NOT NULL DEFAULT GETUTCDATE(),
+    [UpdatedAt] DATETIME2 NOT NULL DEFAULT GETUTCDATE()
 );
 
 -- ====================
@@ -23,15 +24,23 @@ CREATE TABLE [Boards] (
     [Description] NVARCHAR(MAX),
     [OwnerId] UNIQUEIDENTIFIER NOT NULL,
     [CreatedAt] DATETIME2 NOT NULL DEFAULT GETUTCDATE(),
+    [UpdatedAt] DATETIME2 NOT NULL DEFAULT GETUTCDATE(),
     CONSTRAINT [FK_Boards_Owner] FOREIGN KEY ([OwnerId]) REFERENCES [Users] ([Id]) ON DELETE NO ACTION
 );
 
 -- ====================
--- STATES (Lookup table)
+-- STATES (Configurable per board)
 -- ====================
 CREATE TABLE [States] (
     [Id] INT IDENTITY(1,1) PRIMARY KEY,
-    [Name] NVARCHAR(50) NOT NULL UNIQUE
+    [BoardId] UNIQUEIDENTIFIER NOT NULL,
+    [Name] NVARCHAR(50) NOT NULL,
+    [Order] INT NOT NULL,
+    [CreatedAt] DATETIME2 NOT NULL DEFAULT GETUTCDATE(),
+    [UpdatedAt] DATETIME2 NOT NULL DEFAULT GETUTCDATE(),
+    CONSTRAINT [FK_States_Board] FOREIGN KEY ([BoardId]) REFERENCES [Boards] ([Id]) ON DELETE CASCADE,
+    CONSTRAINT [UQ_States_Board_Name] UNIQUE ([BoardId], [Name]),
+    CONSTRAINT [UQ_States_Board_Order] UNIQUE ([BoardId], [Order])
 );
 
 -- ====================
@@ -45,6 +54,7 @@ CREATE TABLE [Tasks] (
     [StateId] INT NOT NULL,
     [AssigneeId] UNIQUEIDENTIFIER NULL, -- nullable if unassigned
     [CreatedAt] DATETIME2 NOT NULL DEFAULT GETUTCDATE(),
+    [UpdatedAt] DATETIME2 NOT NULL DEFAULT GETUTCDATE(),
     [DueDate] DATETIME2 NULL,
     CONSTRAINT [FK_Tasks_Board] FOREIGN KEY ([BoardId]) REFERENCES [Boards] ([Id]) ON DELETE CASCADE,
     CONSTRAINT [FK_Tasks_State] FOREIGN KEY ([StateId]) REFERENCES [States] ([Id]) ON DELETE NO ACTION,
@@ -60,6 +70,7 @@ CREATE TABLE [Comments] (
     [AuthorId] UNIQUEIDENTIFIER NOT NULL,
     [Content] NVARCHAR(MAX) NOT NULL,
     [CreatedAt] DATETIME2 NOT NULL DEFAULT GETUTCDATE(),
+    [UpdatedAt] DATETIME2 NOT NULL DEFAULT GETUTCDATE(),
     CONSTRAINT [FK_Comments_Task] FOREIGN KEY ([TaskId]) REFERENCES [Tasks] ([Id]) ON DELETE CASCADE,
     CONSTRAINT [FK_Comments_Author] FOREIGN KEY ([AuthorId]) REFERENCES [Users] ([Id]) ON DELETE NO ACTION
 );
@@ -72,6 +83,7 @@ CREATE TABLE [BoardMembers] (
     [UserId] UNIQUEIDENTIFIER NOT NULL,
     [Role] NVARCHAR(50) NOT NULL DEFAULT 'Member', -- e.g., Admin, Member
     [JoinedAt] DATETIME2 NOT NULL DEFAULT GETUTCDATE(),
+    [UpdatedAt] DATETIME2 NOT NULL DEFAULT GETUTCDATE(),
     PRIMARY KEY ([BoardId], [UserId]),
     CONSTRAINT [FK_BoardMembers_Board] FOREIGN KEY ([BoardId]) REFERENCES [Boards] ([Id]) ON DELETE CASCADE,
     CONSTRAINT [FK_BoardMembers_User] FOREIGN KEY ([UserId]) REFERENCES [Users] ([Id]) ON DELETE CASCADE
