@@ -12,9 +12,16 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="DbUp" Version="5.0.37" />
+    <PackageReference Include="DbUp-SqlServer" Version="5.0.37" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.0" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.0" />
+    <PackageReference Include="DotNetEnv" Version="3.1.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Migrations\*.sql" />
   </ItemGroup>
 
 </Project>

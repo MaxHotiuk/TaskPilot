@@ -376,6 +376,8 @@ MigrationBackup/
 
 # Ignore everything in any Migrations folder at any level
 **/Migrations/*
+# But keep SQL files in Migrations folders
+!**/Migrations/*.sql
 
 # Optional: If the snapshot might be in the root Migrations folder too
 !**/Migrations/ApplicationDbContextModelSnapshot.cs
