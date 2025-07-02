@@ -28,11 +28,12 @@ public static class DependencyInjection
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddScoped(typeof(IRepository<,>), typeof(Repository<,>));
         
-        // Register specific repository implementations
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IBoardRepository, BoardRepository>();
         services.AddScoped<ITaskItemRepository, TaskItemRepository>();
         services.AddScoped<IStateRepository, StateRepository>();
+        services.AddScoped<IBoardMemberRepository, BoardMemberRepository>();
+        services.AddScoped<ICommentRepository, CommentRepository>();
 
         return services;
     }
