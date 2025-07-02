@@ -1,5 +1,6 @@
 using Application.Abstractions.Persistence;
 using Application.Common.Dtos.Tasks;
+using Application.Common.Mappings;
 using MediatR;
 
 namespace Application.Queries.Tasks;
@@ -16,18 +17,6 @@ public class GetTaskItemsByAssigneeIdQueryHandler : IRequestHandler<GetTaskItems
     public async Task<IEnumerable<TaskItemDto>> Handle(GetTaskItemsByAssigneeIdQuery request, CancellationToken cancellationToken)
     {
         var taskItems = await _taskItemRepository.GetTasksByAssigneeIdAsync(request.AssigneeId, cancellationToken);
-
-        return taskItems.Select(taskItem => new TaskItemDto
-        {
-            Id = taskItem.Id,
-            BoardId = taskItem.BoardId,
-            Title = taskItem.Title,
-            Description = taskItem.Description,
-            StateId = taskItem.StateId,
-            AssigneeId = taskItem.AssigneeId,
-            DueDate = taskItem.DueDate,
-            CreatedAt = taskItem.CreatedAt,
-            UpdatedAt = taskItem.UpdatedAt
-        });
+        return taskItems.ToDto();
     }
 }

@@ -1,5 +1,6 @@
 using Application.Abstractions.Persistence;
 using Application.Common.Dtos.BoardMembers;
+using Application.Common.Mappings;
 using MediatR;
 
 namespace Application.Queries.BoardMembers;
@@ -16,14 +17,6 @@ public class GetBoardMembersByBoardIdQueryHandler : IRequestHandler<GetBoardMemb
     public async Task<IEnumerable<BoardMemberDto>> Handle(GetBoardMembersByBoardIdQuery request, CancellationToken cancellationToken)
     {
         var boardMembers = await _boardMemberRepository.GetMembersByBoardIdAsync(request.BoardId, cancellationToken);
-
-        return boardMembers.Select(boardMember => new BoardMemberDto
-        {
-            BoardId = boardMember.BoardId,
-            UserId = boardMember.UserId,
-            Role = boardMember.Role,
-            CreatedAt = boardMember.CreatedAt,
-            UpdatedAt = boardMember.UpdatedAt
-        });
+        return boardMembers.ToDto();
     }
 }

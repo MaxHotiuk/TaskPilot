@@ -23,14 +23,12 @@ public class CreateStateCommandHandler : IRequestHandler<CreateStateCommand, int
 
     public async Task<int> Handle(CreateStateCommand request, CancellationToken cancellationToken)
     {
-        // Validate board exists
         var board = await _boardRepository.GetByIdAsync(request.BoardId, cancellationToken);
         if (board is null)
         {
             throw new ValidationException($"Board with ID {request.BoardId} does not exist");
         }
 
-        // Check if state with same name already exists in the board
         var existingState = await _stateRepository.GetStateByBoardAndNameAsync(request.BoardId, request.Name, cancellationToken);
         if (existingState is not null)
         {

@@ -1,5 +1,6 @@
 using Application.Abstractions.Persistence;
 using Application.Common.Dtos.Comments;
+using Application.Common.Mappings;
 using MediatR;
 
 namespace Application.Queries.Comments;
@@ -16,20 +17,6 @@ public class GetCommentByIdQueryHandler : IRequestHandler<GetCommentByIdQuery, C
     public async Task<CommentDto?> Handle(GetCommentByIdQuery request, CancellationToken cancellationToken)
     {
         var comment = await _commentRepository.GetByIdAsync(request.Id, cancellationToken);
-
-        if (comment is null)
-        {
-            return null;
-        }
-
-        return new CommentDto
-        {
-            Id = comment.Id,
-            TaskId = comment.TaskId,
-            AuthorId = comment.AuthorId,
-            Content = comment.Content,
-            CreatedAt = comment.CreatedAt,
-            UpdatedAt = comment.UpdatedAt
-        };
+        return comment?.ToDto();
     }
 }

@@ -26,14 +26,12 @@ public class CreateCommentCommandHandler : IRequestHandler<CreateCommentCommand,
 
     public async Task<Guid> Handle(CreateCommentCommand request, CancellationToken cancellationToken)
     {
-        // Validate task exists
         var task = await _taskItemRepository.GetByIdAsync(request.TaskId, cancellationToken);
         if (task is null)
         {
             throw new ValidationException($"Task with ID {request.TaskId} does not exist");
         }
 
-        // Validate author exists
         var author = await _userRepository.GetByIdAsync(request.AuthorId, cancellationToken);
         if (author is null)
         {

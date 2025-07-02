@@ -24,7 +24,6 @@ public class UpdateStateCommandHandler : IRequestHandler<UpdateStateCommand>
             throw new NotFoundException($"State with ID {request.Id} was not found");
         }
 
-        // Check if state with same name already exists in the board (excluding current state)
         var existingState = await _stateRepository.GetStateByBoardAndNameAsync(state.BoardId, request.Name, cancellationToken);
         if (existingState is not null && existingState.Id != request.Id)
         {

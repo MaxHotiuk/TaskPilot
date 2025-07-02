@@ -29,7 +29,6 @@ public class UpdateTaskItemCommandHandler : IRequestHandler<UpdateTaskItemComman
             throw new NotFoundException($"Task with ID {request.Id} was not found");
         }
 
-        // Validate state belongs to the board
         if (!await _stateRepository.IsValidStateForBoardAsync(request.StateId, taskItem.BoardId, cancellationToken))
         {
             throw new ValidationException($"State with ID {request.StateId} is not valid for board {taskItem.BoardId}");
