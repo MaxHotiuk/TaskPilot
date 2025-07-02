@@ -1,0 +1,52 @@
+using Application.Abstractions.Persistence;
+using Domain.Entities;
+using Microsoft.EntityFrameworkCore;
+
+namespace Persistence.Repositories;
+
+public class BoardRepository : Repository<Board, Guid>, IBoardRepository
+{
+    public BoardRepository(ApplicationDbContext context) : base(context)
+    {
+    }
+
+    public async Task<IEnumerable<Board>> GetBoardsByOwnerIdAsync(Guid ownerId, CancellationToken cancellationToken = default)
+    {
+        return await DbSet
+            .Where(b => b.OwnerId == ownerId)
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<IEnumerable<Board>> GetBoardsByUserIdAsync(Guid userId, CancellationToken cancellationToken = default)
+    {
+        return await DbSet
+            .Where(b => b.OwnerId == userId || b.Members.Any(m => m.UserId == userId))
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<Board?> GetBoardWithStatesAsync(Guid boardId, CancellationToken cancellationToken = default)
+    {
+        return await DbSet
+            .Include(b => b.States.OrderBy(s => s.Order))
+            .FirstOrDefaultAsync(b => b.Id == boardId, cancellationToken);
+    }
+
+    public async Task<Board?> GetBoardWithTasksAsync(Guid boardId, CancellationToken cancellationToken = default)
+    {
+        return await DbSet
+            .Include(b => b.Tasks)
+                .ThenInclude(t => t.State)
+            .Include(b => b.Tasks)
+                .ThenInclude(t => t.Assignee)
+            .FirstOrDefaultAsync(b => b.Id == boardId, cancellationToken);
+    }
+
+    public async Task<Board?> GetBoardWithMembersAsync(Guid boardId, CancellationToken cancellationToken = default)
+    {
+        return await DbSet
+            .Include(b => b.Members)
+                .ThenInclude(m => m.User)
+            .Include(b => b.Owner)
+            .FirstOrDefaultAsync(b => b.Id == boardId, cancellationToken);
+    }
+}

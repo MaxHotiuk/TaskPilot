@@ -1,0 +1,31 @@
+using Application.Queries.Boards;
+using MediatR;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Routing;
+using Application.Common.Dtos.Boards;
+using System.Collections.Generic;
+
+namespace WebApi.Endpoints.Boards;
+
+public class GetAllBoardsEndpoint : EndpointBaseWithRequest<GetAllBoardsQuery, IEnumerable<BoardDto>>
+{
+    public override void MapEndpoint(IEndpointRouteBuilder app)
+    {
+        app.MapGet("/api/boards", async (
+                IMediator mediator,
+                CancellationToken cancellationToken) =>
+            {
+                return await HandleAsync(new GetAllBoardsQuery(), mediator, cancellationToken);
+            })
+            .WithName("GetAllBoards")
+            .WithTags("Boards")
+            .Produces(StatusCodes.Status200OK)
+            .ProducesProblem(StatusCodes.Status500InternalServerError);
+    }
+
+    public override async Task<IResult> HandleAsync(GetAllBoardsQuery request, IMediator mediator, CancellationToken cancellationToken)
+    {
+        var result = await mediator.Send(request, cancellationToken);
+        return Results.Ok(result);
+    }
+}
