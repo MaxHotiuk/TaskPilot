@@ -24,7 +24,6 @@ public class UpdateUserCommandHandler : IRequestHandler<UpdateUserCommand>
             throw new NotFoundException(nameof(Domain.Entities.User), request.Id);
         }
 
-        // Check if email is already taken by another user
         var existingUser = await _userRepository.GetByEmailAsync(request.Email, cancellationToken);
         if (existingUser != null && existingUser.Id != request.Id)
         {

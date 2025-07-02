@@ -1,10 +1,11 @@
 using Application.Abstractions.Persistence;
-using Domain.Entities;
+using Application.Common.Dtos.Users;
+using Application.Common.Mappings;
 using MediatR;
 
 namespace Application.Queries.Users;
 
-public class GetUserByIdQueryHandler : IRequestHandler<GetUserByIdQuery, User?>
+public class GetUserByIdQueryHandler : IRequestHandler<GetUserByIdQuery, UserDto?>
 {
     private readonly IUserRepository _userRepository;
 
@@ -13,8 +14,9 @@ public class GetUserByIdQueryHandler : IRequestHandler<GetUserByIdQuery, User?>
         _userRepository = userRepository;
     }
 
-    public async Task<User?> Handle(GetUserByIdQuery request, CancellationToken cancellationToken)
+    public async Task<UserDto?> Handle(GetUserByIdQuery request, CancellationToken cancellationToken)
     {
-        return await _userRepository.GetByIdAsync(request.Id, cancellationToken);
+        var user = await _userRepository.GetByIdAsync(request.Id, cancellationToken);
+        return user?.ToDto();
     }
 }

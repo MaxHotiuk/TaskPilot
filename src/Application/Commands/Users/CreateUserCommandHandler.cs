@@ -18,13 +18,11 @@ public class CreateUserCommandHandler : IRequestHandler<CreateUserCommand, Guid>
 
     public async Task<Guid> Handle(CreateUserCommand request, CancellationToken cancellationToken)
     {
-        // Check if user already exists by email
         if (await _userRepository.ExistsByEmailAsync(request.Email, cancellationToken))
         {
             throw new ValidationException("User with this email already exists");
         }
 
-        // Check if user already exists by EntraId
         if (await _userRepository.ExistsByEntraIdAsync(request.EntraId, cancellationToken))
         {
             throw new ValidationException("User with this EntraId already exists");

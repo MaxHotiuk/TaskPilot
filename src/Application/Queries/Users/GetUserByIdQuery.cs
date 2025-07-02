@@ -1,6 +1,6 @@
-using Domain.Entities;
+using Application.Common.Dtos.Users;
 using MediatR;
 
 namespace Application.Queries.Users;
 
-public record GetUserByIdQuery(Guid Id) : IRequest<User?>;
+public record GetUserByIdQuery(Guid Id) : IRequest<UserDto?>;

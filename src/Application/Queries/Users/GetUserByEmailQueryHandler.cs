@@ -1,10 +1,11 @@
 using Application.Abstractions.Persistence;
-using Domain.Entities;
+using Application.Common.Dtos.Users;
+using Application.Common.Mappings;
 using MediatR;
 
 namespace Application.Queries.Users;
 
-public class GetUserByEmailQueryHandler : IRequestHandler<GetUserByEmailQuery, User?>
+public class GetUserByEmailQueryHandler : IRequestHandler<GetUserByEmailQuery, UserDto?>
 {
     private readonly IUserRepository _userRepository;
 
@@ -13,8 +14,9 @@ public class GetUserByEmailQueryHandler : IRequestHandler<GetUserByEmailQuery, U
         _userRepository = userRepository;
     }
 
-    public async Task<User?> Handle(GetUserByEmailQuery request, CancellationToken cancellationToken)
+    public async Task<UserDto?> Handle(GetUserByEmailQuery request, CancellationToken cancellationToken)
     {
-        return await _userRepository.GetByEmailAsync(request.Email, cancellationToken);
+        var user = await _userRepository.GetByEmailAsync(request.Email, cancellationToken);
+        return user?.ToDto();
     }
 }
