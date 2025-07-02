@@ -2,11 +2,9 @@
 
 TaskPilot — Your Mission Control for Task Management
 
-![License](https://img.shields.io/badge/license-MIT-blue)
-
 ## Overview
 
-TaskPilot is a robust task management system built with .NET 7 using Clean Architecture principles. It provides a comprehensive solution for organizing tasks across multiple boards with customizable states, team collaboration, and efficient task tracking.
+TaskPilot is a robust task management system built with .NET 9 using Clean Architecture principles. It provides a comprehensive solution for organizing tasks across multiple boards with customizable states, team collaboration, and efficient task tracking.
 
 ## Architecture
 
@@ -64,7 +62,7 @@ RESTful API endpoints for client applications:
 
 ### Prerequisites
 
-- .NET 7 SDK or later
+- .NET 9 SDK or later
 - SQL Server (or compatible database)
 
 ### Installation
@@ -160,7 +158,3 @@ TaskPilot/
 3. Commit your changes: `git commit -m 'Add some feature'`
 4. Push to the branch: `git push origin feature/my-feature`
 5. Open a pull request
-
-## License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
