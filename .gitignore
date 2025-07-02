@@ -544,3 +544,5 @@ out
 .pnp.*
 
 chat-test.html
+
+.DS_Store
