@@ -1,0 +1,31 @@
+using Application.Commands.Users;
+using MediatR;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Routing;
+
+namespace WebApi.Endpoints.Users;
+
+public class DeleteUserEndpoint : EndpointBaseWithRequest<DeleteUserCommand>
+{
+    public override void MapEndpoint(IEndpointRouteBuilder app)
+    {
+        app.MapDelete("/api/users/{id:guid}", async (
+                Guid id,
+                IMediator mediator,
+                CancellationToken cancellationToken) =>
+            {
+                return await HandleAsync(new DeleteUserCommand(id), mediator, cancellationToken);
+            })
+            .WithName("DeleteUser")
+            .WithTags("Users")
+            .Produces(StatusCodes.Status204NoContent)
+            .Produces(StatusCodes.Status404NotFound)
+            .ProducesProblem(StatusCodes.Status500InternalServerError);
+    }
+
+    public override async Task<IResult> HandleAsync(DeleteUserCommand request, IMediator mediator, CancellationToken cancellationToken)
+    {
+        await mediator.Send(request, cancellationToken);
+        return Results.NoContent();
+    }
+}
