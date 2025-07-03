@@ -31,14 +31,12 @@ public class RoleAuthorizationHandler : AuthorizationHandler<RoleRequirement>
             return;
         }
 
-        // Admin can access everything
         if (userRole == Roles.Admin)
         {
             context.Succeed(requirement);
             return;
         }
 
-        // Check if user has the required role
         if (userRole == requirement.Role)
         {
             context.Succeed(requirement);

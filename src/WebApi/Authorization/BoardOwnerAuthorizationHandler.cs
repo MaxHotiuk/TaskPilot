@@ -1,72 +1,56 @@
 using Application.Abstractions.Authentication;
 using Application.Queries.Boards;
-using Application.Queries.BoardMembers;
 using Application.Queries.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Domain.Common.Authorization;
-using Microsoft.Extensions.Logging;
 using MediatR;
 
 namespace WebApi.Authorization;
 
-public class BoardMemberAuthorizationHandler : AuthorizationHandler<BoardMemberRequirement>
+public class BoardOwnerAuthorizationHandler : AuthorizationHandler<BoardOwnerRequirement>
 {
     private readonly IAuthenticationService _authenticationService;
     private readonly IMediator _mediator;
     private readonly IHttpContextAccessor _httpContextAccessor;
-    private readonly ILogger<BoardMemberAuthorizationHandler> _logger;
 
-    public BoardMemberAuthorizationHandler(
+    public BoardOwnerAuthorizationHandler(
         IAuthenticationService authenticationService,
         IMediator mediator,
-        IHttpContextAccessor httpContextAccessor,
-        ILogger<BoardMemberAuthorizationHandler> logger)
+        IHttpContextAccessor httpContextAccessor)
     {
         _authenticationService = authenticationService;
         _mediator = mediator;
         _httpContextAccessor = httpContextAccessor;
-        _logger = logger;
     }
 
     protected override async Task HandleRequirementAsync(
         AuthorizationHandlerContext context,
-        BoardMemberRequirement requirement)
+        BoardOwnerRequirement requirement)
     {
-        _logger.LogInformation("BoardMemberRequirement authorization check started");
-        
         if (!await _authenticationService.IsUserAuthenticatedAsync())
         {
-            _logger.LogWarning("User is not authenticated");
             context.Fail();
             return;
         }
 
         var userRole = await _authenticationService.GetCurrentUserRoleAsync();
-        _logger.LogInformation("User role: {UserRole}", userRole);
         
         if (userRole == Roles.Admin)
         {
-            _logger.LogInformation("User is admin, granting access");
             context.Succeed(requirement);
             return;
         }
 
         var currentUserId = await _authenticationService.GetCurrentUserIdAsync();
-        _logger.LogInformation("Current user ID: {UserId}", currentUserId);
-        
         if (string.IsNullOrEmpty(currentUserId) || !Guid.TryParse(currentUserId, out var userId))
         {
-            _logger.LogWarning("Could not parse user ID: {UserId}", currentUserId);
             context.Fail();
             return;
         }
 
         var boardId = await GetBoardIdFromContextAsync();
-        _logger.LogInformation("Board ID resolved: {BoardId}", boardId);
-        
         if (boardId == null)
         {
-            _logger.LogWarning("Could not resolve board ID from context");
             context.Fail();
             return;
         }
@@ -74,44 +58,18 @@ public class BoardMemberAuthorizationHandler : AuthorizationHandler<BoardMemberR
         try
         {
             var board = await _mediator.Send(new GetBoardByIdQuery(boardId.Value), CancellationToken.None);
-            _logger.LogInformation("Board found: {BoardExists}, OwnerId: {OwnerId}", 
-                board != null, board?.OwnerId);
-                
             if (board != null && board.OwnerId == userId)
             {
-                _logger.LogInformation("User is board owner, granting access");
                 context.Succeed(requirement);
                 return;
             }
-
-            if (requirement.RequireOwner)
-            {
-                _logger.LogWarning("Requirement requires owner but user is not owner");
-                context.Fail();
-                return;
-            }
-
-            if (requirement.AllowMember)
-            {
-                var isMember = await _mediator.Send(new CheckBoardMembershipQuery(boardId.Value, userId), CancellationToken.None);
-                _logger.LogInformation("User is board member: {IsMember}", isMember);
-                
-                if (isMember)
-                {
-                    _logger.LogInformation("User is board member, granting access");
-                    context.Succeed(requirement);
-                    return;
-                }
-            }
         }
-        catch (Exception ex)
+        catch
         {
-            _logger.LogError(ex, "Error during board authorization check");
             context.Fail();
             return;
         }
 
-        _logger.LogWarning("User does not have access to board");
         context.Fail();
     }
 
