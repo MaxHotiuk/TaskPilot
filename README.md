@@ -73,10 +73,14 @@ RESTful API endpoints for client applications:
    cd TaskPilot
    ```
 
-2. Configure database connection:
+2. Configure database connection and Azure AD:
    Create a `.env` file in the root directory:
    ```
    CONNECTION_STRING=Server=your_server;Database=TaskPilot;User Id=your_username;Password=your_password;TrustServerCertificate=True;
+   AZURE_AD_INSTANCE=https://login.microsoftonline.com/
+   AZURE_AD_TENANT_ID=your-tenant-id-here
+   AZURE_AD_CLIENT_ID=your-client-id-here
+   AZURE_AD_AUDIENCE=your-audience-here
    ```
 
 3. Build the solution:

@@ -21,6 +21,9 @@ builder.Services.AddCors(options =>
     });
 });
 
+// Add authentication and authorization
+builder.Services.AddAuthentication(builder.Configuration);
+
 // Register OpenAPI/Swagger
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
@@ -30,6 +33,31 @@ builder.Services.AddSwaggerGen(c =>
         Title = "TaskPilot API",
         Version = "v1",
         Description = "TaskPilot — Your Mission Control for Task Management"
+    });
+    
+    // Add JWT authentication to Swagger
+    c.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+    {
+        Description = "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\"",
+        Name = "Authorization",
+        In = Microsoft.OpenApi.Models.ParameterLocation.Header,
+        Type = Microsoft.OpenApi.Models.SecuritySchemeType.ApiKey,
+        Scheme = "Bearer"
+    });
+    
+    c.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
+    {
+        {
+            new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+            {
+                Reference = new Microsoft.OpenApi.Models.OpenApiReference
+                {
+                    Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            new string[] {}
+        }
     });
 });
 
@@ -69,6 +97,11 @@ if (app.Environment.IsDevelopment())
 app.UseCors("AllowAll");
 app.UseSerilogRequestLogging();
 app.UseHttpsRedirection();
+
+// Add authentication middleware
+app.UseAuthentication();
+app.UseAuthorization();
+app.UseMiddleware<AuthenticationMiddleware>();
 
 // Map all endpoints
 app.MapEndpoints();
