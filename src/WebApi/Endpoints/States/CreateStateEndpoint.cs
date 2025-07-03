@@ -2,6 +2,7 @@ using Application.Commands.States;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
+using Domain.Common.Authorization;
 
 namespace WebApi.Endpoints.States;
 
@@ -25,9 +26,10 @@ public class CreateStateEndpoint : EndpointBaseWithRequest<CreateStateCommand, i
             })
             .WithName("CreateState")
             .WithTags("States")
-            .RequireAuthorization()
+            .RequireAuthorization(Policies.RequireBoardMemberOrOwner)
             .Produces<int>(StatusCodes.Status201Created)
             .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden)
             .Produces(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status500InternalServerError);
     }

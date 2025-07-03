@@ -2,6 +2,7 @@ using Application.Commands.Boards;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
+using Domain.Common.Authorization;
 
 namespace WebApi.Endpoints.Boards;
 
@@ -18,9 +19,10 @@ public class DeleteBoardEndpoint : EndpointBaseWithRequest<DeleteBoardCommand>
             })
             .WithName("DeleteBoard")
             .WithTags("Boards")
-            .RequireAuthorization()
+            .RequireAuthorization(Policies.RequireBoardOwner)
             .Produces(StatusCodes.Status204NoContent)
             .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden)
             .Produces(StatusCodes.Status404NotFound)
             .ProducesProblem(StatusCodes.Status500InternalServerError);
     }

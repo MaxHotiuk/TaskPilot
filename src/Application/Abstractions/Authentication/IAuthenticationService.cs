@@ -6,4 +6,5 @@ public interface IAuthenticationService
     Task<string?> GetCurrentUserEmailAsync();
     Task<bool> IsUserAuthenticatedAsync();
     Task<string?> GetCurrentUserEntraIdAsync();
+    Task<string?> GetCurrentUserRoleAsync();
 }

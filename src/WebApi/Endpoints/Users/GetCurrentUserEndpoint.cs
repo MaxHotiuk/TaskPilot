@@ -2,6 +2,7 @@ using Application.Queries.Users;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
+using Domain.Common.Authorization;
 
 namespace WebApi.Endpoints.Users;
 
@@ -19,9 +20,10 @@ public class GetCurrentUserEndpoint : EndpointBase
             })
             .WithName("GetCurrentUser")
             .WithTags("Users")
-            .RequireAuthorization() // Require authentication
+            .RequireAuthorization(Policies.RequireUserRole)
             .Produces<Application.Common.Dtos.Users.UserDto>(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden)
             .Produces(StatusCodes.Status404NotFound)
             .ProducesProblem(StatusCodes.Status500InternalServerError);
     }

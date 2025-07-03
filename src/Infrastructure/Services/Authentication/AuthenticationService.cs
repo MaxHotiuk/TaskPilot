@@ -1,4 +1,5 @@
 using Application.Abstractions.Authentication;
+using Application.Abstractions.Persistence;
 using Microsoft.AspNetCore.Http;
 using System.Security.Claims;
 
@@ -7,16 +8,24 @@ namespace Infrastructure.Services.Authentication;
 public class AuthenticationService : IAuthenticationService
 {
     private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly IUserRepository _userRepository;
 
-    public AuthenticationService(IHttpContextAccessor httpContextAccessor)
+    public AuthenticationService(IHttpContextAccessor httpContextAccessor, IUserRepository userRepository)
     {
         _httpContextAccessor = httpContextAccessor;
+        _userRepository = userRepository;
     }
 
-    public Task<string?> GetCurrentUserIdAsync()
+    public async Task<string?> GetCurrentUserIdAsync()
     {
-        var userId = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        return Task.FromResult(userId);
+        var entraId = await GetCurrentUserEntraIdAsync();
+        if (string.IsNullOrEmpty(entraId))
+        {
+            return null;
+        }
+
+        var user = await _userRepository.GetByEntraIdAsync(entraId, CancellationToken.None);
+        return user?.Id.ToString();
     }
 
     public Task<string?> GetCurrentUserEmailAsync()
@@ -37,5 +46,17 @@ public class AuthenticationService : IAuthenticationService
         var entraId = _httpContextAccessor.HttpContext?.User?.FindFirst("oid")?.Value ??
                      _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         return Task.FromResult(entraId);
+    }
+
+    public async Task<string?> GetCurrentUserRoleAsync()
+    {
+        var entraId = await GetCurrentUserEntraIdAsync();
+        if (string.IsNullOrEmpty(entraId))
+        {
+            return null;
+        }
+
+        var user = await _userRepository.GetByEntraIdAsync(entraId, CancellationToken.None);
+        return user?.Role;
     }
 }

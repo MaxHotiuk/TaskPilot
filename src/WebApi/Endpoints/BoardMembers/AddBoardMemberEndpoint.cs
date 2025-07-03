@@ -1,45 +1,45 @@
-using Application.Commands.Boards;
+using Application.Commands.BoardMembers;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Domain.Common.Authorization;
 
-namespace WebApi.Endpoints.Boards;
+namespace WebApi.Endpoints.BoardMembers;
 
-public class UpdateBoardEndpoint : EndpointBaseWithRequest<UpdateBoardCommand>
+public class AddBoardMemberEndpoint : EndpointBaseWithRequest<AddBoardMemberCommand>
 {
     public override void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapPut("/api/boards/{id:guid}", async (
-                Guid id,
-                UpdateBoardRequestDto dto,
+        app.MapPost("/api/boards/{boardId:guid}/members", async (
+                Guid boardId,
+                AddBoardMemberRequestDto dto,
                 IMediator mediator,
                 CancellationToken cancellationToken) =>
             {
-                var command = new UpdateBoardCommand(
-                    id,
-                    dto.Name,
-                    dto.Description
+                var command = new AddBoardMemberCommand(
+                    boardId,
+                    dto.UserId,
+                    dto.Role
                 );
                 
                 return await HandleAsync(command, mediator, cancellationToken);
             })
-            .WithName("UpdateBoard")
-            .WithTags("Boards")
+            .WithName("AddBoardMember")
+            .WithTags("BoardMembers")
             .RequireAuthorization(Policies.RequireBoardOwner)
             .Produces(StatusCodes.Status204NoContent)
+            .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status401Unauthorized)
             .Produces(StatusCodes.Status403Forbidden)
             .Produces(StatusCodes.Status404NotFound)
-            .Produces(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status500InternalServerError);
     }
 
-    public override async Task<IResult> HandleAsync(UpdateBoardCommand request, IMediator mediator, CancellationToken cancellationToken)
+    public override async Task<IResult> HandleAsync(AddBoardMemberCommand request, IMediator mediator, CancellationToken cancellationToken)
     {
         await mediator.Send(request, cancellationToken);
         return Results.NoContent();
     }
 }
 
-public record UpdateBoardRequestDto(string Name, string? Description);
+public record AddBoardMemberRequestDto(Guid UserId, string Role = "Member");

@@ -2,6 +2,7 @@ using Application.Commands.Tasks;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
+using Domain.Common.Authorization;
 
 namespace WebApi.Endpoints.Tasks;
 
@@ -28,9 +29,10 @@ public class UpdateTaskItemEndpoint : EndpointBaseWithRequest<UpdateTaskItemComm
             })
             .WithName("UpdateTaskItem")
             .WithTags("Tasks")
-            .RequireAuthorization()
+            .RequireAuthorization(Policies.RequireBoardMemberOrOwner)
             .Produces(StatusCodes.Status204NoContent)
             .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden)
             .Produces(StatusCodes.Status404NotFound)
             .Produces(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status500InternalServerError);
