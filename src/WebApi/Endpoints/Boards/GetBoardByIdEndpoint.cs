@@ -3,6 +3,7 @@ using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Application.Common.Dtos.Boards;
+using Domain.Common.Authorization;
 
 namespace WebApi.Endpoints.Boards;
 
@@ -19,9 +20,10 @@ public class GetBoardByIdEndpoint : EndpointBaseWithRequest<GetBoardByIdQuery, B
             })
             .WithName("GetBoardById")
             .WithTags("Boards")
-            .RequireAuthorization()
+            .RequireAuthorization(Policies.RequireBoardMemberOrOwner)
             .Produces(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden)
             .Produces(StatusCodes.Status404NotFound)
             .ProducesProblem(StatusCodes.Status500InternalServerError);
     }

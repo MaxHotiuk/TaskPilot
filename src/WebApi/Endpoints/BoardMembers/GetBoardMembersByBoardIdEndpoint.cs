@@ -1,26 +1,26 @@
-using Application.Queries.Tasks;
+using Application.Queries.BoardMembers;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
-using Application.Common.Dtos.Tasks;
+using Application.Common.Dtos.BoardMembers;
 using System.Collections.Generic;
 using Domain.Common.Authorization;
 
-namespace WebApi.Endpoints.Tasks;
+namespace WebApi.Endpoints.BoardMembers;
 
-public class GetTaskItemsByBoardIdEndpoint : EndpointBaseWithRequest<GetTaskItemsByBoardIdQuery, IEnumerable<TaskItemDto>>
+public class GetBoardMembersByBoardIdEndpoint : EndpointBaseWithRequest<GetBoardMembersByBoardIdQuery, IEnumerable<BoardMemberDto>>
 {
     public override void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapGet("/api/boards/{boardId:guid}/tasks", async (
+        app.MapGet("/api/boards/{boardId:guid}/members", async (
                 Guid boardId,
                 IMediator mediator,
                 CancellationToken cancellationToken) =>
             {
-                return await HandleAsync(new GetTaskItemsByBoardIdQuery(boardId), mediator, cancellationToken);
+                return await HandleAsync(new GetBoardMembersByBoardIdQuery(boardId), mediator, cancellationToken);
             })
-            .WithName("GetTaskItemsByBoardId")
-            .WithTags("Tasks")
+            .WithName("GetBoardMembersByBoardId")
+            .WithTags("BoardMembers")
             .RequireAuthorization(Policies.RequireBoardMemberOrOwner)
             .Produces(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status401Unauthorized)
@@ -28,7 +28,7 @@ public class GetTaskItemsByBoardIdEndpoint : EndpointBaseWithRequest<GetTaskItem
             .ProducesProblem(StatusCodes.Status500InternalServerError);
     }
 
-    public override async Task<IResult> HandleAsync(GetTaskItemsByBoardIdQuery request, IMediator mediator, CancellationToken cancellationToken)
+    public override async Task<IResult> HandleAsync(GetBoardMembersByBoardIdQuery request, IMediator mediator, CancellationToken cancellationToken)
     {
         var result = await mediator.Send(request, cancellationToken);
         return Results.Ok(result);

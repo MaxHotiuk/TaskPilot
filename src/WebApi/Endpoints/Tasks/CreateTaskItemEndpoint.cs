@@ -2,6 +2,7 @@ using Application.Commands.Tasks;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
+using Domain.Common.Authorization;
 
 namespace WebApi.Endpoints.Tasks;
 
@@ -27,9 +28,11 @@ public class CreateTaskItemEndpoint : EndpointBaseWithRequest<CreateTaskItemComm
             })
             .WithName("CreateTaskItem")
             .WithTags("Tasks")
-            .RequireAuthorization() // Require authentication
+            .RequireAuthorization(Policies.RequireBoardMemberOrOwner)
             .Produces<Guid>(StatusCodes.Status201Created)
             .Produces(StatusCodes.Status400BadRequest)
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden)
             .ProducesProblem(StatusCodes.Status500InternalServerError);
     }
 

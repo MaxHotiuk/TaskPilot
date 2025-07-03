@@ -16,10 +16,16 @@ public class AuthenticationService : IAuthenticationService
         _userRepository = userRepository;
     }
 
-    public Task<string?> GetCurrentUserIdAsync()
+    public async Task<string?> GetCurrentUserIdAsync()
     {
-        var userId = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        return Task.FromResult(userId);
+        var entraId = await GetCurrentUserEntraIdAsync();
+        if (string.IsNullOrEmpty(entraId))
+        {
+            return null;
+        }
+
+        var user = await _userRepository.GetByEntraIdAsync(entraId, CancellationToken.None);
+        return user?.Id.ToString();
     }
 
     public Task<string?> GetCurrentUserEmailAsync()
