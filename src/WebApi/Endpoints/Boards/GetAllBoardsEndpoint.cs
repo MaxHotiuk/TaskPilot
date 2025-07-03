@@ -19,7 +19,9 @@ public class GetAllBoardsEndpoint : EndpointBaseWithRequest<GetAllBoardsQuery, I
             })
             .WithName("GetAllBoards")
             .WithTags("Boards")
+            .RequireAuthorization()
             .Produces(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status401Unauthorized)
             .ProducesProblem(StatusCodes.Status500InternalServerError);
     }
 

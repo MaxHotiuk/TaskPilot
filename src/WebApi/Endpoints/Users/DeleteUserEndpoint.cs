@@ -18,7 +18,9 @@ public class DeleteUserEndpoint : EndpointBaseWithRequest<DeleteUserCommand>
             })
             .WithName("DeleteUser")
             .WithTags("Users")
+            .RequireAuthorization()
             .Produces(StatusCodes.Status204NoContent)
+            .Produces(StatusCodes.Status401Unauthorized)
             .Produces(StatusCodes.Status404NotFound)
             .ProducesProblem(StatusCodes.Status500InternalServerError);
     }

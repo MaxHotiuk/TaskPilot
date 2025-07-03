@@ -18,7 +18,9 @@ public class DeleteTaskItemEndpoint : EndpointBaseWithRequest<DeleteTaskItemComm
             })
             .WithName("DeleteTaskItem")
             .WithTags("Tasks")
+            .RequireAuthorization()
             .Produces(StatusCodes.Status204NoContent)
+            .Produces(StatusCodes.Status401Unauthorized)
             .Produces(StatusCodes.Status404NotFound)
             .ProducesProblem(StatusCodes.Status500InternalServerError);
     }

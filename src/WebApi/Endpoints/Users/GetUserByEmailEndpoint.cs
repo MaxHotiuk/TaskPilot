@@ -19,7 +19,9 @@ public class GetUserByEmailEndpoint : EndpointBaseWithRequest<GetUserByEmailQuer
             })
             .WithName("GetUserByEmail")
             .WithTags("Users")
+            .RequireAuthorization()
             .Produces(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status401Unauthorized)
             .Produces(StatusCodes.Status404NotFound)
             .ProducesProblem(StatusCodes.Status500InternalServerError);
     }

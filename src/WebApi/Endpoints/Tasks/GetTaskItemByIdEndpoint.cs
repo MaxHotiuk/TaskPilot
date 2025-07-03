@@ -19,7 +19,9 @@ public class GetTaskItemByIdEndpoint : EndpointBaseWithRequest<GetTaskItemByIdQu
             })
             .WithName("GetTaskItemById")
             .WithTags("Tasks")
+            .RequireAuthorization()
             .Produces(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status401Unauthorized)
             .Produces(StatusCodes.Status404NotFound)
             .ProducesProblem(StatusCodes.Status500InternalServerError);
     }

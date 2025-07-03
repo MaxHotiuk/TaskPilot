@@ -19,7 +19,9 @@ public class GetAllUsersEndpoint : EndpointBaseWithRequest<GetAllUsersQuery, IEn
             })
             .WithName("GetAllUsers")
             .WithTags("Users")
+            .RequireAuthorization()
             .Produces(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status401Unauthorized)
             .ProducesProblem(StatusCodes.Status500InternalServerError);
     }
 

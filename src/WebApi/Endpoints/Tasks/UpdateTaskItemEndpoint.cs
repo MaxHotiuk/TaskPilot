@@ -28,7 +28,9 @@ public class UpdateTaskItemEndpoint : EndpointBaseWithRequest<UpdateTaskItemComm
             })
             .WithName("UpdateTaskItem")
             .WithTags("Tasks")
+            .RequireAuthorization()
             .Produces(StatusCodes.Status204NoContent)
+            .Produces(StatusCodes.Status401Unauthorized)
             .Produces(StatusCodes.Status404NotFound)
             .Produces(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status500InternalServerError);

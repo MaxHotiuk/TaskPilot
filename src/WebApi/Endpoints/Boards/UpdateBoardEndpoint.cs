@@ -25,7 +25,9 @@ public class UpdateBoardEndpoint : EndpointBaseWithRequest<UpdateBoardCommand>
             })
             .WithName("UpdateBoard")
             .WithTags("Boards")
+            .RequireAuthorization()
             .Produces(StatusCodes.Status204NoContent)
+            .Produces(StatusCodes.Status401Unauthorized)
             .Produces(StatusCodes.Status404NotFound)
             .Produces(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status500InternalServerError);

@@ -26,7 +26,9 @@ public class UpdateUserEndpoint : EndpointBaseWithRequest<UpdateUserCommand>
             })
             .WithName("UpdateUser")
             .WithTags("Users")
+            .RequireAuthorization()
             .Produces(StatusCodes.Status204NoContent)
+            .Produces(StatusCodes.Status401Unauthorized)
             .Produces(StatusCodes.Status404NotFound)
             .Produces(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status500InternalServerError);
