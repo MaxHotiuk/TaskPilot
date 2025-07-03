@@ -1,4 +1,5 @@
 using Application.Commands.BoardMembers;
+using Domain.Common.Authorization;
 using FluentValidation;
 
 namespace Application.Validators.Commands.BoardMembers;
@@ -16,7 +17,7 @@ public class UpdateBoardMemberRoleCommandValidator : AbstractValidator<UpdateBoa
         RuleFor(x => x.Role)
             .NotEmpty().WithMessage("Role is required.")
             .MaximumLength(50).WithMessage("Role must not exceed 50 characters.")
-            .Must(role => new[] { "Owner", "Admin", "Member" }.Contains(role))
-            .WithMessage("Role must be one of: Owner, Admin, Member.");
+            .Must(role => BoardMemberRoles.All.Contains(role))
+            .WithMessage($"Role must be one of: {string.Join(", ", BoardMemberRoles.All)}.");
     }
 }

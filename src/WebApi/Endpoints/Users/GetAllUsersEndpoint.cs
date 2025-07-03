@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Application.Common.Dtos.Users;
 using System.Collections.Generic;
+using Domain.Common.Authorization;
 
 namespace WebApi.Endpoints.Users;
 
@@ -19,7 +20,10 @@ public class GetAllUsersEndpoint : EndpointBaseWithRequest<GetAllUsersQuery, IEn
             })
             .WithName("GetAllUsers")
             .WithTags("Users")
+            .RequireAuthorization(Policies.RequireAdminRole)
             .Produces(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden)
             .ProducesProblem(StatusCodes.Status500InternalServerError);
     }
 

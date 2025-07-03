@@ -2,6 +2,7 @@ using Application.Commands.Tasks;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
+using Domain.Common.Authorization;
 
 namespace WebApi.Endpoints.Tasks;
 
@@ -18,7 +19,10 @@ public class DeleteTaskItemEndpoint : EndpointBaseWithRequest<DeleteTaskItemComm
             })
             .WithName("DeleteTaskItem")
             .WithTags("Tasks")
+            .RequireAuthorization(Policies.RequireBoardMemberOrOwner)
             .Produces(StatusCodes.Status204NoContent)
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden)
             .Produces(StatusCodes.Status404NotFound)
             .ProducesProblem(StatusCodes.Status500InternalServerError);
     }

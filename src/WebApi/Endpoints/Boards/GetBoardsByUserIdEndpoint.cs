@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Application.Common.Dtos.Boards;
 using System.Collections.Generic;
+using Domain.Common.Authorization;
 
 namespace WebApi.Endpoints.Boards;
 
@@ -20,7 +21,10 @@ public class GetBoardsByUserIdEndpoint : EndpointBaseWithRequest<GetBoardsByUser
             })
             .WithName("GetBoardsByUserId")
             .WithTags("Boards")
+            .RequireAuthorization(Policies.RequireUserRole)
             .Produces(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden)
             .ProducesProblem(StatusCodes.Status500InternalServerError);
     }
 

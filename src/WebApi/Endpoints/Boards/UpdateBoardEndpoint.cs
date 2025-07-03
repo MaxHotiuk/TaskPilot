@@ -2,6 +2,7 @@ using Application.Commands.Boards;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
+using Domain.Common.Authorization;
 
 namespace WebApi.Endpoints.Boards;
 
@@ -25,7 +26,10 @@ public class UpdateBoardEndpoint : EndpointBaseWithRequest<UpdateBoardCommand>
             })
             .WithName("UpdateBoard")
             .WithTags("Boards")
+            .RequireAuthorization(Policies.RequireBoardOwner)
             .Produces(StatusCodes.Status204NoContent)
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden)
             .Produces(StatusCodes.Status404NotFound)
             .Produces(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status500InternalServerError);

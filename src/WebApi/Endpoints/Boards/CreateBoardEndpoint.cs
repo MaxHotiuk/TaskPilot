@@ -2,6 +2,7 @@ using Application.Commands.Boards;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
+using Domain.Common.Authorization;
 
 namespace WebApi.Endpoints.Boards;
 
@@ -24,8 +25,11 @@ public class CreateBoardEndpoint : EndpointBaseWithRequest<CreateBoardCommand, G
             })
             .WithName("CreateBoard")
             .WithTags("Boards")
+            .RequireAuthorization(Policies.RequireUserRole)
             .Produces<Guid>(StatusCodes.Status201Created)
             .Produces(StatusCodes.Status400BadRequest)
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden)
             .ProducesProblem(StatusCodes.Status500InternalServerError);
     }
 

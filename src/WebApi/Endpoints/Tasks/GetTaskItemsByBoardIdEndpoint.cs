@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Application.Common.Dtos.Tasks;
 using System.Collections.Generic;
+using Domain.Common.Authorization;
 
 namespace WebApi.Endpoints.Tasks;
 
@@ -20,7 +21,10 @@ public class GetTaskItemsByBoardIdEndpoint : EndpointBaseWithRequest<GetTaskItem
             })
             .WithName("GetTaskItemsByBoardId")
             .WithTags("Tasks")
+            .RequireAuthorization(Policies.RequireBoardMemberOrOwner)
             .Produces(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden)
             .ProducesProblem(StatusCodes.Status500InternalServerError);
     }
 
