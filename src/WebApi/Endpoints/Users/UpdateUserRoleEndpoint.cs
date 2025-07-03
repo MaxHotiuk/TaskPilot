@@ -6,30 +6,35 @@ using Domain.Common.Authorization;
 
 namespace WebApi.Endpoints.Users;
 
-public class DeleteUserEndpoint : EndpointBaseWithRequest<DeleteUserCommand>
+public class UpdateUserRoleEndpoint : EndpointBaseWithRequest<UpdateUserRoleCommand>
 {
     public override void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapDelete("/api/users/{id:guid}", async (
-                Guid id,
+        app.MapPut("/api/users/{userId:guid}/role", async (
+                Guid userId,
+                UpdateUserRoleRequest request,
                 IMediator mediator,
                 CancellationToken cancellationToken) =>
             {
-                return await HandleAsync(new DeleteUserCommand(id), mediator, cancellationToken);
+                var command = new UpdateUserRoleCommand(userId, request.Role);
+                return await HandleAsync(command, mediator, cancellationToken);
             })
-            .WithName("DeleteUser")
+            .WithName("UpdateUserRole")
             .WithTags("Users")
             .RequireAuthorization(Policies.RequireAdminRole)
             .Produces(StatusCodes.Status204NoContent)
+            .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status401Unauthorized)
             .Produces(StatusCodes.Status403Forbidden)
             .Produces(StatusCodes.Status404NotFound)
             .ProducesProblem(StatusCodes.Status500InternalServerError);
     }
 
-    public override async Task<IResult> HandleAsync(DeleteUserCommand request, IMediator mediator, CancellationToken cancellationToken)
+    public override async Task<IResult> HandleAsync(UpdateUserRoleCommand request, IMediator mediator, CancellationToken cancellationToken)
     {
         await mediator.Send(request, cancellationToken);
         return Results.NoContent();
     }
 }
+
+public record UpdateUserRoleRequest(string Role);
