@@ -2,11 +2,8 @@ using Application;
 using Infrastructure;
 using Persistence;
 using Serilog;
-using DotNetEnv;
 using WebApi.Extensions;
 using WebApi.Middlewares;
-
-Env.Load();
 
 var builder = WebApplication.CreateBuilder(args);
 

@@ -4,7 +4,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Persistence.Repositories;
-using DotNetEnv;
 
 namespace Persistence;
 
@@ -12,14 +11,11 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddPersistence(this IServiceCollection services, IConfiguration configuration)
     {
-        Env.Load(Path.Combine(Directory.GetCurrentDirectory(), ".env"));
-        
-        var connectionString = Environment.GetEnvironmentVariable("CONNECTION_STRING") 
-                              ?? configuration.GetConnectionString("DefaultConnection");
+        var connectionString = configuration.GetConnectionString("DefaultConnection");
 
         if (string.IsNullOrEmpty(connectionString))
         {
-            throw new InvalidOperationException("Database connection string not found. Please ensure CONNECTION_STRING is set in .env file or DefaultConnection is configured.");
+            throw new InvalidOperationException("Database connection string not found. Please ensure DefaultConnection is configured in appsettings.");
         }
 
         services.AddDbContext<ApplicationDbContext>(options =>
@@ -45,15 +41,12 @@ public static class DependencyInjection
         var logger = loggerFactory.CreateLogger("DatabaseMigration");
         var configuration = scope.ServiceProvider.GetRequiredService<IConfiguration>();
 
-        Env.Load(Path.Combine(Directory.GetCurrentDirectory(), ".env"));
-        
-        var connectionString = Environment.GetEnvironmentVariable("CONNECTION_STRING") 
-                              ?? configuration.GetConnectionString("DefaultConnection");
+        var connectionString = configuration.GetConnectionString("DefaultConnection");
 
         if (string.IsNullOrEmpty(connectionString))
         {
             logger.LogError("Database connection string not found for migration");
-            throw new InvalidOperationException("Database connection string not found. Please ensure CONNECTION_STRING is set in .env file or DefaultConnection is configured.");
+            throw new InvalidOperationException("Database connection string not found. Please ensure DefaultConnection is configured in appsettings.");
         }
 
         if (!DbUpMigrator.ValidateConnection(connectionString, logger))
