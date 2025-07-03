@@ -546,3 +546,4 @@ out
 chat-test.html
 
 .DS_Store
+appsettings.Development.json

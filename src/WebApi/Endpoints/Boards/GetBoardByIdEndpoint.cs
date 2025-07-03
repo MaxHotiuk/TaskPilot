@@ -19,7 +19,9 @@ public class GetBoardByIdEndpoint : EndpointBaseWithRequest<GetBoardByIdQuery, B
             })
             .WithName("GetBoardById")
             .WithTags("Boards")
+            .RequireAuthorization()
             .Produces(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status401Unauthorized)
             .Produces(StatusCodes.Status404NotFound)
             .ProducesProblem(StatusCodes.Status500InternalServerError);
     }

@@ -20,7 +20,9 @@ public class GetStatesByBoardIdEndpoint : EndpointBaseWithRequest<GetStatesByBoa
             })
             .WithName("GetStatesByBoardId")
             .WithTags("States")
+            .RequireAuthorization()
             .Produces(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status401Unauthorized)
             .ProducesProblem(StatusCodes.Status500InternalServerError);
     }
 

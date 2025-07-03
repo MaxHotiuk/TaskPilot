@@ -27,6 +27,7 @@ public class CreateTaskItemEndpoint : EndpointBaseWithRequest<CreateTaskItemComm
             })
             .WithName("CreateTaskItem")
             .WithTags("Tasks")
+            .RequireAuthorization() // Require authentication
             .Produces<Guid>(StatusCodes.Status201Created)
             .Produces(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status500InternalServerError);

@@ -20,7 +20,9 @@ public class GetTaskItemsByBoardIdEndpoint : EndpointBaseWithRequest<GetTaskItem
             })
             .WithName("GetTaskItemsByBoardId")
             .WithTags("Tasks")
+            .RequireAuthorization() // Require authentication
             .Produces(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status401Unauthorized)
             .ProducesProblem(StatusCodes.Status500InternalServerError);
     }
 

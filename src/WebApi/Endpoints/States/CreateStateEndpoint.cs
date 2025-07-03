@@ -25,7 +25,9 @@ public class CreateStateEndpoint : EndpointBaseWithRequest<CreateStateCommand, i
             })
             .WithName("CreateState")
             .WithTags("States")
+            .RequireAuthorization()
             .Produces<int>(StatusCodes.Status201Created)
+            .Produces(StatusCodes.Status401Unauthorized)
             .Produces(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status500InternalServerError);
     }
