@@ -1,30 +1,29 @@
 using Application.Abstractions.Persistence;
 using Application.Common.Exceptions;
+using Application.Common.Handlers;
 using MediatR;
 
 namespace Application.Commands.Boards;
 
-public class DeleteBoardCommandHandler : IRequestHandler<DeleteBoardCommand>
+public class DeleteBoardCommandHandler : BaseCommandHandler, IRequestHandler<DeleteBoardCommand>
 {
-    private readonly IBoardRepository _boardRepository;
-    private readonly IUnitOfWork _unitOfWork;
-
-    public DeleteBoardCommandHandler(IBoardRepository boardRepository, IUnitOfWork unitOfWork)
+    public DeleteBoardCommandHandler(IUnitOfWorkFactory unitOfWorkFactory) 
+        : base(unitOfWorkFactory)
     {
-        _boardRepository = boardRepository;
-        _unitOfWork = unitOfWork;
     }
 
     public async Task Handle(DeleteBoardCommand request, CancellationToken cancellationToken)
     {
-        var board = await _boardRepository.GetByIdAsync(request.Id, cancellationToken);
-        
-        if (board is null)
+        await ExecuteInTransactionAsync(async unitOfWork =>
         {
-            throw new NotFoundException($"Board with ID {request.Id} was not found");
-        }
+            var board = await unitOfWork.Boards.GetByIdAsync(request.Id, cancellationToken);
+            
+            if (board is null)
+            {
+                throw new NotFoundException($"Board with ID {request.Id} was not found");
+            }
 
-        _boardRepository.Remove(board);
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
+            unitOfWork.Boards.Remove(board);
+        }, cancellationToken);
     }
 }

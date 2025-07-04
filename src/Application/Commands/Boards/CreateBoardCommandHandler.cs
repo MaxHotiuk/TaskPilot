@@ -1,35 +1,34 @@
 using Application.Abstractions.Persistence;
+using Application.Common.Handlers;
 using Domain.Entities;
 using MediatR;
 
 namespace Application.Commands.Boards;
 
-public class CreateBoardCommandHandler : IRequestHandler<CreateBoardCommand, Guid>
+public class CreateBoardCommandHandler : BaseCommandHandler, IRequestHandler<CreateBoardCommand, Guid>
 {
-    private readonly IBoardRepository _boardRepository;
-    private readonly IUnitOfWork _unitOfWork;
-
-    public CreateBoardCommandHandler(IBoardRepository boardRepository, IUnitOfWork unitOfWork)
+    public CreateBoardCommandHandler(IUnitOfWorkFactory unitOfWorkFactory) 
+        : base(unitOfWorkFactory)
     {
-        _boardRepository = boardRepository;
-        _unitOfWork = unitOfWork;
     }
 
     public async Task<Guid> Handle(CreateBoardCommand request, CancellationToken cancellationToken)
     {
-        var board = new Board
+        return await ExecuteInTransactionAsync(async unitOfWork =>
         {
-            Id = Guid.NewGuid(),
-            Name = request.Name,
-            Description = request.Description,
-            OwnerId = request.OwnerId,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
-        };
+            var board = new Board
+            {
+                Id = Guid.NewGuid(),
+                Name = request.Name,
+                Description = request.Description,
+                OwnerId = request.OwnerId,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
 
-        await _boardRepository.AddAsync(board, cancellationToken);
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
-
-        return board.Id;
+            await unitOfWork.Boards.AddAsync(board, cancellationToken);
+            
+            return board.Id;
+        }, cancellationToken);
     }
 }

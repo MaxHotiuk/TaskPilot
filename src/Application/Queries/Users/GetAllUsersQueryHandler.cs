@@ -1,22 +1,24 @@
 using Application.Abstractions.Persistence;
 using Application.Common.Dtos.Users;
+using Application.Common.Handlers;
 using Application.Common.Mappings;
 using MediatR;
 
 namespace Application.Queries.Users;
 
-public class GetAllUsersQueryHandler : IRequestHandler<GetAllUsersQuery, IEnumerable<UserDto>>
+public class GetAllUsersQueryHandler : BaseQueryHandler, IRequestHandler<GetAllUsersQuery, IEnumerable<UserDto>>
 {
-    private readonly IUserRepository _userRepository;
-
-    public GetAllUsersQueryHandler(IUserRepository userRepository)
+    public GetAllUsersQueryHandler(IUnitOfWorkFactory unitOfWorkFactory) 
+        : base(unitOfWorkFactory)
     {
-        _userRepository = userRepository;
     }
 
     public async Task<IEnumerable<UserDto>> Handle(GetAllUsersQuery request, CancellationToken cancellationToken)
     {
-        var users = await _userRepository.GetAllAsync(cancellationToken);
-        return users.ToDto();
+        return await ExecuteQueryAsync(async unitOfWork =>
+        {
+            var users = await unitOfWork.Users.GetAllAsync(cancellationToken);
+            return users.ToDto();
+        }, cancellationToken);
     }
 }
