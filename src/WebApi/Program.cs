@@ -97,8 +97,8 @@ app.UseHttpsRedirection();
 
 // Add authentication middleware
 app.UseAuthentication();
-app.UseAuthorization();
 app.UseMiddleware<AuthenticationMiddleware>();
+app.UseAuthorization();
 
 // Map all endpoints
 app.MapEndpoints();
