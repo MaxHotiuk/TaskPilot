@@ -8,6 +8,7 @@ public class DeleteTaskItemCommandHandlerTests
     private readonly IFixture _fixture;
     private readonly Mock<ITaskItemRepository> _taskItemRepositoryMock;
     private readonly Mock<IUnitOfWork> _unitOfWorkMock;
+    private readonly Mock<IUnitOfWorkFactory> _unitOfWorkFactoryMock;
     private readonly DeleteTaskItemCommandHandler _handler;
 
     public DeleteTaskItemCommandHandlerTests()
@@ -15,7 +16,13 @@ public class DeleteTaskItemCommandHandlerTests
         _fixture = new Fixture().Customize(new AutoMoqCustomization());
         _taskItemRepositoryMock = _fixture.Freeze<Mock<ITaskItemRepository>>();
         _unitOfWorkMock = _fixture.Freeze<Mock<IUnitOfWork>>();
-        _handler = new DeleteTaskItemCommandHandler(_taskItemRepositoryMock.Object, _unitOfWorkMock.Object);
+        _unitOfWorkFactoryMock = _fixture.Freeze<Mock<IUnitOfWorkFactory>>();
+        
+        _unitOfWorkMock.Setup(x => x.Tasks).Returns(_taskItemRepositoryMock.Object);
+        _unitOfWorkFactoryMock.Setup(x => x.CreateAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(_unitOfWorkMock.Object);
+        
+        _handler = new DeleteTaskItemCommandHandler(_unitOfWorkFactoryMock.Object);
     }
 
     [Fact]

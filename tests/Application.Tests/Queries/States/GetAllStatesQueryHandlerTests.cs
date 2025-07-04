@@ -7,13 +7,22 @@ public class GetAllStatesQueryHandlerTests
 {
     private readonly IFixture _fixture;
     private readonly Mock<IStateRepository> _stateRepositoryMock;
+    private readonly Mock<IUnitOfWork> _unitOfWorkMock;
+    private readonly Mock<IUnitOfWorkFactory> _unitOfWorkFactoryMock;
     private readonly GetAllStatesQueryHandler _handler;
 
     public GetAllStatesQueryHandlerTests()
     {
         _fixture = new Fixture().Customize(new AutoMoqCustomization());
         _stateRepositoryMock = _fixture.Freeze<Mock<IStateRepository>>();
-        _handler = new GetAllStatesQueryHandler(_stateRepositoryMock.Object);
+        _unitOfWorkMock = _fixture.Freeze<Mock<IUnitOfWork>>();
+        _unitOfWorkFactoryMock = _fixture.Freeze<Mock<IUnitOfWorkFactory>>();
+        
+        _unitOfWorkMock.Setup(x => x.States).Returns(_stateRepositoryMock.Object);
+        _unitOfWorkFactoryMock.Setup(x => x.CreateAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(_unitOfWorkMock.Object);
+        
+        _handler = new GetAllStatesQueryHandler(_unitOfWorkFactoryMock.Object);
     }
 
     [Fact]

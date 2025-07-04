@@ -1,22 +1,24 @@
 using Application.Abstractions.Persistence;
 using Application.Common.Dtos.Boards;
+using Application.Common.Handlers;
 using Application.Common.Mappings;
 using MediatR;
 
 namespace Application.Queries.Boards;
 
-public class GetBoardsByUserIdQueryHandler : IRequestHandler<GetBoardsByUserIdQuery, IEnumerable<BoardDto>>
+public class GetBoardsByUserIdQueryHandler : BaseQueryHandler, IRequestHandler<GetBoardsByUserIdQuery, IEnumerable<BoardDto>>
 {
-    private readonly IBoardRepository _boardRepository;
-
-    public GetBoardsByUserIdQueryHandler(IBoardRepository boardRepository)
+    public GetBoardsByUserIdQueryHandler(IUnitOfWorkFactory unitOfWorkFactory) 
+        : base(unitOfWorkFactory)
     {
-        _boardRepository = boardRepository;
     }
 
     public async Task<IEnumerable<BoardDto>> Handle(GetBoardsByUserIdQuery request, CancellationToken cancellationToken)
     {
-        var boards = await _boardRepository.GetBoardsByUserIdAsync(request.UserId, cancellationToken);
-        return boards.ToDto();
+        return await ExecuteQueryAsync(async unitOfWork =>
+        {
+            var boards = await unitOfWork.Boards.GetBoardsByUserIdAsync(request.UserId, cancellationToken);
+            return boards.ToDto();
+        }, cancellationToken);
     }
 }

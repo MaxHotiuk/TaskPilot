@@ -1,22 +1,24 @@
 using Application.Abstractions.Persistence;
 using Application.Common.Dtos.Tasks;
+using Application.Common.Handlers;
 using Application.Common.Mappings;
 using MediatR;
 
 namespace Application.Queries.Tasks;
 
-public class GetTaskItemByIdQueryHandler : IRequestHandler<GetTaskItemByIdQuery, TaskItemDto?>
+public class GetTaskItemByIdQueryHandler : BaseQueryHandler, IRequestHandler<GetTaskItemByIdQuery, TaskItemDto?>
 {
-    private readonly ITaskItemRepository _taskItemRepository;
-
-    public GetTaskItemByIdQueryHandler(ITaskItemRepository taskItemRepository)
+    public GetTaskItemByIdQueryHandler(IUnitOfWorkFactory unitOfWorkFactory) 
+        : base(unitOfWorkFactory)
     {
-        _taskItemRepository = taskItemRepository;
     }
 
     public async Task<TaskItemDto?> Handle(GetTaskItemByIdQuery request, CancellationToken cancellationToken)
     {
-        var taskItem = await _taskItemRepository.GetByIdAsync(request.Id, cancellationToken);
-        return taskItem?.ToDto();
+        return await ExecuteQueryAsync(async unitOfWork =>
+        {
+            var taskItem = await unitOfWork.Tasks.GetByIdAsync(request.Id, cancellationToken);
+            return taskItem?.ToDto();
+        }, cancellationToken);
     }
 }

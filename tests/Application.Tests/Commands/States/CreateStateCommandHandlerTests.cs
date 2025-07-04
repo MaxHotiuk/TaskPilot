@@ -8,6 +8,7 @@ public class CreateStateCommandHandlerTests
     private readonly Mock<IStateRepository> _stateRepositoryMock;
     private readonly Mock<IBoardRepository> _boardRepositoryMock;
     private readonly Mock<IUnitOfWork> _unitOfWorkMock;
+    private readonly Mock<IUnitOfWorkFactory> _unitOfWorkFactoryMock;
     private readonly CreateStateCommandHandler _handler;
 
     public CreateStateCommandHandlerTests()
@@ -16,10 +17,14 @@ public class CreateStateCommandHandlerTests
         _stateRepositoryMock = _fixture.Freeze<Mock<IStateRepository>>();
         _boardRepositoryMock = _fixture.Freeze<Mock<IBoardRepository>>();
         _unitOfWorkMock = _fixture.Freeze<Mock<IUnitOfWork>>();
-        _handler = new CreateStateCommandHandler(
-            _stateRepositoryMock.Object,
-            _boardRepositoryMock.Object,
-            _unitOfWorkMock.Object);
+        _unitOfWorkFactoryMock = _fixture.Freeze<Mock<IUnitOfWorkFactory>>();
+        
+        _unitOfWorkMock.Setup(x => x.States).Returns(_stateRepositoryMock.Object);
+        _unitOfWorkMock.Setup(x => x.Boards).Returns(_boardRepositoryMock.Object);
+        _unitOfWorkFactoryMock.Setup(x => x.CreateAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(_unitOfWorkMock.Object);
+        
+        _handler = new CreateStateCommandHandler(_unitOfWorkFactoryMock.Object);
     }
 
     [Fact]

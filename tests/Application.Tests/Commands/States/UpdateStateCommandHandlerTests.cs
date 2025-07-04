@@ -8,6 +8,7 @@ public class UpdateStateCommandHandlerTests
     private readonly IFixture _fixture;
     private readonly Mock<IStateRepository> _stateRepositoryMock;
     private readonly Mock<IUnitOfWork> _unitOfWorkMock;
+    private readonly Mock<IUnitOfWorkFactory> _unitOfWorkFactoryMock;
     private readonly UpdateStateCommandHandler _handler;
 
     public UpdateStateCommandHandlerTests()
@@ -15,7 +16,13 @@ public class UpdateStateCommandHandlerTests
         _fixture = new Fixture().Customize(new AutoMoqCustomization());
         _stateRepositoryMock = _fixture.Freeze<Mock<IStateRepository>>();
         _unitOfWorkMock = _fixture.Freeze<Mock<IUnitOfWork>>();
-        _handler = new UpdateStateCommandHandler(_stateRepositoryMock.Object, _unitOfWorkMock.Object);
+        _unitOfWorkFactoryMock = _fixture.Freeze<Mock<IUnitOfWorkFactory>>();
+        
+        _unitOfWorkMock.Setup(x => x.States).Returns(_stateRepositoryMock.Object);
+        _unitOfWorkFactoryMock.Setup(x => x.CreateAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(_unitOfWorkMock.Object);
+        
+        _handler = new UpdateStateCommandHandler(_unitOfWorkFactoryMock.Object);
     }
 
     [Fact]

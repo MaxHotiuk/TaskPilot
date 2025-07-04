@@ -8,6 +8,7 @@ public class DeleteCommentCommandHandlerTests
     private readonly IFixture _fixture;
     private readonly Mock<ICommentRepository> _commentRepositoryMock;
     private readonly Mock<IUnitOfWork> _unitOfWorkMock;
+    private readonly Mock<IUnitOfWorkFactory> _unitOfWorkFactoryMock;
     private readonly DeleteCommentCommandHandler _handler;
 
     public DeleteCommentCommandHandlerTests()
@@ -15,7 +16,13 @@ public class DeleteCommentCommandHandlerTests
         _fixture = new Fixture().Customize(new AutoMoqCustomization());
         _commentRepositoryMock = _fixture.Freeze<Mock<ICommentRepository>>();
         _unitOfWorkMock = _fixture.Freeze<Mock<IUnitOfWork>>();
-        _handler = new DeleteCommentCommandHandler(_commentRepositoryMock.Object, _unitOfWorkMock.Object);
+        _unitOfWorkFactoryMock = _fixture.Freeze<Mock<IUnitOfWorkFactory>>();
+        
+        _unitOfWorkMock.Setup(x => x.Comments).Returns(_commentRepositoryMock.Object);
+        _unitOfWorkFactoryMock.Setup(x => x.CreateAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(_unitOfWorkMock.Object);
+        
+        _handler = new DeleteCommentCommandHandler(_unitOfWorkFactoryMock.Object);
     }
 
     [Fact]

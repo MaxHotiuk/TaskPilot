@@ -1,19 +1,21 @@
 using Application.Abstractions.Persistence;
+using Application.Common.Handlers;
 using MediatR;
 
 namespace Application.Queries.BoardMembers;
 
-public class CheckBoardMembershipQueryHandler : IRequestHandler<CheckBoardMembershipQuery, bool>
+public class CheckBoardMembershipQueryHandler : BaseQueryHandler, IRequestHandler<CheckBoardMembershipQuery, bool>
 {
-    private readonly IBoardMemberRepository _boardMemberRepository;
-
-    public CheckBoardMembershipQueryHandler(IBoardMemberRepository boardMemberRepository)
+    public CheckBoardMembershipQueryHandler(IUnitOfWorkFactory unitOfWorkFactory) 
+        : base(unitOfWorkFactory)
     {
-        _boardMemberRepository = boardMemberRepository;
     }
 
     public async Task<bool> Handle(CheckBoardMembershipQuery request, CancellationToken cancellationToken)
     {
-        return await _boardMemberRepository.IsMemberOfBoardAsync(request.BoardId, request.UserId, cancellationToken);
+        return await ExecuteQueryAsync(async unitOfWork =>
+        {
+            return await unitOfWork.BoardMembers.IsMemberOfBoardAsync(request.BoardId, request.UserId, cancellationToken);
+        }, cancellationToken);
     }
 }

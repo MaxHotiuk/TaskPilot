@@ -1,47 +1,41 @@
 using Application.Abstractions.Persistence;
 using Application.Common.Exceptions;
+using Application.Common.Handlers;
 using MediatR;
 
 namespace Application.Commands.Tasks;
 
-public class UpdateTaskItemCommandHandler : IRequestHandler<UpdateTaskItemCommand>
+public class UpdateTaskItemCommandHandler : BaseCommandHandler, IRequestHandler<UpdateTaskItemCommand>
 {
-    private readonly ITaskItemRepository _taskItemRepository;
-    private readonly IStateRepository _stateRepository;
-    private readonly IUnitOfWork _unitOfWork;
-
-    public UpdateTaskItemCommandHandler(
-        ITaskItemRepository taskItemRepository,
-        IStateRepository stateRepository,
-        IUnitOfWork unitOfWork)
+    public UpdateTaskItemCommandHandler(IUnitOfWorkFactory unitOfWorkFactory) 
+        : base(unitOfWorkFactory)
     {
-        _taskItemRepository = taskItemRepository;
-        _stateRepository = stateRepository;
-        _unitOfWork = unitOfWork;
     }
 
     public async Task Handle(UpdateTaskItemCommand request, CancellationToken cancellationToken)
     {
-        var taskItem = await _taskItemRepository.GetByIdAsync(request.Id, cancellationToken);
-        
-        if (taskItem is null)
+        await ExecuteInTransactionAsync(async unitOfWork =>
         {
-            throw new NotFoundException($"Task with ID {request.Id} was not found");
-        }
+            var taskItem = await unitOfWork.Tasks.GetByIdAsync(request.Id, cancellationToken);
+            
+            if (taskItem is null)
+            {
+                throw new NotFoundException($"Task with ID {request.Id} was not found");
+            }
 
-        if (!await _stateRepository.IsValidStateForBoardAsync(request.StateId, taskItem.BoardId, cancellationToken))
-        {
-            throw new ValidationException($"State with ID {request.StateId} is not valid for board {taskItem.BoardId}");
-        }
+            if (!await unitOfWork.States.IsValidStateForBoardAsync(request.StateId, taskItem.BoardId, cancellationToken))
+            {
+                throw new ValidationException($"State with ID {request.StateId} is not valid for board {taskItem.BoardId}");
+            }
 
-        taskItem.Title = request.Title;
-        taskItem.Description = request.Description;
-        taskItem.StateId = request.StateId;
-        taskItem.AssigneeId = request.AssigneeId;
-        taskItem.DueDate = request.DueDate;
-        taskItem.UpdatedAt = DateTime.UtcNow;
+            taskItem.Title = request.Title;
+            taskItem.Description = request.Description;
+            taskItem.StateId = request.StateId;
+            taskItem.AssigneeId = request.AssigneeId;
+            taskItem.DueDate = request.DueDate;
+            taskItem.UpdatedAt = DateTime.UtcNow;
 
-        _taskItemRepository.Update(taskItem);
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
+            unitOfWork.Tasks.Update(taskItem);
+        }, cancellationToken);
     }
 }

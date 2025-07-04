@@ -1,40 +1,39 @@
 using Application.Abstractions.Persistence;
 using Application.Common.Exceptions;
+using Application.Common.Handlers;
 using MediatR;
 
 namespace Application.Commands.States;
 
-public class UpdateStateCommandHandler : IRequestHandler<UpdateStateCommand>
+public class UpdateStateCommandHandler : BaseCommandHandler, IRequestHandler<UpdateStateCommand>
 {
-    private readonly IStateRepository _stateRepository;
-    private readonly IUnitOfWork _unitOfWork;
-
-    public UpdateStateCommandHandler(IStateRepository stateRepository, IUnitOfWork unitOfWork)
+    public UpdateStateCommandHandler(IUnitOfWorkFactory unitOfWorkFactory) 
+        : base(unitOfWorkFactory)
     {
-        _stateRepository = stateRepository;
-        _unitOfWork = unitOfWork;
     }
 
     public async Task Handle(UpdateStateCommand request, CancellationToken cancellationToken)
     {
-        var state = await _stateRepository.GetByIdAsync(request.Id, cancellationToken);
-        
-        if (state is null)
+        await ExecuteInTransactionAsync(async unitOfWork =>
         {
-            throw new NotFoundException($"State with ID {request.Id} was not found");
-        }
+            var state = await unitOfWork.States.GetByIdAsync(request.Id, cancellationToken);
+            
+            if (state is null)
+            {
+                throw new NotFoundException($"State with ID {request.Id} was not found");
+            }
 
-        var existingState = await _stateRepository.GetStateByBoardAndNameAsync(state.BoardId, request.Name, cancellationToken);
-        if (existingState is not null && existingState.Id != request.Id)
-        {
-            throw new ValidationException($"State with name '{request.Name}' already exists in this board");
-        }
+            var existingState = await unitOfWork.States.GetStateByBoardAndNameAsync(state.BoardId, request.Name, cancellationToken);
+            if (existingState is not null && existingState.Id != request.Id)
+            {
+                throw new ValidationException($"State with name '{request.Name}' already exists in this board");
+            }
 
-        state.Name = request.Name;
-        state.Order = request.Order;
-        state.UpdatedAt = DateTime.UtcNow;
+            state.Name = request.Name;
+            state.Order = request.Order;
+            state.UpdatedAt = DateTime.UtcNow;
 
-        _stateRepository.Update(state);
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
+            unitOfWork.States.Update(state);
+        }, cancellationToken);
     }
 }
