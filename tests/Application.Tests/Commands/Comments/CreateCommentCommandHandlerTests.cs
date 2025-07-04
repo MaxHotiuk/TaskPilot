@@ -10,6 +10,7 @@ public class CreateCommentCommandHandlerTests
     private readonly Mock<ITaskItemRepository> _taskItemRepositoryMock;
     private readonly Mock<IUserRepository> _userRepositoryMock;
     private readonly Mock<IUnitOfWork> _unitOfWorkMock;
+    private readonly Mock<IUnitOfWorkFactory> _unitOfWorkFactoryMock;
     private readonly CreateCommentCommandHandler _handler;
 
     public CreateCommentCommandHandlerTests()
@@ -19,11 +20,15 @@ public class CreateCommentCommandHandlerTests
         _taskItemRepositoryMock = _fixture.Freeze<Mock<ITaskItemRepository>>();
         _userRepositoryMock = _fixture.Freeze<Mock<IUserRepository>>();
         _unitOfWorkMock = _fixture.Freeze<Mock<IUnitOfWork>>();
-        _handler = new CreateCommentCommandHandler(
-            _commentRepositoryMock.Object,
-            _taskItemRepositoryMock.Object,
-            _userRepositoryMock.Object,
-            _unitOfWorkMock.Object);
+        _unitOfWorkFactoryMock = _fixture.Freeze<Mock<IUnitOfWorkFactory>>();
+        
+        _unitOfWorkMock.Setup(x => x.Comments).Returns(_commentRepositoryMock.Object);
+        _unitOfWorkMock.Setup(x => x.Tasks).Returns(_taskItemRepositoryMock.Object);
+        _unitOfWorkMock.Setup(x => x.Users).Returns(_userRepositoryMock.Object);
+        _unitOfWorkFactoryMock.Setup(x => x.CreateAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(_unitOfWorkMock.Object);
+        
+        _handler = new CreateCommentCommandHandler(_unitOfWorkFactoryMock.Object);
     }
 
     [Fact]

@@ -7,13 +7,22 @@ public class GetCommentByIdQueryHandlerTests
 {
     private readonly IFixture _fixture;
     private readonly Mock<ICommentRepository> _commentRepositoryMock;
+    private readonly Mock<IUnitOfWork> _unitOfWorkMock;
+    private readonly Mock<IUnitOfWorkFactory> _unitOfWorkFactoryMock;
     private readonly GetCommentByIdQueryHandler _handler;
 
     public GetCommentByIdQueryHandlerTests()
     {
         _fixture = new Fixture().Customize(new AutoMoqCustomization());
         _commentRepositoryMock = _fixture.Freeze<Mock<ICommentRepository>>();
-        _handler = new GetCommentByIdQueryHandler(_commentRepositoryMock.Object);
+        _unitOfWorkMock = _fixture.Freeze<Mock<IUnitOfWork>>();
+        _unitOfWorkFactoryMock = _fixture.Freeze<Mock<IUnitOfWorkFactory>>();
+        
+        _unitOfWorkMock.Setup(x => x.Comments).Returns(_commentRepositoryMock.Object);
+        _unitOfWorkFactoryMock.Setup(x => x.CreateAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(_unitOfWorkMock.Object);
+        
+        _handler = new GetCommentByIdQueryHandler(_unitOfWorkFactoryMock.Object);
     }
 
     [Fact]

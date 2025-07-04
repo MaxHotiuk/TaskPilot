@@ -8,6 +8,7 @@ public class UpdateBoardCommandHandlerTests
     private readonly IFixture _fixture;
     private readonly Mock<IBoardRepository> _boardRepositoryMock;
     private readonly Mock<IUnitOfWork> _unitOfWorkMock;
+    private readonly Mock<IUnitOfWorkFactory> _unitOfWorkFactoryMock;
     private readonly UpdateBoardCommandHandler _handler;
 
     public UpdateBoardCommandHandlerTests()
@@ -15,7 +16,13 @@ public class UpdateBoardCommandHandlerTests
         _fixture = new Fixture().Customize(new AutoMoqCustomization());
         _boardRepositoryMock = _fixture.Freeze<Mock<IBoardRepository>>();
         _unitOfWorkMock = _fixture.Freeze<Mock<IUnitOfWork>>();
-        _handler = new UpdateBoardCommandHandler(_boardRepositoryMock.Object, _unitOfWorkMock.Object);
+        _unitOfWorkFactoryMock = _fixture.Freeze<Mock<IUnitOfWorkFactory>>();
+        
+        _unitOfWorkMock.Setup(x => x.Boards).Returns(_boardRepositoryMock.Object);
+        _unitOfWorkFactoryMock.Setup(x => x.CreateAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(_unitOfWorkMock.Object);
+        
+        _handler = new UpdateBoardCommandHandler(_unitOfWorkFactoryMock.Object);
     }
 
     [Fact]

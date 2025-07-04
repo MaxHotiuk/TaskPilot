@@ -8,6 +8,7 @@ public class DeleteUserCommandHandlerTests
     private readonly IFixture _fixture;
     private readonly Mock<IUserRepository> _userRepositoryMock;
     private readonly Mock<IUnitOfWork> _unitOfWorkMock;
+    private readonly Mock<IUnitOfWorkFactory> _unitOfWorkFactoryMock;
     private readonly DeleteUserCommandHandler _handler;
 
     public DeleteUserCommandHandlerTests()
@@ -15,7 +16,13 @@ public class DeleteUserCommandHandlerTests
         _fixture = new Fixture().Customize(new AutoMoqCustomization());
         _userRepositoryMock = _fixture.Freeze<Mock<IUserRepository>>();
         _unitOfWorkMock = _fixture.Freeze<Mock<IUnitOfWork>>();
-        _handler = new DeleteUserCommandHandler(_userRepositoryMock.Object, _unitOfWorkMock.Object);
+        _unitOfWorkFactoryMock = _fixture.Freeze<Mock<IUnitOfWorkFactory>>();
+        
+        _unitOfWorkMock.Setup(x => x.Users).Returns(_userRepositoryMock.Object);
+        _unitOfWorkFactoryMock.Setup(x => x.CreateAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(_unitOfWorkMock.Object);
+        
+        _handler = new DeleteUserCommandHandler(_unitOfWorkFactoryMock.Object);
     }
 
     [Fact]

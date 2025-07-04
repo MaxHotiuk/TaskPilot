@@ -10,6 +10,7 @@ public class CreateTaskItemCommandHandlerTests
     private readonly Mock<IBoardRepository> _boardRepositoryMock;
     private readonly Mock<IStateRepository> _stateRepositoryMock;
     private readonly Mock<IUnitOfWork> _unitOfWorkMock;
+    private readonly Mock<IUnitOfWorkFactory> _unitOfWorkFactoryMock;
     private readonly CreateTaskItemCommandHandler _handler;
 
     public CreateTaskItemCommandHandlerTests()
@@ -19,11 +20,15 @@ public class CreateTaskItemCommandHandlerTests
         _boardRepositoryMock = _fixture.Freeze<Mock<IBoardRepository>>();
         _stateRepositoryMock = _fixture.Freeze<Mock<IStateRepository>>();
         _unitOfWorkMock = _fixture.Freeze<Mock<IUnitOfWork>>();
-        _handler = new CreateTaskItemCommandHandler(
-            _taskItemRepositoryMock.Object,
-            _boardRepositoryMock.Object,
-            _stateRepositoryMock.Object,
-            _unitOfWorkMock.Object);
+        _unitOfWorkFactoryMock = _fixture.Freeze<Mock<IUnitOfWorkFactory>>();
+        
+        _unitOfWorkMock.Setup(x => x.Tasks).Returns(_taskItemRepositoryMock.Object);
+        _unitOfWorkMock.Setup(x => x.Boards).Returns(_boardRepositoryMock.Object);
+        _unitOfWorkMock.Setup(x => x.States).Returns(_stateRepositoryMock.Object);
+        _unitOfWorkFactoryMock.Setup(x => x.CreateAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(_unitOfWorkMock.Object);
+        
+        _handler = new CreateTaskItemCommandHandler(_unitOfWorkFactoryMock.Object);
     }
 
     [Fact]

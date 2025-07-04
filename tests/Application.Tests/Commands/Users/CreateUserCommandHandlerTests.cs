@@ -8,6 +8,7 @@ public class CreateUserCommandHandlerTests
     private readonly IFixture _fixture;
     private readonly Mock<IUserRepository> _userRepositoryMock;
     private readonly Mock<IUnitOfWork> _unitOfWorkMock;
+    private readonly Mock<IUnitOfWorkFactory> _unitOfWorkFactoryMock;
     private readonly CreateUserCommandHandler _handler;
 
     public CreateUserCommandHandlerTests()
@@ -15,7 +16,13 @@ public class CreateUserCommandHandlerTests
         _fixture = new Fixture().Customize(new AutoMoqCustomization());
         _userRepositoryMock = _fixture.Freeze<Mock<IUserRepository>>();
         _unitOfWorkMock = _fixture.Freeze<Mock<IUnitOfWork>>();
-        _handler = new CreateUserCommandHandler(_userRepositoryMock.Object, _unitOfWorkMock.Object);
+        _unitOfWorkFactoryMock = _fixture.Freeze<Mock<IUnitOfWorkFactory>>();
+        
+        _unitOfWorkMock.Setup(x => x.Users).Returns(_userRepositoryMock.Object);
+        _unitOfWorkFactoryMock.Setup(x => x.CreateAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(_unitOfWorkMock.Object);
+        
+        _handler = new CreateUserCommandHandler(_unitOfWorkFactoryMock.Object);
     }
 
     [Fact]
@@ -54,6 +61,7 @@ public class CreateUserCommandHandlerTests
             Times.Once);
 
         _unitOfWorkMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+        _unitOfWorkMock.Verify(x => x.CommitTransactionAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -78,6 +86,7 @@ public class CreateUserCommandHandlerTests
 
         _userRepositoryMock.Verify(x => x.AddAsync(It.IsAny<User>(), It.IsAny<CancellationToken>()), Times.Never);
         _unitOfWorkMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
+        _unitOfWorkMock.Verify(x => x.CommitTransactionAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
@@ -106,6 +115,7 @@ public class CreateUserCommandHandlerTests
 
         _userRepositoryMock.Verify(x => x.AddAsync(It.IsAny<User>(), It.IsAny<CancellationToken>()), Times.Never);
         _unitOfWorkMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
+        _unitOfWorkMock.Verify(x => x.CommitTransactionAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
