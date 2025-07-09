@@ -16,6 +16,7 @@ public static class Policies
     public const string RequireBoardOwner = "RequireBoardOwner";
     public const string RequireBoardMemberOrOwner = "RequireBoardMemberOrOwner";
     public const string RequireCommentOwner = "RequireCommentOwner";
+    public const string RequireSelfUpdate = "RequireSelfUpdate";
 }
 
 public static class BoardMemberRoles

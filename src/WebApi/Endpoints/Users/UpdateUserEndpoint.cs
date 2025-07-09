@@ -1,4 +1,5 @@
 using Application.Commands.Users;
+using Domain.Common.Authorization;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
@@ -26,7 +27,7 @@ public class UpdateUserEndpoint : EndpointBaseWithRequest<UpdateUserCommand>
             })
             .WithName("UpdateUser")
             .WithTags("Users")
-            .RequireAuthorization()
+            .RequireAuthorization(Policies.RequireSelfUpdate)
             .Produces(StatusCodes.Status204NoContent)
             .Produces(StatusCodes.Status401Unauthorized)
             .Produces(StatusCodes.Status404NotFound)

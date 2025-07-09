@@ -19,7 +19,7 @@ public class DeleteUserEndpoint : EndpointBaseWithRequest<DeleteUserCommand>
             })
             .WithName("DeleteUser")
             .WithTags("Users")
-            .RequireAuthorization(Policies.RequireAdminRole)
+            .RequireAuthorization(Policies.RequireSelfUpdate)
             .Produces(StatusCodes.Status204NoContent)
             .Produces(StatusCodes.Status401Unauthorized)
             .Produces(StatusCodes.Status403Forbidden)
