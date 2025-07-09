@@ -41,12 +41,16 @@ public static class AuthenticationExtensions
             
             options.AddPolicy(Policies.RequireBoardMemberOrOwner, policy =>
                 policy.Requirements.Add(new BoardMemberOrOwnerRequirement()));
+            
+            options.AddPolicy(Policies.RequireCommentOwner, policy =>
+                policy.Requirements.Add(new CommentOwnerRequirement()));
         });
 
         services.AddScoped<IAuthorizationHandler, RoleAuthorizationHandler>();
         services.AddScoped<IAuthorizationHandler, BoardMemberAuthorizationHandler>();
         services.AddScoped<IAuthorizationHandler, BoardOwnerAuthorizationHandler>();
         services.AddScoped<IAuthorizationHandler, BoardMemberOrOwnerAuthorizationHandler>();
+        services.AddScoped<IAuthorizationHandler, CommentOwnerAuthorizationHandler>();
 
         services.AddHttpContextAccessor();
 
