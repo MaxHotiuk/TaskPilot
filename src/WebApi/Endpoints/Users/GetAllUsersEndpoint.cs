@@ -20,7 +20,7 @@ public class GetAllUsersEndpoint : EndpointBaseWithRequest<GetAllUsersQuery, IEn
             })
             .WithName("GetAllUsers")
             .WithTags("Users")
-            .RequireAuthorization(Policies.RequireAdminRole)
+            .RequireAuthorization(Policies.RequireUserRole)
             .Produces(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status401Unauthorized)
             .Produces(StatusCodes.Status403Forbidden)
