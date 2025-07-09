@@ -6,6 +6,11 @@ namespace Infrastructure.Services.Storage;
 
 public class AttachmentService : IAttachmentService
 {
+    private const string AttachmentBlobNameTemplate = "attachments/{0}/{1}";
+    private const string AttachmentPrefixTemplate = "attachments/{0}/";
+    private const string AttachmentApiUrlTemplate = "/api/attachments/{0}";
+    private const string DefaultContentType = "application/octet-stream";
+
     private readonly IBlobStorageService _blobStorageService;
 
     public AttachmentService(IBlobStorageService blobStorageService)
@@ -13,9 +18,9 @@ public class AttachmentService : IAttachmentService
         _blobStorageService = blobStorageService;
     }
 
-    public async Task<AttachmentDto> UploadAttachmentAsync(Guid entityId, Stream fileStream, string fileName, string contentType, CancellationToken cancellationToken = default)
+    public async Task<AttachmentDto> UploadAsync(Guid entityId, Stream fileStream, string fileName, string contentType, CancellationToken cancellationToken = default)
     {
-        var blobName = $"attachments/{entityId}/{fileName}";
+        var blobName = string.Format(AttachmentBlobNameTemplate, entityId, fileName);
         var url = await _blobStorageService.UploadFileAsync(fileStream, blobName, contentType, cancellationToken);
         return new AttachmentDto
         {
@@ -27,28 +32,28 @@ public class AttachmentService : IAttachmentService
         };
     }
 
-    public async Task<AttachmentDto?> GetAttachmentAsync(string fileName, CancellationToken cancellationToken = default)
+    public async Task<AttachmentDto?> GetAsync(string fileName, CancellationToken cancellationToken = default)
     {
         var metadata = await _blobStorageService.GetFileMetadataAsync(fileName, cancellationToken);
         if (metadata == null) return null;
         return new AttachmentDto
         {
             FileName = fileName,
-            Url = metadata.Url ?? $"/api/attachments/{fileName}",
-            ContentType = metadata.ContentType ?? "application/octet-stream",
+            Url = metadata.Url ?? string.Format(AttachmentApiUrlTemplate, fileName),
+            ContentType = metadata.ContentType ?? DefaultContentType,
             Size = metadata.Size,
             UploadedAt = metadata.UploadedAt
         };
     }
 
-    public async Task DeleteAttachmentAsync(string fileName, CancellationToken cancellationToken = default)
+    public async Task DeleteAsync(string fileName, CancellationToken cancellationToken = default)
     {
         await _blobStorageService.DeleteFileAsync(fileName, cancellationToken);
     }
 
-    public async Task<IEnumerable<AttachmentDto>> GetAttachmentsForEntityAsync(Guid entityId, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<AttachmentDto>> GetForEntityAsync(Guid entityId, CancellationToken cancellationToken = default)
     {
-        var prefix = $"attachments/{entityId}/";
+        var prefix = string.Format(AttachmentPrefixTemplate, entityId);
         var blobs = await _blobStorageService.ListFilesWithMetadataAsync(prefix, cancellationToken);
         var attachments = new List<AttachmentDto>();
         foreach (var blob in blobs)
@@ -56,8 +61,8 @@ public class AttachmentService : IAttachmentService
             attachments.Add(new AttachmentDto
             {
                 FileName = blob.FileName,
-                Url = blob.Url ?? $"/api/attachments/{blob.BlobName}",
-                ContentType = blob.ContentType ?? "application/octet-stream",
+                Url = blob.Url ?? string.Format(AttachmentApiUrlTemplate, blob.BlobName),
+                ContentType = blob.ContentType ?? DefaultContentType,
                 Size = blob.Size,
                 UploadedAt = blob.UploadedAt
             });

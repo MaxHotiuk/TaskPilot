@@ -10,7 +10,7 @@ public class GetAvatarEndpoint : EndpointBase
     {
         app.MapGet("/api/avatars/{userId}", async (Guid userId, IAvatarService avatarService, CancellationToken cancellationToken) =>
         {
-            var avatar = await avatarService.GetAvatarAsync(userId, cancellationToken);
+            var avatar = await avatarService.GetAsync(userId, cancellationToken);
             if (avatar == null)
                 return Results.NotFound();
             return Results.Ok(avatar);

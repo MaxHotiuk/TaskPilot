@@ -11,6 +11,10 @@ namespace Infrastructure.Services.Storage;
 
 public class AvatarService : IAvatarService
 {
+    private const string AvatarOriginalFileNameTemplate = "avatars/{0}/original.png";
+    private const string AvatarCompressedFileNameTemplate = "avatars/{0}/compressed.png";
+    private const string DefaultAvatarContentType = "image/png";
+
     private readonly IBlobStorageService _blobStorageService;
     private readonly IConfiguration _configuration;
     private readonly int _avatarSize;
@@ -22,7 +26,7 @@ public class AvatarService : IAvatarService
         _avatarSize = int.TryParse(_configuration["Avatar:Size"], out var size) ? size : 256;
     }
 
-    public async Task<AvatarDto> UploadAvatarAsync(Guid userId, Stream imageStream, string contentType, CancellationToken cancellationToken = default)
+    public async Task<AvatarDto> UploadAsync(Guid userId, Stream imageStream, string contentType, CancellationToken cancellationToken = default)
     {
         using var image = await Image.LoadAsync(imageStream, cancellationToken);
         if (image.Width != image.Height)
@@ -33,12 +37,12 @@ public class AvatarService : IAvatarService
         await image.SaveAsync(compressedStream, new PngEncoder { CompressionLevel = PngCompressionLevel.BestCompression }, cancellationToken);
         compressedStream.Position = 0;
 
-        var originalFileName = $"avatars/{userId}/original.png";
-        var compressedFileName = $"avatars/{userId}/compressed.png";
+        var originalFileName = string.Format(AvatarOriginalFileNameTemplate, userId);
+        var compressedFileName = string.Format(AvatarCompressedFileNameTemplate, userId);
 
         imageStream.Position = 0;
         var originalUrl = await _blobStorageService.UploadFileAsync(imageStream, originalFileName, contentType, cancellationToken);
-        var compressedUrl = await _blobStorageService.UploadFileAsync(compressedStream, compressedFileName, "image/png", cancellationToken);
+        var compressedUrl = await _blobStorageService.UploadFileAsync(compressedStream, compressedFileName, DefaultAvatarContentType, cancellationToken);
 
         return new AvatarDto
         {
@@ -51,10 +55,10 @@ public class AvatarService : IAvatarService
         };
     }
 
-    public async Task<AvatarDto?> GetAvatarAsync(Guid userId, CancellationToken cancellationToken = default)
+    public async Task<AvatarDto?> GetAsync(Guid userId, CancellationToken cancellationToken = default)
     {
-        var originalFileName = $"avatars/{userId}/original.png";
-        var compressedFileName = $"avatars/{userId}/compressed.png";
+        var originalFileName = string.Format(AvatarOriginalFileNameTemplate, userId);
+        var compressedFileName = string.Format(AvatarCompressedFileNameTemplate, userId);
         var original = await _blobStorageService.GetFileMetadataAsync(originalFileName, cancellationToken);
         var compressed = await _blobStorageService.GetFileMetadataAsync(compressedFileName, cancellationToken);
         if (original == null || compressed == null || compressed.Url == null || original.Url == null)
@@ -65,15 +69,15 @@ public class AvatarService : IAvatarService
             OriginalUrl = original.Url,
             CompressedUrl = compressed.Url,
             Size = _avatarSize,
-            ContentType = original.ContentType ?? "image/png",
+            ContentType = original.ContentType ?? DefaultAvatarContentType,
             UploadedAt = original.UploadedAt,
         };
     }
 
-    public async Task DeleteAvatarAsync(Guid userId, CancellationToken cancellationToken = default)
+    public async Task DeleteAsync(Guid userId, CancellationToken cancellationToken = default)
     {
-        var originalFileName = $"avatars/{userId}/original.png";
-        var compressedFileName = $"avatars/{userId}/compressed.png";
+        var originalFileName = string.Format(AvatarOriginalFileNameTemplate, userId);
+        var compressedFileName = string.Format(AvatarCompressedFileNameTemplate, userId);
         await _blobStorageService.DeleteFileAsync(originalFileName, cancellationToken);
         await _blobStorageService.DeleteFileAsync(compressedFileName, cancellationToken);
     }

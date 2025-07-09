@@ -44,6 +44,10 @@ public static class AuthenticationExtensions
             
             options.AddPolicy(Policies.RequireCommentOwner, policy =>
                 policy.Requirements.Add(new CommentOwnerRequirement()));
+
+            // New policy: Check if user is changing info about himself
+            options.AddPolicy(Policies.RequireSelfUpdate, policy =>
+                policy.Requirements.Add(new SelfUpdateRequirement()));
         });
 
         services.AddScoped<IAuthorizationHandler, RoleAuthorizationHandler>();
@@ -51,6 +55,9 @@ public static class AuthenticationExtensions
         services.AddScoped<IAuthorizationHandler, BoardOwnerAuthorizationHandler>();
         services.AddScoped<IAuthorizationHandler, BoardMemberOrOwnerAuthorizationHandler>();
         services.AddScoped<IAuthorizationHandler, CommentOwnerAuthorizationHandler>();
+
+        // Register the new handler
+        services.AddScoped<IAuthorizationHandler, SelfUpdateAuthorizationHandler>();
 
         services.AddHttpContextAccessor();
 

@@ -11,7 +11,7 @@ public class GetAttachmentsEndpoint : EndpointBase
     {
         app.MapGet("/api/attachments/{entityId}", async (Guid entityId, IAttachmentService attachmentService, CancellationToken cancellationToken) =>
         {
-            var attachments = await attachmentService.GetAttachmentsForEntityAsync(entityId, cancellationToken);
+            var attachments = await attachmentService.GetForEntityAsync(entityId, cancellationToken);
             if (attachments == null || !attachments.Any())
                 return Results.NotFound();
             return Results.Ok(attachments);

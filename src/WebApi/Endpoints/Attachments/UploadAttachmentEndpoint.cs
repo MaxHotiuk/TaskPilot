@@ -14,7 +14,7 @@ public class UploadAttachmentEndpoint : EndpointBase
             if (file == null || file.Length == 0)
                 return Results.BadRequest("No file uploaded.");
             using var stream = file.OpenReadStream();
-            var attachment = await attachmentService.UploadAttachmentAsync(entityId, stream, file.FileName, file.ContentType, cancellationToken);
+            var attachment = await attachmentService.UploadAsync(entityId, stream, file.FileName, file.ContentType, cancellationToken);
             return Results.Ok(attachment);
         })
         .WithName("UploadAttachment")

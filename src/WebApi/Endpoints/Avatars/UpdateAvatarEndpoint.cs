@@ -6,17 +6,18 @@ using Microsoft.AspNetCore.Routing;
 
 namespace WebApi.Endpoints.Avatars;
 
-public class UploadAvatarEndpoint : EndpointBase
+public class UpdateAvatarEndpoint : EndpointBase
 {
     public override void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapPost("/api/avatars/{userId}", async (Guid userId, IFormFile file, IAvatarService avatarService, CancellationToken cancellationToken) =>
+        app.MapPut("/api/avatars/{userId}", async (Guid userId, IFormFile file, IAvatarService avatarService, CancellationToken cancellationToken) =>
         {
             if (file == null || file.Length == 0)
                 return Results.BadRequest("No file uploaded.");
             using var stream = file.OpenReadStream();
             try
             {
+                await avatarService.DeleteAsync(userId, cancellationToken);
                 var avatar = await avatarService.UploadAsync(userId, stream, file.ContentType, cancellationToken);
                 return Results.Ok(avatar);
             }
@@ -25,7 +26,7 @@ public class UploadAvatarEndpoint : EndpointBase
                 return Results.BadRequest(ex.Message);
             }
         })
-        .WithName("UploadAvatar")
+        .WithName("UpdateAvatar")
         .WithTags("Avatars")
         .DisableAntiforgery()
         .RequireAuthorization(Policies.RequireSelfUpdate)
