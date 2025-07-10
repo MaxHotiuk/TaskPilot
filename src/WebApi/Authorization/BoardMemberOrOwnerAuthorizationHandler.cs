@@ -2,6 +2,7 @@ using Application.Abstractions.Authentication;
 using Application.Queries.Boards;
 using Application.Queries.BoardMembers;
 using Application.Queries.Tasks;
+using Application.Queries.States;
 using Microsoft.AspNetCore.Authorization;
 using Domain.Common.Authorization;
 using MediatR;
@@ -119,20 +120,37 @@ public class BoardMemberOrOwnerAuthorizationHandler : AuthorizationHandler<Board
             }
         }
 
-        if (path != null && path.Equals("/api/tasks") && 
+        if (path != null && path.StartsWith("/api/states/") && 
+            httpContext.Request.RouteValues.TryGetValue("id", out var stateIdValue) && 
+            int.TryParse(stateIdValue?.ToString(), out var stateId))
+        {
+            try
+            {
+                var state = await _mediator.Send(new GetStateByIdQuery(stateId), CancellationToken.None);
+                if (state != null)
+                {
+                    return state.BoardId;
+                }
+            }
+            catch
+            {
+            }
+        }
+
+        if (path != null && path.Equals("/api/tasks") &&
             httpContext.Request.Method.Equals("POST", StringComparison.OrdinalIgnoreCase))
         {
             try
             {
                 httpContext.Request.EnableBuffering();
-                
+
                 httpContext.Request.Body.Position = 0;
-                
+
                 using var reader = new StreamReader(httpContext.Request.Body, leaveOpen: true);
                 var body = await reader.ReadToEndAsync();
-                
+
                 httpContext.Request.Body.Position = 0;
-                
+
                 if (!string.IsNullOrEmpty(body))
                 {
                     using var document = JsonDocument.Parse(body);
