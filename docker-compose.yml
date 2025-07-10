@@ -6,4 +6,6 @@ services:
       - "10000:10000"
     volumes:
       - ./.containers/blob_storage/data:/data
+    env_file:
+      - .env.docker
     command: "azurite-blob --blobHost 0.0.0.0 -l /data --skipApiVersionCheck"
