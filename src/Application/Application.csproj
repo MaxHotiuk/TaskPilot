@@ -9,7 +9,6 @@
     <PackageReference Include="Azure.Storage.Common" Version="12.25.0-beta.1" />
     <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="12.0.0" />
     <PackageReference Include="MediatR" Version="12.5.0" />
-    <PackageReference Include="WindowsAzure.Storage" Version="9.3.3" />
   </ItemGroup>
 
   <PropertyGroup>
