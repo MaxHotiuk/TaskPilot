@@ -1,6 +1,8 @@
 using Application.Abstractions.Storage;
+using Azure.Storage;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
+using Azure.Storage.Sas;
 using Microsoft.Extensions.Configuration;
 using System.Diagnostics;
 
@@ -9,51 +11,118 @@ namespace Infrastructure.Services.Storage;
 public class BlobStorageService : IBlobStorageService
 {
     private readonly BlobServiceClient _blobServiceClient;
+    private readonly StorageSharedKeyCredential? _sharedKeyCredential;
     private readonly string _containerName;
+    private string? _accountName;
+    private string? _accountKey;
 
     public BlobStorageService(IConfiguration configuration)
     {
         var connectionString = configuration["AzureBlob:ConnectionString"];
-        _containerName = configuration["AzureBlob:ContainerName"] ?? "taskpilot-files";
+        _containerName = configuration["AzureBlob:ContainerName"] ?? "files";
         _blobServiceClient = new BlobServiceClient(connectionString);
+        
+        ExtractAccountCredentials(connectionString!);
+        
+        if (_accountName != null && _accountKey != null)
+        {
+            _sharedKeyCredential = new StorageSharedKeyCredential(_accountName, _accountKey);
+        }
+    }
+
+    private void ExtractAccountCredentials(string connectionString)
+    {
+        var parts = connectionString.Split(';');
+        foreach (var part in parts)
+        {
+            if (part.StartsWith("AccountName="))
+                _accountName = part.Substring("AccountName=".Length);
+            else if (part.StartsWith("AccountKey="))
+                _accountKey = part.Substring("AccountKey=".Length);
+        }
+    }
+
+    public string GenerateBlobSasToken(string fileName, TimeSpan expiration)
+        => GenerateBlobSasToken(fileName, expiration, BlobSasPermissions.Read);
+
+    public string GenerateBlobSasToken(string fileName, TimeSpan expiration, BlobSasPermissions permissions)
+    {
+        if (_sharedKeyCredential == null)
+            throw new InvalidOperationException("Storage credentials not initialized");
+
+        var sasBuilder = new BlobSasBuilder
+        {
+            BlobContainerName = _containerName,
+            BlobName = fileName,
+            Resource = "b",
+            ExpiresOn = DateTimeOffset.UtcNow.Add(expiration)
+        };
+
+        sasBuilder.SetPermissions(permissions);
+
+        var blobUriBuilder = new BlobUriBuilder(_blobServiceClient.Uri)
+        {
+            BlobContainerName = _containerName,
+            BlobName = fileName,
+            Sas = sasBuilder.ToSasQueryParameters(_sharedKeyCredential)
+        };
+
+        return blobUriBuilder.ToUri().ToString();
+    }
+
+    public string GenerateAccountSasToken(TimeSpan expiration, AccountSasPermissions permissions, AccountSasResourceTypes resourceTypes)
+    {
+        if (_sharedKeyCredential == null)
+            throw new InvalidOperationException("Storage credentials not initialized");
+
+        var sasBuilder = new AccountSasBuilder
+        {
+            Services = AccountSasServices.Blobs,
+            ResourceTypes = resourceTypes,
+            ExpiresOn = DateTimeOffset.UtcNow.Add(expiration)
+        };
+
+        sasBuilder.SetPermissions(permissions);
+
+        return sasBuilder.ToSasQueryParameters(_sharedKeyCredential).ToString();
     }
 
     public async Task<string> UploadFileAsync(Stream fileStream, string fileName, string contentType, CancellationToken cancellationToken = default)
     {
-        var containerClient = _blobServiceClient.GetBlobContainerClient(_containerName);
-        await containerClient.CreateIfNotExistsAsync(PublicAccessType.Blob, cancellationToken: cancellationToken);
+        var containerClient = await GetOrCreateContainerAsync(cancellationToken);
+        
         var blobClient = containerClient.GetBlobClient(fileName);
         await blobClient.UploadAsync(fileStream, new BlobHttpHeaders { ContentType = contentType }, cancellationToken: cancellationToken);
-        return blobClient.Uri.ToString();
+        
+        return GenerateBlobSasToken(fileName, TimeSpan.FromHours(1));
     }
 
     public async Task<Stream?> GetFileAsync(string fileName, CancellationToken cancellationToken = default)
     {
-        var containerClient = _blobServiceClient.GetBlobContainerClient(_containerName);
-        var blobClient = containerClient.GetBlobClient(fileName);
-        if (!await blobClient.ExistsAsync(cancellationToken))
+        var blobClient = await GetBlobClientAsync(fileName, cancellationToken);
+        if (blobClient == null)
             return null;
-        var response = await blobClient.OpenReadAsync(cancellationToken: cancellationToken);
-        return response;
+            
+        return await blobClient.OpenReadAsync(cancellationToken: cancellationToken);
     }
 
     public async Task DeleteFileAsync(string fileName, CancellationToken cancellationToken = default)
     {
-        var containerClient = _blobServiceClient.GetBlobContainerClient(_containerName);
+        var containerClient = GetContainerClient();
         var blobClient = containerClient.GetBlobClient(fileName);
         await blobClient.DeleteIfExistsAsync(cancellationToken: cancellationToken);
     }
 
     public async Task<bool> FileExistsAsync(string fileName, CancellationToken cancellationToken = default)
     {
-        var containerClient = _blobServiceClient.GetBlobContainerClient(_containerName);
+        var containerClient = GetContainerClient();
         var blobClient = containerClient.GetBlobClient(fileName);
         return await blobClient.ExistsAsync(cancellationToken);
     }
 
     public async Task<IEnumerable<string>> ListFilesAsync(string prefix, CancellationToken cancellationToken = default)
     {
-        var containerClient = _blobServiceClient.GetBlobContainerClient(_containerName);
+        var containerClient = GetContainerClient();
         var results = new List<string>();
         await foreach (var blobItem in containerClient.GetBlobsAsync(prefix: prefix, cancellationToken: cancellationToken))
         {
@@ -64,40 +133,61 @@ public class BlobStorageService : IBlobStorageService
 
     public async Task<BlobFileMetadata?> GetFileMetadataAsync(string fileName, CancellationToken cancellationToken = default)
     {
-        var containerClient = _blobServiceClient.GetBlobContainerClient(_containerName);
-        var blobClient = containerClient.GetBlobClient(fileName);
-        if (!await blobClient.ExistsAsync(cancellationToken))
+        var blobClient = await GetBlobClientAsync(fileName, cancellationToken);
+        if (blobClient == null)
             return null;
+            
         var properties = await blobClient.GetPropertiesAsync(cancellationToken: cancellationToken);
-        return new BlobFileMetadata
-        {
-            FileName = fileName,
-            BlobName = fileName,
-            Url = blobClient.Uri.ToString(),
-            ContentType = properties.Value.ContentType,
-            Size = properties.Value.ContentLength,
-            UploadedAt = properties.Value.CreatedOn.UtcDateTime
-        };
+        return CreateBlobFileMetadata(fileName, fileName, properties.Value);
     }
 
     public async Task<IEnumerable<BlobFileMetadata>> ListFilesWithMetadataAsync(string prefix, CancellationToken cancellationToken = default)
     {
-        var containerClient = _blobServiceClient.GetBlobContainerClient(_containerName);
+        var containerClient = GetContainerClient();
         var results = new List<BlobFileMetadata>();
+        
         await foreach (var blobItem in containerClient.GetBlobsAsync(prefix: prefix, cancellationToken: cancellationToken))
         {
             var blobClient = containerClient.GetBlobClient(blobItem.Name);
             var properties = await blobClient.GetPropertiesAsync(cancellationToken: cancellationToken);
-            results.Add(new BlobFileMetadata
-            {
-                FileName = blobItem.Name.Substring(prefix.Length),
-                BlobName = blobItem.Name,
-                Url = blobClient.Uri.ToString(),
-                ContentType = properties.Value.ContentType,
-                Size = properties.Value.ContentLength,
-                UploadedAt = properties.Value.CreatedOn.UtcDateTime
-            });
+            
+            var fileName = blobItem.Name.Substring(prefix.Length);
+            results.Add(CreateBlobFileMetadata(fileName, blobItem.Name, properties.Value));
         }
         return results;
+    }
+
+    private BlobContainerClient GetContainerClient()
+        => _blobServiceClient.GetBlobContainerClient(_containerName);
+
+    private async Task<BlobContainerClient> GetOrCreateContainerAsync(CancellationToken cancellationToken = default)
+    {
+        var containerClient = GetContainerClient();
+        await containerClient.CreateIfNotExistsAsync(PublicAccessType.None, cancellationToken: cancellationToken);
+        return containerClient;
+    }
+
+    private async Task<BlobClient?> GetBlobClientAsync(string fileName, CancellationToken cancellationToken = default)
+    {
+        var containerClient = GetContainerClient();
+        var blobClient = containerClient.GetBlobClient(fileName);
+        
+        if (!await blobClient.ExistsAsync(cancellationToken))
+            return null;
+            
+        return blobClient;
+    }
+
+    private BlobFileMetadata CreateBlobFileMetadata(string fileName, string blobName, BlobProperties properties)
+    {
+        return new BlobFileMetadata
+        {
+            FileName = fileName,
+            BlobName = blobName,
+            Url = GenerateBlobSasToken(blobName, TimeSpan.FromHours(1)),
+            ContentType = properties.ContentType,
+            Size = properties.ContentLength,
+            UploadedAt = properties.CreatedOn.UtcDateTime
+        };
     }
 }

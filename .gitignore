@@ -549,3 +549,4 @@ chat-test.html
 appsettings.Development.json
 
 .containers/
+.env.docker
