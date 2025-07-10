@@ -1,7 +1,7 @@
 services:
   taskpilot-blob-storage:
     image: mcr.microsoft.com/azure-storage/azurite:latest
-    container_name: taskpilot-blob-storage
+    container_name: taskpilotst-blob-storage
     ports:
       - "10000:10000"
     volumes:

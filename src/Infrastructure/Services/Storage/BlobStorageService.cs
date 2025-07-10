@@ -1,6 +1,8 @@
 using Application.Abstractions.Storage;
+using Azure.Storage;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
+using Azure.Storage.Sas;
 using Microsoft.Extensions.Configuration;
 using System.Diagnostics;
 
@@ -9,22 +11,115 @@ namespace Infrastructure.Services.Storage;
 public class BlobStorageService : IBlobStorageService
 {
     private readonly BlobServiceClient _blobServiceClient;
+    private readonly StorageSharedKeyCredential? _sharedKeyCredential;
     private readonly string _containerName;
+    private string? _accountName;
+    private string? _accountKey;
 
     public BlobStorageService(IConfiguration configuration)
     {
         var connectionString = configuration["AzureBlob:ConnectionString"];
-        _containerName = configuration["AzureBlob:ContainerName"] ?? "taskpilot-files";
+        _containerName = configuration["AzureBlob:ContainerName"] ?? "files";
         _blobServiceClient = new BlobServiceClient(connectionString);
+        
+        ExtractAccountCredentials(connectionString!);
+        
+        if (_accountName != null && _accountKey != null)
+        {
+            _sharedKeyCredential = new StorageSharedKeyCredential(_accountName, _accountKey);
+        }
+    }
+
+    private void ExtractAccountCredentials(string connectionString)
+    {
+        var parts = connectionString.Split(';');
+        foreach (var part in parts)
+        {
+            if (part.StartsWith("AccountName="))
+                _accountName = part.Substring("AccountName=".Length);
+            else if (part.StartsWith("AccountKey="))
+                _accountKey = part.Substring("AccountKey=".Length);
+        }
+    }
+
+    public string GenerateBlobSasToken(string fileName, TimeSpan expiration)
+    {
+        if (_sharedKeyCredential == null)
+            throw new InvalidOperationException("Storage credentials not initialized");
+
+        var sasBuilder = new BlobSasBuilder
+        {
+            BlobContainerName = _containerName,
+            BlobName = fileName,
+            Resource = "b",
+            ExpiresOn = DateTimeOffset.UtcNow.Add(expiration)
+        };
+
+        sasBuilder.SetPermissions(BlobSasPermissions.Read);
+
+        var sasToken = sasBuilder.ToSasQueryParameters(_sharedKeyCredential).ToString();
+        var blobUriBuilder = new BlobUriBuilder(_blobServiceClient.Uri)
+        {
+            BlobContainerName = _containerName,
+            BlobName = fileName,
+            Sas = sasBuilder.ToSasQueryParameters(_sharedKeyCredential)
+        };
+
+        return blobUriBuilder.ToUri().ToString();
+    }
+
+    public string GenerateBlobSasToken(string fileName, TimeSpan expiration, BlobSasPermissions permissions)
+    {
+        if (_sharedKeyCredential == null)
+            throw new InvalidOperationException("Storage credentials not initialized");
+
+        var sasBuilder = new BlobSasBuilder
+        {
+            BlobContainerName = _containerName,
+            BlobName = fileName,
+            Resource = "b",
+            ExpiresOn = DateTimeOffset.UtcNow.Add(expiration)
+        };
+
+        sasBuilder.SetPermissions(permissions);
+
+        var blobUriBuilder = new BlobUriBuilder(_blobServiceClient.Uri)
+        {
+            BlobContainerName = _containerName,
+            BlobName = fileName,
+            Sas = sasBuilder.ToSasQueryParameters(_sharedKeyCredential)
+        };
+
+        return blobUriBuilder.ToUri().ToString();
+    }
+
+    public string GenerateAccountSasToken(TimeSpan expiration, AccountSasPermissions permissions, AccountSasResourceTypes resourceTypes)
+    {
+        if (_sharedKeyCredential == null)
+            throw new InvalidOperationException("Storage credentials not initialized");
+
+        var sasBuilder = new AccountSasBuilder
+        {
+            Services = AccountSasServices.Blobs,
+            ResourceTypes = resourceTypes,
+            ExpiresOn = DateTimeOffset.UtcNow.Add(expiration)
+        };
+
+        sasBuilder.SetPermissions(permissions);
+
+        return sasBuilder.ToSasQueryParameters(_sharedKeyCredential).ToString();
     }
 
     public async Task<string> UploadFileAsync(Stream fileStream, string fileName, string contentType, CancellationToken cancellationToken = default)
     {
         var containerClient = _blobServiceClient.GetBlobContainerClient(_containerName);
-        await containerClient.CreateIfNotExistsAsync(PublicAccessType.Blob, cancellationToken: cancellationToken);
+        
+        await containerClient.CreateIfNotExistsAsync(PublicAccessType.None, cancellationToken: cancellationToken);
+        
         var blobClient = containerClient.GetBlobClient(fileName);
         await blobClient.UploadAsync(fileStream, new BlobHttpHeaders { ContentType = contentType }, cancellationToken: cancellationToken);
-        return blobClient.Uri.ToString();
+        
+        return GenerateBlobSasToken(fileName, TimeSpan.FromHours(1));
     }
 
     public async Task<Stream?> GetFileAsync(string fileName, CancellationToken cancellationToken = default)
@@ -73,7 +168,7 @@ public class BlobStorageService : IBlobStorageService
         {
             FileName = fileName,
             BlobName = fileName,
-            Url = blobClient.Uri.ToString(),
+            Url = GenerateBlobSasToken(fileName, TimeSpan.FromHours(1)),
             ContentType = properties.Value.ContentType,
             Size = properties.Value.ContentLength,
             UploadedAt = properties.Value.CreatedOn.UtcDateTime
@@ -92,7 +187,7 @@ public class BlobStorageService : IBlobStorageService
             {
                 FileName = blobItem.Name.Substring(prefix.Length),
                 BlobName = blobItem.Name,
-                Url = blobClient.Uri.ToString(),
+                Url = GenerateBlobSasToken(blobItem.Name, TimeSpan.FromHours(1)),
                 ContentType = properties.Value.ContentType,
                 Size = properties.Value.ContentLength,
                 UploadedAt = properties.Value.CreatedOn.UtcDateTime

@@ -1,3 +1,5 @@
+using Azure.Storage.Sas;
+using Azure.Storage.Blobs.Specialized;
 namespace Application.Abstractions.Storage;
 
 public interface IBlobStorageService
@@ -9,4 +11,8 @@ public interface IBlobStorageService
     Task<IEnumerable<string>> ListFilesAsync(string prefix, CancellationToken cancellationToken = default);
     Task<BlobFileMetadata?> GetFileMetadataAsync(string fileName, CancellationToken cancellationToken = default);
     Task<IEnumerable<BlobFileMetadata>> ListFilesWithMetadataAsync(string prefix, CancellationToken cancellationToken = default);
+
+    string GenerateBlobSasToken(string fileName, TimeSpan expiration);
+    string GenerateBlobSasToken(string fileName, TimeSpan expiration, BlobSasPermissions permissions);
+    string GenerateAccountSasToken(TimeSpan expiration, AccountSasPermissions permissions, AccountSasResourceTypes resourceTypes);
 }
