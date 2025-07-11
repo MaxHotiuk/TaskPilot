@@ -12,4 +12,5 @@ public interface IBoardRepository : IRepository<Board, Guid>
     Task<Board?> GetBoardWithMembersAsync(Guid boardId, CancellationToken cancellationToken = default);
     Task<IEnumerable<BoardSearchDto>> SearchBoardsRangeForOwnerAsync(Guid ownerId, string searchTerm, int page, int pageSize, CancellationToken cancellationToken = default);
     Task<IEnumerable<BoardSearchDto>> SearchBoardsRangeForUserAsync(Guid userId, string searchTerm, int page, int pageSize, CancellationToken cancellationToken = default);
+    Task<IEnumerable<BoardSearchDto>> SearchBoardsRangeForMemberAsync(Guid memberId, string searchTerm, int page, int pageSize, CancellationToken cancellationToken = default);
 }

@@ -92,4 +92,25 @@ public class BoardRepository : Repository<Board, Guid>, IBoardRepository
             })
             .ToListAsync(cancellationToken);
     }
+
+    public async Task<IEnumerable<BoardSearchDto>> SearchBoardsRangeForMemberAsync(Guid memberId, string searchTerm, int page, int pageSize, CancellationToken cancellationToken = default)
+    {
+        return await DbSet
+            .Where(b => b.Members.Any(m => m.UserId == memberId) && b.Name.Contains(searchTerm))
+            .OrderByDescending(b => b.CreatedAt)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .Select(b => new BoardSearchDto
+            {
+                Id = b.Id,
+                Name = b.Name,
+                Description = b.Description,
+                CreatedAt = b.CreatedAt,
+                UpdatedAt = b.UpdatedAt,
+                NumberOfMembers = b.Members.Count,
+                NumberOfTasks = b.Tasks.Count,
+                OwnerId = b.OwnerId
+            })
+            .ToListAsync(cancellationToken);
+    }
 }
