@@ -49,4 +49,24 @@ public class BoardRepository : Repository<Board, Guid>, IBoardRepository
             .Include(b => b.Owner)
             .FirstOrDefaultAsync(b => b.Id == boardId, cancellationToken);
     }
+
+    public async Task<IEnumerable<Board>> SearchBoardsRangeForOwnerAsync(Guid ownerId, string searchTerm, int page, int pageSize, CancellationToken cancellationToken = default)
+    {
+        return await DbSet
+            .Where(b => b.OwnerId == ownerId && b.Name.Contains(searchTerm))
+            .OrderByDescending(b => b.CreatedAt)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<IEnumerable<Board>> SearchBoardsRangeForUserAsync(Guid userId, string searchTerm, int page, int pageSize, CancellationToken cancellationToken = default)
+    {
+        return await DbSet
+            .Where(b => (b.OwnerId == userId || b.Members.Any(m => m.UserId == userId)) && b.Name.Contains(searchTerm))
+            .OrderByDescending(b => b.CreatedAt)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(cancellationToken);
+    }
 }
