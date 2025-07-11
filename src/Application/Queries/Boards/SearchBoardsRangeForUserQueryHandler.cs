@@ -18,7 +18,7 @@ public class SearchBoardsRangeForUserQueryHandler : BaseQueryHandler, IRequestHa
         return await ExecuteQueryAsync(async unitOfWork =>
         {
             var boards = await unitOfWork.Boards.SearchBoardsRangeForUserAsync(request.UserId, request.SearchTerm, request.Page, request.PageSize, cancellationToken);
-            return boards.ToSearchDto().OrderBy(b => b.Name);
+            return boards.OrderBy(b => b.Name);
         }, cancellationToken);
     }
 }

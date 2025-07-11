@@ -1,4 +1,5 @@
 using Application.Abstractions.Persistence;
+using Application.Common.Dtos.Boards;
 using Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
@@ -50,23 +51,45 @@ public class BoardRepository : Repository<Board, Guid>, IBoardRepository
             .FirstOrDefaultAsync(b => b.Id == boardId, cancellationToken);
     }
 
-    public async Task<IEnumerable<Board>> SearchBoardsRangeForOwnerAsync(Guid ownerId, string searchTerm, int page, int pageSize, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<BoardSearchDto>> SearchBoardsRangeForOwnerAsync(Guid ownerId, string searchTerm, int page, int pageSize, CancellationToken cancellationToken = default)
     {
         return await DbSet
             .Where(b => b.OwnerId == ownerId && b.Name.Contains(searchTerm))
             .OrderByDescending(b => b.CreatedAt)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
+            .Select(b => new BoardSearchDto
+            {
+                Id = b.Id,
+                Name = b.Name,
+                Description = b.Description,
+                CreatedAt = b.CreatedAt,
+                UpdatedAt = b.UpdatedAt,
+                NumberOfMembers = b.Members.Count,
+                NumberOfTasks = b.Tasks.Count,
+                OwnerId = b.OwnerId
+            })
             .ToListAsync(cancellationToken);
     }
 
-    public async Task<IEnumerable<Board>> SearchBoardsRangeForUserAsync(Guid userId, string searchTerm, int page, int pageSize, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<BoardSearchDto>> SearchBoardsRangeForUserAsync(Guid userId, string searchTerm, int page, int pageSize, CancellationToken cancellationToken = default)
     {
         return await DbSet
             .Where(b => (b.OwnerId == userId || b.Members.Any(m => m.UserId == userId)) && b.Name.Contains(searchTerm))
             .OrderByDescending(b => b.CreatedAt)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
+            .Select(b => new BoardSearchDto
+            {
+                Id = b.Id,
+                Name = b.Name,
+                Description = b.Description,
+                CreatedAt = b.CreatedAt,
+                UpdatedAt = b.UpdatedAt,
+                NumberOfMembers = b.Members.Count,
+                NumberOfTasks = b.Tasks.Count,
+                OwnerId = b.OwnerId
+            })
             .ToListAsync(cancellationToken);
     }
 }
