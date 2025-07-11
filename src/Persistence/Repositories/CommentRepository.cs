@@ -27,4 +27,15 @@ public class CommentRepository : Repository<Comment, Guid>, ICommentRepository
             .Include(c => c.Task)
             .ToListAsync(cancellationToken);
     }
+
+    public async Task<IEnumerable<Comment>> SearchCommentsRangeByTaskIdAsync(string searchTerm, Guid taskId, int page, int pageSize, CancellationToken cancellationToken = default)
+    {
+        return await Context.Comments
+            .Where(c => c.TaskId == taskId && c.Content.Contains(searchTerm))
+            .OrderByDescending(c => c.CreatedAt)
+            .Include(c => c.Author)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(cancellationToken);
+    }
 }
