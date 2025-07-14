@@ -1,0 +1,180 @@
+using System.Text.Json;
+using Application.Abstractions.Archivation;
+using Application.Common.Dtos.Boards;
+using Domain.Entities;
+using MediatR;
+using Application.Commands.Boards;
+using Application.Commands.ArchivalJobs;
+using Application.Queries.ArchivalJobs;
+using Azure.Messaging.ServiceBus;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
+
+namespace Infrastructure.Services.Archivation;
+
+public class ArchivalService : IArchivalService, IDisposable
+{
+    private readonly IMediator _mediator;
+    private readonly ServiceBusClient _serviceBusClient;
+    private readonly ServiceBusSender _sender;
+    private readonly ILogger<ArchivalService> _logger;
+    private readonly string _queueName;
+
+    public ArchivalService(
+        IMediator mediator,
+        ServiceBusClient serviceBusClient,
+        IConfiguration configuration,
+        ILogger<ArchivalService> logger)
+    {
+        _mediator = mediator;
+        _serviceBusClient = serviceBusClient;
+        _logger = logger;
+        _queueName = configuration["ServiceBus:ArchivalQueueName"] ?? "board-archival-queue";
+        _sender = _serviceBusClient.CreateSender(_queueName);
+    }
+
+
+    public async Task<ArchivalJobDto> MarkBoardAsArchivedAsync(Guid boardId, string? archivalReason = null, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            _logger.LogInformation("Marking board {BoardId} as archived", boardId);
+
+            await _mediator.Send(new UpdateBoardArchivalStatusCommand(
+                BoardId: boardId,
+                IsArchived: true,
+                ArchivedAt: DateTime.UtcNow,
+                ArchivalReason: archivalReason
+            ), cancellationToken);
+
+            var job = await _mediator.Send(new CreateArchivalJobCommand(
+                BoardId: boardId,
+                JobType: "BoardArchival",
+                Metadata: archivalReason != null ? JsonSerializer.Serialize(new { ArchivalReason = archivalReason }) : null
+            ), cancellationToken);
+
+            _logger.LogInformation("Created archival job {JobId} for board {BoardId}", job.Id, boardId);
+
+            return job;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error marking board {BoardId} as archived", boardId);
+            throw;
+        }
+    }
+
+
+    public async Task ProcessArchivedBoardsAsync(CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            _logger.LogInformation("Starting to process archived boards");
+
+            var pendingJobs = await _mediator.Send(new GetArchivalJobsForProcessingQuery(), cancellationToken);
+
+            _logger.LogInformation("Found {Count} pending archival jobs", pendingJobs.Count());
+
+            foreach (var job in pendingJobs)
+            {
+                try
+                {
+                    await _mediator.Send(new UpdateArchivalJobStatusCommand(
+                        JobId: job.Id,
+                        Status: (int)ArchivalStatus.InProgress,
+                        ErrorMessage: null,
+                        ProcessedBy: "ArchivalService"
+                    ), cancellationToken);
+
+                    var success = await EnqueueArchivedBoardAsync(job.BoardId, job.Id, cancellationToken);
+
+                    if (success)
+                    {
+                        _logger.LogInformation("Successfully enqueued board {BoardId} with job {JobId}", job.BoardId, job.Id);
+                    }
+                    else
+                    {
+                        await _mediator.Send(new FailArchivalJobCommand(
+                            JobId: job.Id,
+                            ErrorMessage: "Failed to enqueue message to Service Bus",
+                            ProcessedBy: "ArchivalService"
+                        ), cancellationToken);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error processing archival job {JobId}", job.Id);
+
+                    await _mediator.Send(new FailArchivalJobCommand(
+                        JobId: job.Id,
+                        ErrorMessage: ex.Message,
+                        ProcessedBy: "ArchivalService"
+                    ), cancellationToken);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error in ProcessArchivedBoardsAsync");
+            throw;
+        }
+    }
+
+
+    public async Task<bool> EnqueueArchivedBoardAsync(Guid boardId, Guid jobId, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var archivalMessage = new ArchivalMessage
+            {
+                BoardId = boardId,
+                JobId = jobId,
+                JobType = "BoardArchival",
+                EnqueuedAt = DateTime.UtcNow
+            };
+
+            var messageBody = JsonSerializer.Serialize(archivalMessage);
+            var serviceBusMessage = new ServiceBusMessage(messageBody)
+            {
+                MessageId = Guid.NewGuid().ToString(),
+                CorrelationId = jobId.ToString(),
+                ContentType = "application/json"
+            };
+
+            serviceBusMessage.ApplicationProperties.Add("BoardId", boardId.ToString());
+            serviceBusMessage.ApplicationProperties.Add("JobId", jobId.ToString());
+            serviceBusMessage.ApplicationProperties.Add("JobType", "BoardArchival");
+
+            await _sender.SendMessageAsync(serviceBusMessage, cancellationToken);
+
+            _logger.LogInformation("Successfully sent message to Service Bus for board {BoardId} and job {JobId}", boardId, jobId);
+
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to enqueue message for board {BoardId} and job {JobId}", boardId, jobId);
+            return false;
+        }
+    }
+
+
+    public async Task<IEnumerable<ArchivalJobDto>> GetPendingArchivalJobsAsync(CancellationToken cancellationToken = default)
+    {
+        return await _mediator.Send(new GetPendingArchivalJobsQuery(), cancellationToken);
+    }
+
+    public async Task<bool> UpdateJobStatusAsync(Guid jobId, ArchivalStatus status, string? errorMessage = null, CancellationToken cancellationToken = default)
+    {
+        return await _mediator.Send(new UpdateArchivalJobStatusCommand(
+            JobId: jobId,
+            Status: (int)status,
+            ErrorMessage: errorMessage,
+            ProcessedBy: "ArchivalService"
+        ), cancellationToken);
+    }
+
+    public void Dispose()
+    {
+    }
+}

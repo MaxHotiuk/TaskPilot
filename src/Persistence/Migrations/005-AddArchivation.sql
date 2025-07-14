@@ -11,6 +11,7 @@ ALTER TABLE [Boards] ADD
     [IsArchived] BIT NOT NULL DEFAULT 0,
     [ArchivedAt] DATETIME2 NULL,
     [ArchivalReason] NVARCHAR(500) NULL;
+GO
 
 -- ====================
 -- CREATE ARCHIVAL JOBS TRACKING TABLE
@@ -79,11 +80,13 @@ CREATE TABLE [ArchivalSettings] (
 -- Index for finding archived boards
 CREATE NONCLUSTERED INDEX [IX_Boards_IsArchived] 
 ON [Boards] ([IsArchived]);
+GO
 
 -- Index for finding archived boards with dates
 CREATE NONCLUSTERED INDEX [IX_Boards_Archived_Date] 
 ON [Boards] ([IsArchived], [ArchivedAt])
 WHERE [IsArchived] = 1;
+GO
 
 -- Index for archival jobs by status
 CREATE NONCLUSTERED INDEX [IX_ArchivalJobs_Status] 
@@ -140,6 +143,7 @@ ALTER TABLE [Boards] ADD
         ([IsArchived] = 0) OR 
         ([IsArchived] = 1 AND [ArchivedAt] IS NOT NULL)
     );
+GO
 
 -- Ensure archival jobs have valid status
 ALTER TABLE [ArchivalJobs] ADD 

@@ -4,6 +4,9 @@ using Persistence;
 using Serilog;
 using WebApi.Extensions;
 using WebApi.Middlewares;
+using Hangfire;
+using Hangfire.MemoryStorage;
+using Application.Abstractions.Archivation;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -62,10 +65,18 @@ builder.Services
     .AddApplication()
     .AddInfrastructure(builder.Configuration);
 
+// Add Hangfire services with in-memory storage for development
+builder.Services.AddHangfire(config =>
+    config.UseMemoryStorage()
+);
+builder.Services.AddHangfireServer();
+
 builder.Host.UseSerilog((context, configuration) =>
     configuration.ReadFrom.Configuration(context.Configuration));
 
 var app = builder.Build();
+
+
 
 try
 {
@@ -78,7 +89,18 @@ catch (Exception ex)
     throw;
 }
 
+
 app.UseMiddleware<ExceptionHandlingMiddleware>();
+
+// Hangfire dashboard (optional, remove or secure in production)
+app.UseHangfireDashboard("/hangfire");
+
+// Schedule recurring jobs after Hangfire is initialized
+using (var scope = app.Services.CreateScope())
+{
+    var scheduler = scope.ServiceProvider.GetService<IArchivalJobScheduler>();
+    scheduler?.ScheduleRecurringJobs();
+}
 
 // Configure Swagger/OpenAPI
 if (app.Environment.IsDevelopment())
