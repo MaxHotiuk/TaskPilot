@@ -113,4 +113,58 @@ public class BoardRepository : Repository<Board, Guid>, IBoardRepository
             })
             .ToListAsync(cancellationToken);
     }
+
+    public async Task<IEnumerable<Board>> GetArchivedBoardsAsync(CancellationToken cancellationToken = default)
+    {
+        return await DbSet
+            .Where(b => b.IsArchived)
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<IEnumerable<Board>> GetArchivedBoardsForProcessingAsync(DateTime? processedBefore = null, CancellationToken cancellationToken = default)
+    {
+        return await DbSet
+            .Where(b => b.IsArchived && (processedBefore == null || b.ArchivedAt < processedBefore))
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<IEnumerable<Board>> GetArchivedBoardsPendingJobsAsync(CancellationToken cancellationToken = default)
+    {
+        return await DbSet
+            .Where(b => b.IsArchived && b.ArchivalJobs.Any(j => j.Status == ArchivalStatus.Pending))
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<Board?> GetBoardWithArchivalJobsAsync(Guid boardId, CancellationToken cancellationToken = default)
+    {
+        return await DbSet
+            .Include(b => b.ArchivalJobs)
+            .FirstOrDefaultAsync(b => b.Id == boardId, cancellationToken);
+    }
+
+    public async Task<bool> MarkBoardAsArchivedAsync(Guid boardId, string? archivalReason = null, CancellationToken cancellationToken = default)
+    {
+        var board = await GetByIdAsync(boardId, cancellationToken);
+        if (board == null) return false;
+
+        board.IsArchived = true;
+        board.ArchivedAt = DateTime.UtcNow;
+        board.ArchivalReason = archivalReason;
+
+        Context.Boards.Update(board);
+        return await Context.SaveChangesAsync(cancellationToken) > 0;
+    }
+
+    public async Task<bool> UpdateBoardArchivalStatusAsync(Guid boardId, bool isArchived, DateTime? archivedAt = null, string? archivalReason = null, CancellationToken cancellationToken = default)
+    {
+        var board = await GetByIdAsync(boardId, cancellationToken);
+        if (board == null) return false;
+
+        board.IsArchived = isArchived;
+        board.ArchivedAt = archivedAt ?? (isArchived ? DateTime.UtcNow : null);
+        board.ArchivalReason = archivalReason;
+
+        Context.Boards.Update(board);
+        return await Context.SaveChangesAsync(cancellationToken) > 0;
+    }
 }
