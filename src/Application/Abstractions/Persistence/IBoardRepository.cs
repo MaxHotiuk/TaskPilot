@@ -16,6 +16,7 @@ public interface IBoardRepository : IRepository<Board, Guid>
     Task<IEnumerable<Board>> GetArchivedBoardsAsync(CancellationToken cancellationToken = default);
     Task<IEnumerable<Board>> GetArchivedBoardsForProcessingAsync(DateTime? processedBefore = null, CancellationToken cancellationToken = default);
     Task<IEnumerable<Board>> GetArchivedBoardsPendingJobsAsync(CancellationToken cancellationToken = default);
+    Task<IEnumerable<Board>> GetArchivedBoardsByOwnerAsync(Guid ownerId, CancellationToken cancellationToken = default);
     Task<Board?> GetBoardWithArchivalJobsAsync(Guid boardId, CancellationToken cancellationToken = default);
     Task<bool> MarkBoardAsArchivedAsync(Guid boardId, string? archivalReason = null, CancellationToken cancellationToken = default);
     Task<bool> UpdateBoardArchivalStatusAsync(Guid boardId, bool isArchived, DateTime? archivedAt = null, string? archivalReason = null, CancellationToken cancellationToken = default);

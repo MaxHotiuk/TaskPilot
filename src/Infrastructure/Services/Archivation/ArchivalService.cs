@@ -33,6 +33,135 @@ public class ArchivalService : IArchivalService, IDisposable
         _sender = serviceBusClient.CreateSender(_queueName);
     }
 
+    public async Task<ArchivalJobDto> MarkBoardAsDearchivedAsync(Guid boardId, string? dearchivalReason = null, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            _logger.LogInformation("Marking board {BoardId} as dearchived", boardId);
+
+            await _mediator.Send(new UpdateBoardArchivalStatusCommand(
+                BoardId: boardId,
+                IsArchived: false,
+                ArchivedAt: null,
+                ArchivalReason: dearchivalReason
+            ), cancellationToken);
+
+            var job = await _mediator.Send(new CreateArchivalJobCommand(
+                BoardId: boardId,
+                JobType: "BoardDearchival",
+                Metadata: dearchivalReason != null ? JsonSerializer.Serialize(new { DearchivalReason = dearchivalReason }) : null
+            ), cancellationToken);
+
+            _logger.LogInformation("Created dearchival job {JobId} for board {BoardId}", job.Id, boardId);
+
+            await ProcessDearchivedBoardsAsync(cancellationToken);
+
+            return job;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error marking board {BoardId} as dearchived", boardId);
+            throw;
+        }
+    }
+
+    public async Task ProcessDearchivedBoardsAsync(CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            _logger.LogInformation("Starting to process dearchived boards");
+
+            var pendingJobs = await _mediator.Send(new GetDearchivalJobsForProcessingQuery(), cancellationToken);
+
+            _logger.LogInformation("Found {Count} pending dearchival jobs", pendingJobs.Count());
+
+            foreach (var job in pendingJobs)
+            {
+                try
+                {
+                    await _mediator.Send(new UpdateArchivalJobStatusCommand(
+                        JobId: job.Id,
+                        Status: (int)ArchivalStatus.InProgress,
+                        ErrorMessage: null,
+                        ProcessedBy: "ArchivalService"
+                    ), cancellationToken);
+
+                    var success = await EnqueueDearchivedBoardAsync(job.BoardId, job.Id, cancellationToken);
+
+                    if (success)
+                    {
+                        _logger.LogInformation("Successfully enqueued dearchival for board {BoardId} with job {JobId}", job.BoardId, job.Id);
+                    }
+                    else
+                    {
+                        await _mediator.Send(new FailArchivalJobCommand(
+                            JobId: job.Id,
+                            ErrorMessage: "Failed to enqueue dearchival message to Service Bus",
+                            ProcessedBy: "ArchivalService"
+                        ), cancellationToken);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error processing dearchival job {JobId}", job.Id);
+
+                    await _mediator.Send(new FailArchivalJobCommand(
+                        JobId: job.Id,
+                        ErrorMessage: ex.Message,
+                        ProcessedBy: "ArchivalService"
+                    ), cancellationToken);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error in ProcessDearchivedBoardsAsync");
+            throw;
+        }
+    }
+
+    public async Task<bool> EnqueueDearchivedBoardAsync(Guid boardId, Guid jobId, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var dearchivalMessage = new ArchivalMessage
+            {
+                BoardId = boardId,
+                JobId = jobId,
+                JobType = "BoardDearchival",
+                EnqueuedAt = DateTime.UtcNow
+            };
+
+            var messageBody = JsonSerializer.Serialize(dearchivalMessage);
+            var serviceBusMessage = new ServiceBusMessage(messageBody)
+            {
+                MessageId = Guid.NewGuid().ToString(),
+                CorrelationId = jobId.ToString(),
+                ContentType = "application/json"
+            };
+
+            serviceBusMessage.ApplicationProperties.Add("BoardId", boardId.ToString());
+            serviceBusMessage.ApplicationProperties.Add("JobId", jobId.ToString());
+            serviceBusMessage.ApplicationProperties.Add("JobType", "BoardDearchival");
+
+            await _sender.SendMessageAsync(serviceBusMessage, cancellationToken);
+
+            _logger.LogInformation("Successfully sent dearchival message to Service Bus for board {BoardId} and job {JobId}", boardId, jobId);
+
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to enqueue dearchival message for board {BoardId} and job {JobId}", boardId, jobId);
+            return false;
+        }
+    }
+
+    public async Task<IEnumerable<ArchivalJobDto>> GetPendingDearchivalJobsAsync(CancellationToken cancellationToken = default)
+    {
+        return await _mediator.Send(new GetPendingDearchivalJobsQuery(), cancellationToken);
+    }
+
 
     public async Task<ArchivalJobDto> MarkBoardAsArchivedAsync(Guid boardId, string? archivalReason = null, CancellationToken cancellationToken = default)
     {

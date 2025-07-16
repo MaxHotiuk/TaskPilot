@@ -10,6 +10,6 @@ public class ArchivalJobScheduler : IArchivalJobScheduler
         RecurringJob.AddOrUpdate<ArchivalBackgroundJob>(
             "process-archived-boards",
             job => job.ProcessArchivedBoardsAsync(),
-            "*/5 * * * *");
+            "*/1 * * * *"); // Every 1 minute
     }
 }
