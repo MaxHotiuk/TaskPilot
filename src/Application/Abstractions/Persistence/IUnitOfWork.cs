@@ -8,7 +8,6 @@ public interface IUnitOfWork : IDisposable
     IStateRepository States { get; }
     IBoardMemberRepository BoardMembers { get; }
     ICommentRepository Comments { get; }
-    IArchivalJobRepository ArchivalJobs { get; }
     
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
     Task CommitTransactionAsync(CancellationToken cancellationToken = default);

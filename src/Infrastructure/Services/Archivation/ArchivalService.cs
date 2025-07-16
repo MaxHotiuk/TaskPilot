@@ -12,10 +12,10 @@ using Microsoft.Extensions.Logging;
 
 namespace Infrastructure.Services.Archivation;
 
+
 public class ArchivalService : IArchivalService, IDisposable
 {
     private readonly IMediator _mediator;
-    private readonly ServiceBusClient _serviceBusClient;
     private readonly ServiceBusSender _sender;
     private readonly ILogger<ArchivalService> _logger;
     private readonly string _queueName;
@@ -27,10 +27,9 @@ public class ArchivalService : IArchivalService, IDisposable
         ILogger<ArchivalService> logger)
     {
         _mediator = mediator;
-        _serviceBusClient = serviceBusClient;
         _logger = logger;
         _queueName = configuration["ServiceBus:ArchivalQueueName"] ?? "board-archival-queue";
-        _sender = _serviceBusClient.CreateSender(_queueName);
+        _sender = serviceBusClient.CreateSender(_queueName);
     }
 
 

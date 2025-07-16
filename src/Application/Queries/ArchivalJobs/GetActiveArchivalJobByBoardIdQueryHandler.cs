@@ -8,19 +8,17 @@ using System.Threading.Tasks;
 
 namespace Application.Queries.ArchivalJobs;
 
-public class GetActiveArchivalJobByBoardIdQueryHandler : BaseQueryHandler, IRequestHandler<GetActiveArchivalJobByBoardIdQuery, ArchivalJobDto?>
+public class GetActiveArchivalJobByBoardIdQueryHandler : IRequestHandler<GetActiveArchivalJobByBoardIdQuery, ArchivalJobDto?>
 {
-    public GetActiveArchivalJobByBoardIdQueryHandler(IUnitOfWorkFactory unitOfWorkFactory)
-        : base(unitOfWorkFactory)
+    private readonly ICosmosArchivalJobRepository _archivalJobRepository;
+    public GetActiveArchivalJobByBoardIdQueryHandler(ICosmosArchivalJobRepository archivalJobRepository)
     {
+        _archivalJobRepository = archivalJobRepository;
     }
 
     public async Task<ArchivalJobDto?> Handle(GetActiveArchivalJobByBoardIdQuery request, CancellationToken cancellationToken)
     {
-        return await ExecuteQueryAsync(async unitOfWork =>
-        {
-            var job = await unitOfWork.ArchivalJobs.GetActiveJobByBoardIdAsync(request.BoardId, cancellationToken);
-            return job?.ToDto();
-        }, cancellationToken);
+        var job = await _archivalJobRepository.GetActiveJobByBoardIdAsync(request.BoardId, cancellationToken);
+        return job?.ToDto();
     }
 }

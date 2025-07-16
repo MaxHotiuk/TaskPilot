@@ -6,22 +6,20 @@ using System.Threading.Tasks;
 
 namespace Application.Commands.ArchivalJobs;
 
-public class CompleteArchivalJobCommandHandler : BaseCommandHandler, IRequestHandler<CompleteArchivalJobCommand, bool>
+public class CompleteArchivalJobCommandHandler : IRequestHandler<CompleteArchivalJobCommand, bool>
 {
-    public CompleteArchivalJobCommandHandler(IUnitOfWorkFactory unitOfWorkFactory)
-        : base(unitOfWorkFactory)
+    private readonly ICosmosArchivalJobRepository _archivalJobRepository;
+    public CompleteArchivalJobCommandHandler(ICosmosArchivalJobRepository archivalJobRepository)
     {
+        _archivalJobRepository = archivalJobRepository;
     }
 
     public async Task<bool> Handle(CompleteArchivalJobCommand request, CancellationToken cancellationToken)
     {
-        return await ExecuteInTransactionAsync(async unitOfWork =>
-        {
-            return await unitOfWork.ArchivalJobs.CompleteJobAsync(
-                request.JobId,
-                request.BlobPath,
-                request.ProcessedBy,
-                cancellationToken);
-        }, cancellationToken);
+        return await _archivalJobRepository.CompleteJobAsync(
+            request.JobId,
+            request.BlobPath,
+            request.ProcessedBy,
+            cancellationToken);
     }
 }
