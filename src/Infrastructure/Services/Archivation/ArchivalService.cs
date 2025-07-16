@@ -9,6 +9,7 @@ using Application.Queries.ArchivalJobs;
 using Azure.Messaging.ServiceBus;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Domain.Enums;
 
 namespace Infrastructure.Services.Archivation;
 

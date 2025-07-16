@@ -2,6 +2,7 @@ using Application.Abstractions.Persistence;
 using Application.Common.Dtos.Boards;
 using Application.Common.Handlers;
 using Application.Common.Mappings;
+using Domain.Enums;
 using MediatR;
 using System.Collections.Generic;
 using System.Threading;
@@ -19,7 +20,7 @@ public class GetArchivalJobsByStatusQueryHandler : IRequestHandler<GetArchivalJo
 
     public async Task<IEnumerable<ArchivalJobDto>> Handle(GetArchivalJobsByStatusQuery request, CancellationToken cancellationToken)
     {
-        var jobs = await _archivalJobRepository.GetJobsByStatusAsync((Domain.Entities.ArchivalStatus)request.Status, cancellationToken);
+        var jobs = await _archivalJobRepository.GetJobsByStatusAsync((ArchivalStatus)request.Status, cancellationToken);
         return jobs.ToDto();
     }
 }

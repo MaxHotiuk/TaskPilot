@@ -1,4 +1,5 @@
 using Application.Abstractions.Persistence;
+using Domain.Enums;
 using Application.Common.Handlers;
 using MediatR;
 using System.Threading;
@@ -18,7 +19,7 @@ public class UpdateArchivalJobStatusCommandHandler : IRequestHandler<UpdateArchi
     {
         return await _archivalJobRepository.UpdateJobStatusAsync(
             request.JobId,
-            (Domain.Entities.ArchivalStatus)request.Status,
+            (ArchivalStatus)request.Status,
             request.ErrorMessage,
             request.ProcessedBy,
             cancellationToken);

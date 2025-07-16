@@ -1,6 +1,7 @@
 using Application.Abstractions.Persistence;
 using Application.Common.Dtos.Boards;
 using Domain.Entities;
+using Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 
 namespace Persistence.Repositories;

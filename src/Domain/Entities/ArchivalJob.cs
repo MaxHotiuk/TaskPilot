@@ -1,3 +1,5 @@
+using Domain.Enums;
+
 namespace Domain.Entities;
 
 public class ArchivalJob : AuditableEntity<Guid>
@@ -15,13 +17,4 @@ public class ArchivalJob : AuditableEntity<Guid>
 
     // Navigation properties
     public Board Board { get; set; } = null!;
-}
-
-public enum ArchivalStatus
-{
-    Pending,
-    InProgress,
-    Completed,
-    Failed,
-    Cancelled
 }
