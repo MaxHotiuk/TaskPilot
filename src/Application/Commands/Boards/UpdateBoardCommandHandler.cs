@@ -1,3 +1,4 @@
+using Application.Abstractions.Messaging;
 using Application.Abstractions.Persistence;
 using Application.Common.Exceptions;
 using Application.Common.Handlers;
@@ -7,9 +8,13 @@ namespace Application.Commands.Boards;
 
 public class UpdateBoardCommandHandler : BaseCommandHandler, IRequestHandler<UpdateBoardCommand>
 {
-    public UpdateBoardCommandHandler(IUnitOfWorkFactory unitOfWorkFactory) 
+
+    private readonly IBoardNotifier _boardNotifier;
+
+    public UpdateBoardCommandHandler(IUnitOfWorkFactory unitOfWorkFactory, IBoardNotifier boardNotifier)
         : base(unitOfWorkFactory)
     {
+        _boardNotifier = boardNotifier;
     }
 
     public async Task Handle(UpdateBoardCommand request, CancellationToken cancellationToken)
@@ -28,6 +33,8 @@ public class UpdateBoardCommandHandler : BaseCommandHandler, IRequestHandler<Upd
             board.UpdatedAt = DateTime.UtcNow;
 
             unitOfWork.Boards.Update(board);
+
+            await _boardNotifier.NotifyBoardUpdatedAsync(board.Id.ToString(), new { action = "updated", boardId = board.Id });
         }, cancellationToken);
     }
 }

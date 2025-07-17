@@ -1,3 +1,4 @@
+using Application.Abstractions.Messaging;
 using Application.Abstractions.Persistence;
 using Application.Common.Exceptions;
 using Application.Common.Handlers;
@@ -7,9 +8,13 @@ namespace Application.Commands.Boards;
 
 public class DeleteBoardCommandHandler : BaseCommandHandler, IRequestHandler<DeleteBoardCommand>
 {
-    public DeleteBoardCommandHandler(IUnitOfWorkFactory unitOfWorkFactory) 
+
+    private readonly IBoardNotifier _boardNotifier;
+
+    public DeleteBoardCommandHandler(IUnitOfWorkFactory unitOfWorkFactory, IBoardNotifier boardNotifier)
         : base(unitOfWorkFactory)
     {
+        _boardNotifier = boardNotifier;
     }
 
     public async Task Handle(DeleteBoardCommand request, CancellationToken cancellationToken)
@@ -24,6 +29,8 @@ public class DeleteBoardCommandHandler : BaseCommandHandler, IRequestHandler<Del
             }
 
             unitOfWork.Boards.Remove(board);
+
+            await _boardNotifier.NotifyBoardUpdatedAsync(board.Id.ToString(), new { action = "deleted", boardId = board.Id });
         }, cancellationToken);
     }
 }

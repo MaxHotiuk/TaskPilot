@@ -1,3 +1,4 @@
+using Application.Abstractions.Messaging;
 using Application.Abstractions.Persistence;
 using Application.Common.Exceptions;
 using Application.Common.Handlers;
@@ -8,9 +9,13 @@ namespace Application.Commands.Tasks;
 
 public class CreateTaskItemCommandHandler : BaseCommandHandler, IRequestHandler<CreateTaskItemCommand, Guid>
 {
-    public CreateTaskItemCommandHandler(IUnitOfWorkFactory unitOfWorkFactory) 
+
+    private readonly IBoardNotifier _boardNotifier;
+
+    public CreateTaskItemCommandHandler(IUnitOfWorkFactory unitOfWorkFactory, IBoardNotifier boardNotifier)
         : base(unitOfWorkFactory)
     {
+        _boardNotifier = boardNotifier;
     }
 
     public async Task<Guid> Handle(CreateTaskItemCommand request, CancellationToken cancellationToken)
@@ -43,6 +48,7 @@ public class CreateTaskItemCommandHandler : BaseCommandHandler, IRequestHandler<
 
             await unitOfWork.Tasks.AddAsync(taskItem, cancellationToken);
             
+            await _boardNotifier.NotifyTaskUpdatedAsync(taskItem.Id.ToString(), new { action = "created", taskId = taskItem.Id });
             return taskItem.Id;
         }, cancellationToken);
     }

@@ -1,3 +1,4 @@
+using Application.Abstractions.Messaging;
 using Application.Abstractions.Persistence;
 using Application.Common.Handlers;
 using Domain.Entities;
@@ -7,9 +8,13 @@ namespace Application.Commands.Boards;
 
 public class CreateBoardCommandHandler : BaseCommandHandler, IRequestHandler<CreateBoardCommand, Guid>
 {
-    public CreateBoardCommandHandler(IUnitOfWorkFactory unitOfWorkFactory) 
+
+    private readonly IBoardNotifier _boardNotifier;
+
+    public CreateBoardCommandHandler(IUnitOfWorkFactory unitOfWorkFactory, IBoardNotifier boardNotifier)
         : base(unitOfWorkFactory)
     {
+        _boardNotifier = boardNotifier;
     }
 
     public async Task<Guid> Handle(CreateBoardCommand request, CancellationToken cancellationToken)
@@ -28,6 +33,7 @@ public class CreateBoardCommandHandler : BaseCommandHandler, IRequestHandler<Cre
 
             await unitOfWork.Boards.AddAsync(board, cancellationToken);
             
+            await _boardNotifier.NotifyBoardUpdatedAsync(board.Id.ToString(), new { action = "created", boardId = board.Id });
             return board.Id;
         }, cancellationToken);
     }

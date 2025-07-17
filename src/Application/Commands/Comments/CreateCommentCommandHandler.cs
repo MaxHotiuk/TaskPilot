@@ -1,3 +1,4 @@
+using Application.Abstractions.Messaging;
 using Application.Abstractions.Persistence;
 using Application.Common.Exceptions;
 using Application.Common.Handlers;
@@ -8,9 +9,13 @@ namespace Application.Commands.Comments;
 
 public class CreateCommentCommandHandler : BaseCommandHandler, IRequestHandler<CreateCommentCommand, Guid>
 {
-    public CreateCommentCommandHandler(IUnitOfWorkFactory unitOfWorkFactory) 
+
+    private readonly IBoardNotifier _boardNotifier;
+
+    public CreateCommentCommandHandler(IUnitOfWorkFactory unitOfWorkFactory, IBoardNotifier boardNotifier)
         : base(unitOfWorkFactory)
     {
+        _boardNotifier = boardNotifier;
     }
 
     public async Task<Guid> Handle(CreateCommentCommand request, CancellationToken cancellationToken)
@@ -41,6 +46,7 @@ public class CreateCommentCommandHandler : BaseCommandHandler, IRequestHandler<C
 
             await unitOfWork.Comments.AddAsync(comment, cancellationToken);
             
+            await _boardNotifier.NotifyTaskUpdatedAsync(comment.TaskId.ToString(), new { action = "commentCreated", commentId = comment.Id });
             return comment.Id;
         }, cancellationToken);
     }
