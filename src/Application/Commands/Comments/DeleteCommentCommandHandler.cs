@@ -1,3 +1,4 @@
+using Application.Abstractions.Messaging;
 using Application.Abstractions.Persistence;
 using Application.Common.Exceptions;
 using Application.Common.Handlers;
@@ -7,9 +8,13 @@ namespace Application.Commands.Comments;
 
 public class DeleteCommentCommandHandler : BaseCommandHandler, IRequestHandler<DeleteCommentCommand>
 {
-    public DeleteCommentCommandHandler(IUnitOfWorkFactory unitOfWorkFactory) 
+
+    private readonly IBoardNotifier _boardNotifier;
+
+    public DeleteCommentCommandHandler(IUnitOfWorkFactory unitOfWorkFactory, IBoardNotifier boardNotifier)
         : base(unitOfWorkFactory)
     {
+        _boardNotifier = boardNotifier;
     }
 
     public async Task Handle(DeleteCommentCommand request, CancellationToken cancellationToken)
@@ -24,6 +29,8 @@ public class DeleteCommentCommandHandler : BaseCommandHandler, IRequestHandler<D
             }
 
             unitOfWork.Comments.Remove(comment);
+
+            await _boardNotifier.NotifyTaskUpdatedAsync(comment.TaskId.ToString(), new { action = "commentDeleted", commentId = comment.Id });
         }, cancellationToken);
     }
 }

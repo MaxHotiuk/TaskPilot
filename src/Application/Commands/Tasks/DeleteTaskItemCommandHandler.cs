@@ -1,3 +1,4 @@
+using Application.Abstractions.Messaging;
 using Application.Abstractions.Persistence;
 using Application.Common.Exceptions;
 using Application.Common.Handlers;
@@ -7,9 +8,13 @@ namespace Application.Commands.Tasks;
 
 public class DeleteTaskItemCommandHandler : BaseCommandHandler, IRequestHandler<DeleteTaskItemCommand>
 {
-    public DeleteTaskItemCommandHandler(IUnitOfWorkFactory unitOfWorkFactory) 
+
+    private readonly IBoardNotifier _boardNotifier;
+
+    public DeleteTaskItemCommandHandler(IUnitOfWorkFactory unitOfWorkFactory, IBoardNotifier boardNotifier)
         : base(unitOfWorkFactory)
     {
+        _boardNotifier = boardNotifier;
     }
 
     public async Task Handle(DeleteTaskItemCommand request, CancellationToken cancellationToken)
@@ -24,6 +29,8 @@ public class DeleteTaskItemCommandHandler : BaseCommandHandler, IRequestHandler<
             }
 
             unitOfWork.Tasks.Remove(taskItem);
+
+            await _boardNotifier.NotifyTaskUpdatedAsync(taskItem.Id.ToString(), new { action = "deleted", taskId = taskItem.Id });
         }, cancellationToken);
     }
 }

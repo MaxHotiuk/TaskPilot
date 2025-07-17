@@ -1,3 +1,4 @@
+using Application.Abstractions.Messaging;
 using Application.Abstractions.Persistence;
 using Application.Common.Exceptions;
 using Application.Common.Handlers;
@@ -7,9 +8,13 @@ namespace Application.Commands.Comments;
 
 public class UpdateCommentCommandHandler : BaseCommandHandler, IRequestHandler<UpdateCommentCommand>
 {
-    public UpdateCommentCommandHandler(IUnitOfWorkFactory unitOfWorkFactory) 
+
+    private readonly IBoardNotifier _boardNotifier;
+
+    public UpdateCommentCommandHandler(IUnitOfWorkFactory unitOfWorkFactory, IBoardNotifier boardNotifier)
         : base(unitOfWorkFactory)
     {
+        _boardNotifier = boardNotifier;
     }
 
     public async Task Handle(UpdateCommentCommand request, CancellationToken cancellationToken)
@@ -27,6 +32,8 @@ public class UpdateCommentCommandHandler : BaseCommandHandler, IRequestHandler<U
             comment.UpdatedAt = DateTime.UtcNow;
 
             unitOfWork.Comments.Update(comment);
+
+            await _boardNotifier.NotifyTaskUpdatedAsync(comment.TaskId.ToString(), new { action = "commentUpdated", commentId = comment.Id });
         }, cancellationToken);
     }
 }

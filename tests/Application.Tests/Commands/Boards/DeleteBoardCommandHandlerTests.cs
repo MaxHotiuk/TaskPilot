@@ -1,3 +1,4 @@
+using Application.Abstractions.Messaging;
 using Application.Commands.Boards;
 using Application.Common.Exceptions;
 
@@ -9,6 +10,7 @@ public class DeleteBoardCommandHandlerTests
     private readonly Mock<IBoardRepository> _boardRepositoryMock;
     private readonly Mock<IUnitOfWork> _unitOfWorkMock;
     private readonly Mock<IUnitOfWorkFactory> _unitOfWorkFactoryMock;
+    private readonly Mock<IBoardNotifier> _boardNotifierMock;
     private readonly DeleteBoardCommandHandler _handler;
 
     public DeleteBoardCommandHandlerTests()
@@ -22,7 +24,8 @@ public class DeleteBoardCommandHandlerTests
         _unitOfWorkFactoryMock.Setup(x => x.CreateAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(_unitOfWorkMock.Object);
         
-        _handler = new DeleteBoardCommandHandler(_unitOfWorkFactoryMock.Object);
+        _boardNotifierMock = _fixture.Freeze<Mock<IBoardNotifier>>();
+        _handler = new DeleteBoardCommandHandler(_unitOfWorkFactoryMock.Object, _boardNotifierMock.Object);
     }
 
     [Fact]

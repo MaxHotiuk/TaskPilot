@@ -9,6 +9,8 @@ using Application.Abstractions.Archivation;
 using Infrastructure.Services.Archivation;
 using Infrastructure.BackgroundJobs;
 using Azure.Messaging.ServiceBus;
+using Application.Abstractions.Messaging;
+using Infrastructure.Services;
 
 namespace Infrastructure;
 
@@ -24,6 +26,8 @@ public static class DependencyInjection
         services.AddScoped<IArchivalService, ArchivalService>();
         services.AddScoped<IArchivalBackgroundJob, ArchivalBackgroundJob>();
         services.AddScoped<IArchivalJobScheduler, ArchivalJobScheduler>();
+
+        services.AddScoped<IBoardNotifier, BoardNotifier>();
 
         services.AddSingleton(provider =>
         {

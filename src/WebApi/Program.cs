@@ -7,6 +7,7 @@ using WebApi.Middlewares;
 using Hangfire;
 using Hangfire.MemoryStorage;
 using Application.Abstractions.Archivation;
+using Infrastructure.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -23,6 +24,7 @@ builder.Services.AddCors(options =>
 
 // Add authentication and authorization
 builder.Services.AddAuthentication(builder.Configuration);
+builder.Services.AddSignalR();
 
 // Register OpenAPI/Swagger
 builder.Services.AddEndpointsApiExplorer();
@@ -124,5 +126,6 @@ app.UseAuthorization();
 
 // Map all endpoints
 app.MapEndpoints();
+app.MapHub<BoardHub>("/hubs/board");
 
 app.Run();

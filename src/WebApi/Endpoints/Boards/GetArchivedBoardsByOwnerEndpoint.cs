@@ -21,7 +21,7 @@ public class GetArchivedBoardsByOwnerEndpoint : EndpointBaseWithRequest<GetArchi
             })
             .WithName("GetArchivedBoardsByOwner")
             .WithTags("Boards")
-            .RequireAuthorization(Policies.RequireBoardOwner)
+            .RequireAuthorization(Policies.RequireUserRole)
             .Produces(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status401Unauthorized)
             .Produces(StatusCodes.Status403Forbidden)
