@@ -42,7 +42,7 @@ public class UpdateTaskItemCommandHandler : BaseCommandHandler, IRequestHandler<
 
             unitOfWork.Tasks.Update(taskItem);
 
-            await _boardNotifier.NotifyTaskUpdatedAsync(taskItem.Id.ToString(), new { action = "updated", taskId = taskItem.Id });
+            await _boardNotifier.NotifyBoardUpdatedAsync(taskItem.BoardId.ToString(), new { action = "updated", boardId = taskItem.BoardId });
         }, cancellationToken);
     }
 }

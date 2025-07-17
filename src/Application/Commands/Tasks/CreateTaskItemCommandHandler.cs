@@ -48,7 +48,7 @@ public class CreateTaskItemCommandHandler : BaseCommandHandler, IRequestHandler<
 
             await unitOfWork.Tasks.AddAsync(taskItem, cancellationToken);
             
-            await _boardNotifier.NotifyTaskUpdatedAsync(taskItem.Id.ToString(), new { action = "created", taskId = taskItem.Id });
+            await _boardNotifier.NotifyBoardUpdatedAsync(request.BoardId.ToString(), new { action = "created", boardId = request.BoardId });
             return taskItem.Id;
         }, cancellationToken);
     }

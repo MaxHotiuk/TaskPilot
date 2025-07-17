@@ -23,9 +23,4 @@ public class BoardNotifier : IBoardNotifier
     {
         return _hubContext.Clients.Group($"task-{taskId}").SendAsync("TaskUpdated", payload);
     }
-
-    public Task NotifyUserAddedToBoardAsync(string userId, string boardId, string addedBy, string boardName)
-    {
-        return _hubContext.Clients.User(userId).SendAsync("UserAddedToBoard", new { boardId, boardName, addedBy });
-    }
 }
