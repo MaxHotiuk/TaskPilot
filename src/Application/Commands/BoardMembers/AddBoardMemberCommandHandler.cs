@@ -50,7 +50,7 @@ public class AddBoardMemberCommandHandler : BaseCommandHandler, IRequestHandler<
 
             await unitOfWork.BoardMembers.AddAsync(boardMember, cancellationToken);
 
-            await _boardNotifier.NotifyUserAddedToBoardAsync(request.UserId.ToString(), request.BoardId.ToString(), "system", board.Name);
+            await _boardNotifier.NotifyBoardUpdatedAsync(boardMember.BoardId.ToString(), new { action = "addedUser", boardId = boardMember.BoardId });
         }, cancellationToken);
     }
 }

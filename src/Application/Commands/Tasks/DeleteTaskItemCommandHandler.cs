@@ -30,7 +30,7 @@ public class DeleteTaskItemCommandHandler : BaseCommandHandler, IRequestHandler<
 
             unitOfWork.Tasks.Remove(taskItem);
 
-            await _boardNotifier.NotifyTaskUpdatedAsync(taskItem.Id.ToString(), new { action = "deleted", taskId = taskItem.Id });
+            await _boardNotifier.NotifyBoardUpdatedAsync(taskItem.BoardId.ToString(), new { action = "deleted", boardId = taskItem.BoardId });
         }, cancellationToken);
     }
 }
