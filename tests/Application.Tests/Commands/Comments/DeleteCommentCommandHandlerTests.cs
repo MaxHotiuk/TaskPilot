@@ -1,3 +1,4 @@
+using Application.Abstractions.Messaging;
 using Application.Commands.Comments;
 using Application.Common.Exceptions;
 
@@ -9,6 +10,7 @@ public class DeleteCommentCommandHandlerTests
     private readonly Mock<ICommentRepository> _commentRepositoryMock;
     private readonly Mock<IUnitOfWork> _unitOfWorkMock;
     private readonly Mock<IUnitOfWorkFactory> _unitOfWorkFactoryMock;
+    private readonly Mock<IBoardNotifier> _boardNotifierMock;
     private readonly DeleteCommentCommandHandler _handler;
 
     public DeleteCommentCommandHandlerTests()
@@ -22,7 +24,8 @@ public class DeleteCommentCommandHandlerTests
         _unitOfWorkFactoryMock.Setup(x => x.CreateAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(_unitOfWorkMock.Object);
         
-        _handler = new DeleteCommentCommandHandler(_unitOfWorkFactoryMock.Object);
+        _boardNotifierMock = _fixture.Freeze<Mock<IBoardNotifier>>();
+        _handler = new DeleteCommentCommandHandler(_unitOfWorkFactoryMock.Object, _boardNotifierMock.Object);
     }
 
     [Fact]

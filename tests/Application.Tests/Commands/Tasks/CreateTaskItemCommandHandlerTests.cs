@@ -1,3 +1,4 @@
+using Application.Abstractions.Messaging;
 using Application.Commands.Tasks;
 using Application.Common.Exceptions;
 
@@ -11,6 +12,7 @@ public class CreateTaskItemCommandHandlerTests
     private readonly Mock<IStateRepository> _stateRepositoryMock;
     private readonly Mock<IUnitOfWork> _unitOfWorkMock;
     private readonly Mock<IUnitOfWorkFactory> _unitOfWorkFactoryMock;
+    private readonly Mock<IBoardNotifier> _boardNotifierMock;
     private readonly CreateTaskItemCommandHandler _handler;
 
     public CreateTaskItemCommandHandlerTests()
@@ -28,7 +30,8 @@ public class CreateTaskItemCommandHandlerTests
         _unitOfWorkFactoryMock.Setup(x => x.CreateAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(_unitOfWorkMock.Object);
         
-        _handler = new CreateTaskItemCommandHandler(_unitOfWorkFactoryMock.Object);
+        _boardNotifierMock = _fixture.Freeze<Mock<IBoardNotifier>>();
+        _handler = new CreateTaskItemCommandHandler(_unitOfWorkFactoryMock.Object, _boardNotifierMock.Object);
     }
 
     [Fact]

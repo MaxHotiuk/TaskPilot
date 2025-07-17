@@ -1,3 +1,4 @@
+using Application.Abstractions.Messaging;
 using Application.Commands.Boards;
 using Application.Common.Exceptions;
 
@@ -9,6 +10,7 @@ public class UpdateBoardCommandHandlerTests
     private readonly Mock<IBoardRepository> _boardRepositoryMock;
     private readonly Mock<IUnitOfWork> _unitOfWorkMock;
     private readonly Mock<IUnitOfWorkFactory> _unitOfWorkFactoryMock;
+    private readonly Mock<IBoardNotifier> _boardNotifierMock;
     private readonly UpdateBoardCommandHandler _handler;
 
     public UpdateBoardCommandHandlerTests()
@@ -22,7 +24,8 @@ public class UpdateBoardCommandHandlerTests
         _unitOfWorkFactoryMock.Setup(x => x.CreateAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(_unitOfWorkMock.Object);
         
-        _handler = new UpdateBoardCommandHandler(_unitOfWorkFactoryMock.Object);
+        _boardNotifierMock = _fixture.Freeze<Mock<IBoardNotifier>>();
+        _handler = new UpdateBoardCommandHandler(_unitOfWorkFactoryMock.Object, _boardNotifierMock.Object);
     }
 
     [Fact]
