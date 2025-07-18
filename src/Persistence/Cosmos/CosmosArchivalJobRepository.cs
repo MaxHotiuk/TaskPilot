@@ -14,6 +14,18 @@ public class CosmosArchivalJobRepository : ICosmosArchivalJobRepository
         _dbContext = dbContext;
     }
 
+    public async Task<bool> RemoveJobAsync(Guid jobId, CancellationToken cancellationToken = default)
+    {
+        var job = await _dbContext.ArchivalJobs.FindAsync(new object[] { jobId }, cancellationToken);
+        if (job != null)
+        {
+            _dbContext.ArchivalJobs.Remove(job);
+            await _dbContext.SaveChangesAsync(cancellationToken);
+            return true;
+        }
+        return false;
+    }
+
     public async Task<ArchivalJob> CreateJobAsync(Guid boardId, string jobType, string? metadata, CancellationToken cancellationToken = default)
     {
         var job = new ArchivalJob
