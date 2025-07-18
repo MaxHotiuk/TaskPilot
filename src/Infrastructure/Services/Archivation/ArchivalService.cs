@@ -39,6 +39,18 @@ public class ArchivalService : IArchivalService, IDisposable
         {
             _logger.LogInformation("Marking board {BoardId} as dearchived", boardId);
 
+            var pendingArchivalJobs = await _mediator.Send(new GetPendingArchivalJobsQuery(), cancellationToken);
+            var archivalJobForBoard = pendingArchivalJobs?.FirstOrDefault(j => j.BoardId == boardId);
+            if (archivalJobForBoard != null)
+            {
+                _logger.LogInformation("Board {BoardId} is in the archival queue. Removing pending archival job {JobId}.", boardId, archivalJobForBoard.Id);
+                await _mediator.Send(new RemoveArchivalJobCommand(
+                    JobId: archivalJobForBoard.Id
+                ), cancellationToken);
+
+                return archivalJobForBoard;
+            }
+
             await _mediator.Send(new UpdateBoardArchivalStatusCommand(
                 BoardId: boardId,
                 IsArchived: false,

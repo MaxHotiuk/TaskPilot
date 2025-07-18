@@ -5,6 +5,9 @@ namespace Application.Abstractions.Persistence;
 
 public interface ICosmosArchivalJobRepository
 {
+    Task<bool> RemoveJobAsync(
+        Guid jobId,
+        CancellationToken cancellationToken = default);
     Task<bool> CompleteJobAsync(
         Guid jobId,
         string? blobPath = null,
