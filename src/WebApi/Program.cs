@@ -13,12 +13,14 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAll", builder =>
+    options.AddPolicy("AllowFrontend", policy =>
     {
-        builder
-            .AllowAnyOrigin()
+        var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>();
+        policy
+            .WithOrigins(allowedOrigins ?? throw new InvalidOperationException("AllowedOrigins not configured"))
+            .AllowAnyHeader()
             .AllowAnyMethod()
-            .AllowAnyHeader();
+            .AllowCredentials();
     });
 });
 
@@ -115,7 +117,7 @@ if (app.Environment.IsDevelopment())
     });
 }
 
-app.UseCors("AllowAll");
+app.UseCors("AllowFrontend");
 app.UseSerilogRequestLogging();
 app.UseHttpsRedirection();
 
@@ -127,5 +129,6 @@ app.UseAuthorization();
 // Map all endpoints
 app.MapEndpoints();
 app.MapHub<BoardHub>("/hubs/board");
+app.MapHub<WebRtcHub>("/webrtc");
 
 app.Run();
