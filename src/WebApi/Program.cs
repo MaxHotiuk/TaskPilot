@@ -69,6 +69,9 @@ builder.Services
     .AddApplication()
     .AddInfrastructure(builder.Configuration);
 
+// Register KernelMemory, ChatService, and FAQDataService
+builder.Services.AddKernelMemory(builder.Configuration);
+
 // Add Hangfire services with in-memory storage for development
 builder.Services.AddHangfire(config =>
     config.UseMemoryStorage()
@@ -80,8 +83,12 @@ builder.Host.UseSerilog((context, configuration) =>
 
 var app = builder.Build();
 
-
-
+// Initialize FAQ data for RAG pipeline
+using (var scope = app.Services.CreateScope())
+{
+    var faqService = scope.ServiceProvider.GetRequiredService<Application.Abstractions.Messaging.IFAQDataService>();
+    await faqService.InitializeFAQDataAsync();
+}
 try
 {
     Persistence.DependencyInjection.RunDatabaseMigrations(app.Services);

@@ -1,0 +1,42 @@
+[
+  {
+    "Question": "How do I create a new board?",
+    "Answer": "On the Boards page, click the 'Create New Board' button in the header or the Quick Actions section. Fill in the required details and save to add a new board."
+  },
+  {
+    "Question": "How can I search and filter boards?",
+    "Answer": "Use the search bar and filter options at the top of the Boards page to find boards by name or filter by type, such as active or archived boards."
+  },
+  {
+    "Question": "How do I add a new task to a board?",
+    "Answer": "Open a board and click the 'Add Task' button. Fill in the task title, description, state, and optionally assign it to a member before saving."
+  },
+  {
+    "Question": "How can I assign a task to a team member?",
+    "Answer": "When creating or editing a task, use the 'Assignee' dropdown to select a team member from the board. Only members of the board can be assigned."
+  },
+  {
+    "Question": "How do I view and edit task details?",
+    "Answer": "Click on a task to open the Task Details modal. Here you can view all information, edit the task, change its state, or add comments."
+  },
+  {
+    "Question": "How do I add or remove board members?",
+    "Answer": "Open the 'Board Members' modal from the board page. Click 'Add Member' to invite a new user, or use the remove option next to a member to remove them."
+  },
+  {
+    "Question": "How do I comment on a task?",
+    "Answer": "Open the Task Details modal and scroll to the comments section. Enter your comment and submit to add it to the task's discussion."
+  },
+  {
+    "Question": "How do I sign in to TaskPilot?",
+    "Answer": "Go to the Login page and click 'Sign in with Microsoft'. Authentication is handled securely via Azure AD."
+  },
+  {
+    "Question": "How do I view my user information?",
+    "Answer": "After logging in, go to the Welcome page or Dashboard to see your username, email, role, and membership date."
+  },
+  {
+    "Question": "How do I log out?",
+    "Answer": "Click your profile or the logout option in the navigation to securely sign out of TaskPilot."
+  }
+]
