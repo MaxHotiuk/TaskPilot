@@ -1,22 +1,24 @@
 using Application.Abstractions.Persistence;
-using Application.Common.Dtos.Users;
+using Domain.Dtos.Users;
+using Application.Common.Handlers;
 using Application.Common.Mappings;
 using MediatR;
 
 namespace Application.Queries.Users;
 
-public class GetUserByIdQueryHandler : IRequestHandler<GetUserByIdQuery, UserDto?>
+public class GetUserByIdQueryHandler : BaseQueryHandler, IRequestHandler<GetUserByIdQuery, UserDto?>
 {
-    private readonly IUserRepository _userRepository;
-
-    public GetUserByIdQueryHandler(IUserRepository userRepository)
+    public GetUserByIdQueryHandler(IUnitOfWorkFactory unitOfWorkFactory) 
+        : base(unitOfWorkFactory)
     {
-        _userRepository = userRepository;
     }
 
     public async Task<UserDto?> Handle(GetUserByIdQuery request, CancellationToken cancellationToken)
     {
-        var user = await _userRepository.GetByIdAsync(request.Id, cancellationToken);
-        return user?.ToDto();
+        return await ExecuteQueryAsync(async unitOfWork =>
+        {
+            var user = await unitOfWork.Users.GetByIdAsync(request.Id, cancellationToken);
+            return user?.ToDto();
+        }, cancellationToken);
     }
 }

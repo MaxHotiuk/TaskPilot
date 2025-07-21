@@ -1,20 +1,20 @@
 using Application.Abstractions.Authentication;
 using Application.Abstractions.Persistence;
-using Application.Common.Dtos.Users;
+using Domain.Dtos.Users;
+using Application.Common.Handlers;
 using Application.Common.Mappings;
 using MediatR;
 
 namespace Application.Queries.Users;
 
-public class GetCurrentUserQueryHandler : IRequestHandler<GetCurrentUserQuery, UserDto?>
+public class GetCurrentUserQueryHandler : BaseQueryHandler, IRequestHandler<GetCurrentUserQuery, UserDto?>
 {
     private readonly IAuthenticationService _authenticationService;
-    private readonly IUserRepository _userRepository;
 
-    public GetCurrentUserQueryHandler(IAuthenticationService authenticationService, IUserRepository userRepository)
+    public GetCurrentUserQueryHandler(IAuthenticationService authenticationService, IUnitOfWorkFactory unitOfWorkFactory)
+        : base(unitOfWorkFactory)
     {
         _authenticationService = authenticationService;
-        _userRepository = userRepository;
     }
 
     public async Task<UserDto?> Handle(GetCurrentUserQuery request, CancellationToken cancellationToken)
@@ -26,7 +26,10 @@ public class GetCurrentUserQueryHandler : IRequestHandler<GetCurrentUserQuery, U
             return null;
         }
 
-        var user = await _userRepository.GetByEntraIdAsync(entraId, cancellationToken);
-        return user?.ToDto();
+        return await ExecuteQueryAsync(async unitOfWork =>
+        {
+            var user = await unitOfWork.Users.GetByEntraIdAsync(entraId, cancellationToken);
+            return user?.ToDto();
+        }, cancellationToken);
     }
 }

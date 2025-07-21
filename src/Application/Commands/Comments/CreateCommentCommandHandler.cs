@@ -1,56 +1,53 @@
+using Application.Abstractions.Messaging;
 using Application.Abstractions.Persistence;
 using Application.Common.Exceptions;
+using Application.Common.Handlers;
 using Domain.Entities;
 using MediatR;
 
 namespace Application.Commands.Comments;
 
-public class CreateCommentCommandHandler : IRequestHandler<CreateCommentCommand, Guid>
+public class CreateCommentCommandHandler : BaseCommandHandler, IRequestHandler<CreateCommentCommand, Guid>
 {
-    private readonly ICommentRepository _commentRepository;
-    private readonly ITaskItemRepository _taskItemRepository;
-    private readonly IUserRepository _userRepository;
-    private readonly IUnitOfWork _unitOfWork;
 
-    public CreateCommentCommandHandler(
-        ICommentRepository commentRepository,
-        ITaskItemRepository taskItemRepository,
-        IUserRepository userRepository,
-        IUnitOfWork unitOfWork)
+    private readonly IBoardNotifier _boardNotifier;
+
+    public CreateCommentCommandHandler(IUnitOfWorkFactory unitOfWorkFactory, IBoardNotifier boardNotifier)
+        : base(unitOfWorkFactory)
     {
-        _commentRepository = commentRepository;
-        _taskItemRepository = taskItemRepository;
-        _userRepository = userRepository;
-        _unitOfWork = unitOfWork;
+        _boardNotifier = boardNotifier;
     }
 
     public async Task<Guid> Handle(CreateCommentCommand request, CancellationToken cancellationToken)
     {
-        var task = await _taskItemRepository.GetByIdAsync(request.TaskId, cancellationToken);
-        if (task is null)
+        return await ExecuteInTransactionAsync(async unitOfWork =>
         {
-            throw new ValidationException($"Task with ID {request.TaskId} does not exist");
-        }
+            var task = await unitOfWork.Tasks.GetByIdAsync(request.TaskId, cancellationToken);
+            if (task is null)
+            {
+                throw new ValidationException($"Task with ID {request.TaskId} does not exist");
+            }
 
-        var author = await _userRepository.GetByIdAsync(request.AuthorId, cancellationToken);
-        if (author is null)
-        {
-            throw new ValidationException($"User with ID {request.AuthorId} does not exist");
-        }
+            var author = await unitOfWork.Users.GetByIdAsync(request.AuthorId, cancellationToken);
+            if (author is null)
+            {
+                throw new ValidationException($"User with ID {request.AuthorId} does not exist");
+            }
 
-        var comment = new Comment
-        {
-            Id = Guid.NewGuid(),
-            TaskId = request.TaskId,
-            AuthorId = request.AuthorId,
-            Content = request.Content,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
-        };
+            var comment = new Comment
+            {
+                Id = Guid.NewGuid(),
+                TaskId = request.TaskId,
+                AuthorId = request.AuthorId,
+                Content = request.Content,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
 
-        await _commentRepository.AddAsync(comment, cancellationToken);
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
-
-        return comment.Id;
+            await unitOfWork.Comments.AddAsync(comment, cancellationToken);
+            
+            await _boardNotifier.NotifyTaskUpdatedAsync(comment.TaskId.ToString(), new { action = "commentCreated", commentId = comment.Id });
+            return comment.Id;
+        }, cancellationToken);
     }
 }

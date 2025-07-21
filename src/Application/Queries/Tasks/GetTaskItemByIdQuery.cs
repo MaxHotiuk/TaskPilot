@@ -1,4 +1,4 @@
-using Application.Common.Dtos.Tasks;
+using Domain.Dtos.Tasks;
 using MediatR;
 
 namespace Application.Queries.Tasks;

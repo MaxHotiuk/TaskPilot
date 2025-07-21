@@ -1,30 +1,29 @@
 using Application.Abstractions.Persistence;
 using Application.Common.Exceptions;
+using Application.Common.Handlers;
 using MediatR;
 
 namespace Application.Commands.BoardMembers;
 
-public class RemoveBoardMemberCommandHandler : IRequestHandler<RemoveBoardMemberCommand>
+public class RemoveBoardMemberCommandHandler : BaseCommandHandler, IRequestHandler<RemoveBoardMemberCommand>
 {
-    private readonly IBoardMemberRepository _boardMemberRepository;
-    private readonly IUnitOfWork _unitOfWork;
-
-    public RemoveBoardMemberCommandHandler(IBoardMemberRepository boardMemberRepository, IUnitOfWork unitOfWork)
+    public RemoveBoardMemberCommandHandler(IUnitOfWorkFactory unitOfWorkFactory) 
+        : base(unitOfWorkFactory)
     {
-        _boardMemberRepository = boardMemberRepository;
-        _unitOfWork = unitOfWork;
     }
 
     public async Task Handle(RemoveBoardMemberCommand request, CancellationToken cancellationToken)
     {
-        var boardMember = await _boardMemberRepository.GetBoardMemberAsync(request.BoardId, request.UserId, cancellationToken);
-        
-        if (boardMember is null)
+        await ExecuteInTransactionAsync(async unitOfWork =>
         {
-            throw new NotFoundException($"Board member not found for board {request.BoardId} and user {request.UserId}");
-        }
+            var boardMember = await unitOfWork.BoardMembers.GetBoardMemberAsync(request.BoardId, request.UserId, cancellationToken);
+            
+            if (boardMember is null)
+            {
+                throw new NotFoundException($"Board member not found for board {request.BoardId} and user {request.UserId}");
+            }
 
-        _boardMemberRepository.Remove(boardMember);
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
+            unitOfWork.BoardMembers.Remove(boardMember);
+        }, cancellationToken);
     }
 }

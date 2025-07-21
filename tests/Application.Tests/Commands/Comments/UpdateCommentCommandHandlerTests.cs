@@ -1,3 +1,4 @@
+using Application.Abstractions.Messaging;
 using Application.Commands.Comments;
 using Application.Common.Exceptions;
 
@@ -8,6 +9,8 @@ public class UpdateCommentCommandHandlerTests
     private readonly IFixture _fixture;
     private readonly Mock<ICommentRepository> _commentRepositoryMock;
     private readonly Mock<IUnitOfWork> _unitOfWorkMock;
+    private readonly Mock<IUnitOfWorkFactory> _unitOfWorkFactoryMock;
+    private readonly Mock<IBoardNotifier> _boardNotifierMock;
     private readonly UpdateCommentCommandHandler _handler;
 
     public UpdateCommentCommandHandlerTests()
@@ -15,7 +18,14 @@ public class UpdateCommentCommandHandlerTests
         _fixture = new Fixture().Customize(new AutoMoqCustomization());
         _commentRepositoryMock = _fixture.Freeze<Mock<ICommentRepository>>();
         _unitOfWorkMock = _fixture.Freeze<Mock<IUnitOfWork>>();
-        _handler = new UpdateCommentCommandHandler(_commentRepositoryMock.Object, _unitOfWorkMock.Object);
+        _unitOfWorkFactoryMock = _fixture.Freeze<Mock<IUnitOfWorkFactory>>();
+        
+        _unitOfWorkMock.Setup(x => x.Comments).Returns(_commentRepositoryMock.Object);
+        _unitOfWorkFactoryMock.Setup(x => x.CreateAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(_unitOfWorkMock.Object);
+        
+        _boardNotifierMock = _fixture.Freeze<Mock<IBoardNotifier>>();
+        _handler = new UpdateCommentCommandHandler(_unitOfWorkFactoryMock.Object, _boardNotifierMock.Object);
     }
 
     [Fact]

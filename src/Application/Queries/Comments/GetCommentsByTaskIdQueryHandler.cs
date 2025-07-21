@@ -1,22 +1,24 @@
 using Application.Abstractions.Persistence;
-using Application.Common.Dtos.Comments;
+using Domain.Dtos.Comments;
+using Application.Common.Handlers;
 using Application.Common.Mappings;
 using MediatR;
 
 namespace Application.Queries.Comments;
 
-public class GetCommentsByTaskIdQueryHandler : IRequestHandler<GetCommentsByTaskIdQuery, IEnumerable<CommentDto>>
+public class GetCommentsByTaskIdQueryHandler : BaseQueryHandler, IRequestHandler<GetCommentsByTaskIdQuery, IEnumerable<CommentDto>>
 {
-    private readonly ICommentRepository _commentRepository;
-
-    public GetCommentsByTaskIdQueryHandler(ICommentRepository commentRepository)
+    public GetCommentsByTaskIdQueryHandler(IUnitOfWorkFactory unitOfWorkFactory) 
+        : base(unitOfWorkFactory)
     {
-        _commentRepository = commentRepository;
     }
 
     public async Task<IEnumerable<CommentDto>> Handle(GetCommentsByTaskIdQuery request, CancellationToken cancellationToken)
     {
-        var comments = await _commentRepository.GetCommentsByTaskIdAsync(request.TaskId, cancellationToken);
-        return comments.ToDto().OrderBy(c => c.CreatedAt);
+        return await ExecuteQueryAsync(async unitOfWork =>
+        {
+            var comments = await unitOfWork.Comments.GetCommentsByTaskIdAsync(request.TaskId, cancellationToken);
+            return comments.ToDto().OrderBy(c => c.CreatedAt);
+        }, cancellationToken);
     }
 }

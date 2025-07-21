@@ -1,33 +1,39 @@
+using Application.Abstractions.Messaging;
 using Application.Abstractions.Persistence;
 using Application.Common.Exceptions;
+using Application.Common.Handlers;
 using MediatR;
 
 namespace Application.Commands.Comments;
 
-public class UpdateCommentCommandHandler : IRequestHandler<UpdateCommentCommand>
+public class UpdateCommentCommandHandler : BaseCommandHandler, IRequestHandler<UpdateCommentCommand>
 {
-    private readonly ICommentRepository _commentRepository;
-    private readonly IUnitOfWork _unitOfWork;
 
-    public UpdateCommentCommandHandler(ICommentRepository commentRepository, IUnitOfWork unitOfWork)
+    private readonly IBoardNotifier _boardNotifier;
+
+    public UpdateCommentCommandHandler(IUnitOfWorkFactory unitOfWorkFactory, IBoardNotifier boardNotifier)
+        : base(unitOfWorkFactory)
     {
-        _commentRepository = commentRepository;
-        _unitOfWork = unitOfWork;
+        _boardNotifier = boardNotifier;
     }
 
     public async Task Handle(UpdateCommentCommand request, CancellationToken cancellationToken)
     {
-        var comment = await _commentRepository.GetByIdAsync(request.Id, cancellationToken);
-        
-        if (comment is null)
+        await ExecuteInTransactionAsync(async unitOfWork =>
         {
-            throw new NotFoundException($"Comment with ID {request.Id} was not found");
-        }
+            var comment = await unitOfWork.Comments.GetByIdAsync(request.Id, cancellationToken);
+            
+            if (comment is null)
+            {
+                throw new NotFoundException($"Comment with ID {request.Id} was not found");
+            }
 
-        comment.Content = request.Content;
-        comment.UpdatedAt = DateTime.UtcNow;
+            comment.Content = request.Content;
+            comment.UpdatedAt = DateTime.UtcNow;
 
-        _commentRepository.Update(comment);
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
+            unitOfWork.Comments.Update(comment);
+
+            await _boardNotifier.NotifyTaskUpdatedAsync(comment.TaskId.ToString(), new { action = "commentUpdated", commentId = comment.Id });
+        }, cancellationToken);
     }
 }

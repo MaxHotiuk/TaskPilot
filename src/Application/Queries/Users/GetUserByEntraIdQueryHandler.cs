@@ -1,22 +1,24 @@
 using Application.Abstractions.Persistence;
-using Application.Common.Dtos.Users;
+using Domain.Dtos.Users;
+using Application.Common.Handlers;
 using Application.Common.Mappings;
 using MediatR;
 
 namespace Application.Queries.Users;
 
-public class GetUserByEntraIdQueryHandler : IRequestHandler<GetUserByEntraIdQuery, UserDto?>
+public class GetUserByEntraIdQueryHandler : BaseQueryHandler, IRequestHandler<GetUserByEntraIdQuery, UserDto?>
 {
-    private readonly IUserRepository _userRepository;
-
-    public GetUserByEntraIdQueryHandler(IUserRepository userRepository)
+    public GetUserByEntraIdQueryHandler(IUnitOfWorkFactory unitOfWorkFactory) 
+        : base(unitOfWorkFactory)
     {
-        _userRepository = userRepository;
     }
 
     public async Task<UserDto?> Handle(GetUserByEntraIdQuery request, CancellationToken cancellationToken)
     {
-        var user = await _userRepository.GetByEntraIdAsync(request.EntraId, cancellationToken);
-        return user?.ToDto();
+        return await ExecuteQueryAsync(async unitOfWork =>
+        {
+            var user = await unitOfWork.Users.GetByEntraIdAsync(request.EntraId, cancellationToken);
+            return user?.ToDto();
+        }, cancellationToken);
     }
 }

@@ -1,5 +1,5 @@
 using Application.Queries.Tasks;
-using Application.Common.Dtos.Tasks;
+using Domain.Dtos.Tasks;
 
 namespace Application.Tests.Queries.Tasks;
 
@@ -7,13 +7,22 @@ public class GetOverdueTaskItemsQueryHandlerTests
 {
     private readonly IFixture _fixture;
     private readonly Mock<ITaskItemRepository> _taskItemRepositoryMock;
+    private readonly Mock<IUnitOfWork> _unitOfWorkMock;
+    private readonly Mock<IUnitOfWorkFactory> _unitOfWorkFactoryMock;
     private readonly GetOverdueTaskItemsQueryHandler _handler;
 
     public GetOverdueTaskItemsQueryHandlerTests()
     {
         _fixture = new Fixture().Customize(new AutoMoqCustomization());
         _taskItemRepositoryMock = _fixture.Freeze<Mock<ITaskItemRepository>>();
-        _handler = new GetOverdueTaskItemsQueryHandler(_taskItemRepositoryMock.Object);
+        _unitOfWorkMock = _fixture.Freeze<Mock<IUnitOfWork>>();
+        _unitOfWorkFactoryMock = _fixture.Freeze<Mock<IUnitOfWorkFactory>>();
+        
+        _unitOfWorkMock.Setup(x => x.Tasks).Returns(_taskItemRepositoryMock.Object);
+        _unitOfWorkFactoryMock.Setup(x => x.CreateAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(_unitOfWorkMock.Object);
+        
+        _handler = new GetOverdueTaskItemsQueryHandler(_unitOfWorkFactoryMock.Object);
     }
 
     [Fact]

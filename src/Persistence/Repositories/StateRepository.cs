@@ -29,4 +29,19 @@ public class StateRepository : Repository<State, int>, IStateRepository
         return await DbSet
             .AnyAsync(s => s.Id == stateId && s.BoardId == boardId, cancellationToken);
     }
+
+    public async Task SwapStateOrderAsync(int firstStateId, int secondStateId, Guid boardId, CancellationToken cancellationToken = default)
+    {
+        var states = await DbSet
+            .Where(s => (s.Id == firstStateId || s.Id == secondStateId) && s.BoardId == boardId)
+            .Select(s => new { s.Id, s.Order })
+            .ToListAsync(cancellationToken);
+
+        var firstStateOrder = states.First(s => s.Id == firstStateId).Order;
+        var secondStateOrder = states.First(s => s.Id == secondStateId).Order;
+
+        await Context.Database.ExecuteSqlRawAsync(
+            "EXEC UpdateStatesOrder @Id1 = {0}, @Order1 = {1}, @Id2 = {2}, @Order2 = {3}, @BoardId = {4}",
+            firstStateId, secondStateOrder, secondStateId, firstStateOrder, boardId);
+    }
 }

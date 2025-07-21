@@ -1,34 +1,40 @@
+using Application.Abstractions.Messaging;
 using Application.Abstractions.Persistence;
 using Application.Common.Exceptions;
+using Application.Common.Handlers;
 using MediatR;
 
 namespace Application.Commands.Boards;
 
-public class UpdateBoardCommandHandler : IRequestHandler<UpdateBoardCommand>
+public class UpdateBoardCommandHandler : BaseCommandHandler, IRequestHandler<UpdateBoardCommand>
 {
-    private readonly IBoardRepository _boardRepository;
-    private readonly IUnitOfWork _unitOfWork;
 
-    public UpdateBoardCommandHandler(IBoardRepository boardRepository, IUnitOfWork unitOfWork)
+    private readonly IBoardNotifier _boardNotifier;
+
+    public UpdateBoardCommandHandler(IUnitOfWorkFactory unitOfWorkFactory, IBoardNotifier boardNotifier)
+        : base(unitOfWorkFactory)
     {
-        _boardRepository = boardRepository;
-        _unitOfWork = unitOfWork;
+        _boardNotifier = boardNotifier;
     }
 
     public async Task Handle(UpdateBoardCommand request, CancellationToken cancellationToken)
     {
-        var board = await _boardRepository.GetByIdAsync(request.Id, cancellationToken);
-        
-        if (board is null)
+        await ExecuteInTransactionAsync(async unitOfWork =>
         {
-            throw new NotFoundException($"Board with ID {request.Id} was not found");
-        }
+            var board = await unitOfWork.Boards.GetByIdAsync(request.Id, cancellationToken);
+            
+            if (board is null)
+            {
+                throw new NotFoundException($"Board with ID {request.Id} was not found");
+            }
 
-        board.Name = request.Name;
-        board.Description = request.Description;
-        board.UpdatedAt = DateTime.UtcNow;
+            board.Name = request.Name;
+            board.Description = request.Description;
+            board.UpdatedAt = DateTime.UtcNow;
 
-        _boardRepository.Update(board);
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
+            unitOfWork.Boards.Update(board);
+
+            await _boardNotifier.NotifyBoardUpdatedAsync(board.Id.ToString(), new { action = "updated", boardId = board.Id });
+        }, cancellationToken);
     }
 }

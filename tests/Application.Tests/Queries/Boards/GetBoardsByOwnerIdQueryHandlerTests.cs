@@ -1,5 +1,5 @@
 using Application.Queries.Boards;
-using Application.Common.Dtos.Boards;
+using Domain.Dtos.Boards;
 
 namespace Application.Tests.Queries.Boards;
 
@@ -7,13 +7,22 @@ public class GetBoardsByOwnerIdQueryHandlerTests
 {
     private readonly IFixture _fixture;
     private readonly Mock<IBoardRepository> _boardRepositoryMock;
+    private readonly Mock<IUnitOfWork> _unitOfWorkMock;
+    private readonly Mock<IUnitOfWorkFactory> _unitOfWorkFactoryMock;
     private readonly GetBoardsByOwnerIdQueryHandler _handler;
 
     public GetBoardsByOwnerIdQueryHandlerTests()
     {
         _fixture = new Fixture().Customize(new AutoMoqCustomization());
         _boardRepositoryMock = _fixture.Freeze<Mock<IBoardRepository>>();
-        _handler = new GetBoardsByOwnerIdQueryHandler(_boardRepositoryMock.Object);
+        _unitOfWorkMock = _fixture.Freeze<Mock<IUnitOfWork>>();
+        _unitOfWorkFactoryMock = _fixture.Freeze<Mock<IUnitOfWorkFactory>>();
+        
+        _unitOfWorkMock.Setup(x => x.Boards).Returns(_boardRepositoryMock.Object);
+        _unitOfWorkFactoryMock.Setup(x => x.CreateAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(_unitOfWorkMock.Object);
+        
+        _handler = new GetBoardsByOwnerIdQueryHandler(_unitOfWorkFactoryMock.Object);
     }
 
     [Fact]

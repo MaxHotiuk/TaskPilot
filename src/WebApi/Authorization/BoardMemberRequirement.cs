@@ -21,3 +21,7 @@ public class BoardOwnerRequirement : IAuthorizationRequirement
 public class BoardMemberOrOwnerRequirement : IAuthorizationRequirement
 {
 }
+
+public class CommentOwnerRequirement : IAuthorizationRequirement
+{
+}

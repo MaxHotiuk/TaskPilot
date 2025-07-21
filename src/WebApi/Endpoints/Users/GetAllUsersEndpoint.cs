@@ -2,7 +2,7 @@ using Application.Queries.Users;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
-using Application.Common.Dtos.Users;
+using Domain.Dtos.Users;
 using System.Collections.Generic;
 using Domain.Common.Authorization;
 
@@ -20,7 +20,7 @@ public class GetAllUsersEndpoint : EndpointBaseWithRequest<GetAllUsersQuery, IEn
             })
             .WithName("GetAllUsers")
             .WithTags("Users")
-            .RequireAuthorization(Policies.RequireAdminRole)
+            .RequireAuthorization(Policies.RequireUserRole)
             .Produces(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status401Unauthorized)
             .Produces(StatusCodes.Status403Forbidden)

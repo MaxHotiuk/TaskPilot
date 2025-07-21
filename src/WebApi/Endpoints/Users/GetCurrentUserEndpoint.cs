@@ -21,7 +21,7 @@ public class GetCurrentUserEndpoint : EndpointBase
             .WithName("GetCurrentUser")
             .WithTags("Users")
             .RequireAuthorization(Policies.RequireUserRole)
-            .Produces<Application.Common.Dtos.Users.UserDto>(StatusCodes.Status200OK)
+            .Produces<Domain.Dtos.Users.UserDto>(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status401Unauthorized)
             .Produces(StatusCodes.Status403Forbidden)
             .Produces(StatusCodes.Status404NotFound)

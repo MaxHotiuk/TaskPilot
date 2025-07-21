@@ -1,35 +1,40 @@
+using Application.Abstractions.Messaging;
 using Application.Abstractions.Persistence;
+using Application.Common.Handlers;
 using Domain.Entities;
 using MediatR;
 
 namespace Application.Commands.Boards;
 
-public class CreateBoardCommandHandler : IRequestHandler<CreateBoardCommand, Guid>
+public class CreateBoardCommandHandler : BaseCommandHandler, IRequestHandler<CreateBoardCommand, Guid>
 {
-    private readonly IBoardRepository _boardRepository;
-    private readonly IUnitOfWork _unitOfWork;
 
-    public CreateBoardCommandHandler(IBoardRepository boardRepository, IUnitOfWork unitOfWork)
+    private readonly IBoardNotifier _boardNotifier;
+
+    public CreateBoardCommandHandler(IUnitOfWorkFactory unitOfWorkFactory, IBoardNotifier boardNotifier)
+        : base(unitOfWorkFactory)
     {
-        _boardRepository = boardRepository;
-        _unitOfWork = unitOfWork;
+        _boardNotifier = boardNotifier;
     }
 
     public async Task<Guid> Handle(CreateBoardCommand request, CancellationToken cancellationToken)
     {
-        var board = new Board
+        return await ExecuteInTransactionAsync(async unitOfWork =>
         {
-            Id = Guid.NewGuid(),
-            Name = request.Name,
-            Description = request.Description,
-            OwnerId = request.OwnerId,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
-        };
+            var board = new Board
+            {
+                Id = Guid.NewGuid(),
+                Name = request.Name,
+                Description = request.Description,
+                OwnerId = request.OwnerId,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
 
-        await _boardRepository.AddAsync(board, cancellationToken);
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
-
-        return board.Id;
+            await unitOfWork.Boards.AddAsync(board, cancellationToken);
+            
+            await _boardNotifier.NotifyBoardUpdatedAsync(board.Id.ToString(), new { action = "created", boardId = board.Id });
+            return board.Id;
+        }, cancellationToken);
     }
 }

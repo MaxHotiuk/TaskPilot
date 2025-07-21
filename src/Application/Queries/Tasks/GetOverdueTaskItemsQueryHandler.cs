@@ -1,22 +1,24 @@
 using Application.Abstractions.Persistence;
-using Application.Common.Dtos.Tasks;
+using Domain.Dtos.Tasks;
+using Application.Common.Handlers;
 using Application.Common.Mappings;
 using MediatR;
 
 namespace Application.Queries.Tasks;
 
-public class GetOverdueTaskItemsQueryHandler : IRequestHandler<GetOverdueTaskItemsQuery, IEnumerable<TaskItemDto>>
+public class GetOverdueTaskItemsQueryHandler : BaseQueryHandler, IRequestHandler<GetOverdueTaskItemsQuery, IEnumerable<TaskItemDto>>
 {
-    private readonly ITaskItemRepository _taskItemRepository;
-
-    public GetOverdueTaskItemsQueryHandler(ITaskItemRepository taskItemRepository)
+    public GetOverdueTaskItemsQueryHandler(IUnitOfWorkFactory unitOfWorkFactory) 
+        : base(unitOfWorkFactory)
     {
-        _taskItemRepository = taskItemRepository;
     }
 
     public async Task<IEnumerable<TaskItemDto>> Handle(GetOverdueTaskItemsQuery request, CancellationToken cancellationToken)
     {
-        var taskItems = await _taskItemRepository.GetOverdueTasksAsync(cancellationToken);
-        return taskItems.ToDto();
+        return await ExecuteQueryAsync(async unitOfWork =>
+        {
+            var taskItems = await unitOfWork.Tasks.GetOverdueTasksAsync(cancellationToken);
+            return taskItems.ToDto();
+        }, cancellationToken);
     }
 }

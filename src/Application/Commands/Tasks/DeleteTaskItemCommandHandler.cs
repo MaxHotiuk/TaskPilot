@@ -1,30 +1,36 @@
+using Application.Abstractions.Messaging;
 using Application.Abstractions.Persistence;
 using Application.Common.Exceptions;
+using Application.Common.Handlers;
 using MediatR;
 
 namespace Application.Commands.Tasks;
 
-public class DeleteTaskItemCommandHandler : IRequestHandler<DeleteTaskItemCommand>
+public class DeleteTaskItemCommandHandler : BaseCommandHandler, IRequestHandler<DeleteTaskItemCommand>
 {
-    private readonly ITaskItemRepository _taskItemRepository;
-    private readonly IUnitOfWork _unitOfWork;
 
-    public DeleteTaskItemCommandHandler(ITaskItemRepository taskItemRepository, IUnitOfWork unitOfWork)
+    private readonly IBoardNotifier _boardNotifier;
+
+    public DeleteTaskItemCommandHandler(IUnitOfWorkFactory unitOfWorkFactory, IBoardNotifier boardNotifier)
+        : base(unitOfWorkFactory)
     {
-        _taskItemRepository = taskItemRepository;
-        _unitOfWork = unitOfWork;
+        _boardNotifier = boardNotifier;
     }
 
     public async Task Handle(DeleteTaskItemCommand request, CancellationToken cancellationToken)
     {
-        var taskItem = await _taskItemRepository.GetByIdAsync(request.Id, cancellationToken);
-        
-        if (taskItem is null)
+        await ExecuteInTransactionAsync(async unitOfWork =>
         {
-            throw new NotFoundException($"Task with ID {request.Id} was not found");
-        }
+            var taskItem = await unitOfWork.Tasks.GetByIdAsync(request.Id, cancellationToken);
+            
+            if (taskItem is null)
+            {
+                throw new NotFoundException($"Task with ID {request.Id} was not found");
+            }
 
-        _taskItemRepository.Remove(taskItem);
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
+            unitOfWork.Tasks.Remove(taskItem);
+
+            await _boardNotifier.NotifyBoardUpdatedAsync(taskItem.BoardId.ToString(), new { action = "deleted", boardId = taskItem.BoardId });
+        }, cancellationToken);
     }
 }

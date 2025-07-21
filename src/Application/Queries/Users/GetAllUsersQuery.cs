@@ -1,4 +1,4 @@
-using Application.Common.Dtos.Users;
+using Domain.Dtos.Users;
 using MediatR;
 
 namespace Application.Queries.Users;

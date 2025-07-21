@@ -2,7 +2,7 @@ using Application.Queries.Tasks;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
-using Application.Common.Dtos.Tasks;
+using Domain.Dtos.Tasks;
 
 namespace WebApi.Endpoints.Tasks;
 

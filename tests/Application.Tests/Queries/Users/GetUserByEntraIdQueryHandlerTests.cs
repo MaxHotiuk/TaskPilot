@@ -6,13 +6,22 @@ public class GetUserByEntraIdQueryHandlerTests
 {
     private readonly IFixture _fixture;
     private readonly Mock<IUserRepository> _userRepositoryMock;
+    private readonly Mock<IUnitOfWork> _unitOfWorkMock;
+    private readonly Mock<IUnitOfWorkFactory> _unitOfWorkFactoryMock;
     private readonly GetUserByEntraIdQueryHandler _handler;
 
     public GetUserByEntraIdQueryHandlerTests()
     {
         _fixture = new Fixture().Customize(new AutoMoqCustomization());
         _userRepositoryMock = _fixture.Freeze<Mock<IUserRepository>>();
-        _handler = new GetUserByEntraIdQueryHandler(_userRepositoryMock.Object);
+        _unitOfWorkMock = _fixture.Freeze<Mock<IUnitOfWork>>();
+        _unitOfWorkFactoryMock = _fixture.Freeze<Mock<IUnitOfWorkFactory>>();
+        
+        _unitOfWorkMock.Setup(x => x.Users).Returns(_userRepositoryMock.Object);
+        _unitOfWorkFactoryMock.Setup(x => x.CreateAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(_unitOfWorkMock.Object);
+        
+        _handler = new GetUserByEntraIdQueryHandler(_unitOfWorkFactoryMock.Object);
     }
 
     [Fact]

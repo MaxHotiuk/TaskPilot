@@ -1,3 +1,4 @@
+using Application.Abstractions.Messaging;
 using Application.Commands.Tasks;
 using Application.Common.Exceptions;
 
@@ -9,6 +10,8 @@ public class UpdateTaskItemCommandHandlerTests
     private readonly Mock<ITaskItemRepository> _taskItemRepositoryMock;
     private readonly Mock<IStateRepository> _stateRepositoryMock;
     private readonly Mock<IUnitOfWork> _unitOfWorkMock;
+    private readonly Mock<IUnitOfWorkFactory> _unitOfWorkFactoryMock;
+    private readonly Mock<IBoardNotifier> _boardNotifierMock;
     private readonly UpdateTaskItemCommandHandler _handler;
 
     public UpdateTaskItemCommandHandlerTests()
@@ -17,10 +20,15 @@ public class UpdateTaskItemCommandHandlerTests
         _taskItemRepositoryMock = _fixture.Freeze<Mock<ITaskItemRepository>>();
         _stateRepositoryMock = _fixture.Freeze<Mock<IStateRepository>>();
         _unitOfWorkMock = _fixture.Freeze<Mock<IUnitOfWork>>();
-        _handler = new UpdateTaskItemCommandHandler(
-            _taskItemRepositoryMock.Object,
-            _stateRepositoryMock.Object,
-            _unitOfWorkMock.Object);
+        _unitOfWorkFactoryMock = _fixture.Freeze<Mock<IUnitOfWorkFactory>>();
+        
+        _unitOfWorkMock.Setup(x => x.Tasks).Returns(_taskItemRepositoryMock.Object);
+        _unitOfWorkMock.Setup(x => x.States).Returns(_stateRepositoryMock.Object);
+        _unitOfWorkFactoryMock.Setup(x => x.CreateAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(_unitOfWorkMock.Object);
+        
+        _boardNotifierMock = _fixture.Freeze<Mock<IBoardNotifier>>();
+        _handler = new UpdateTaskItemCommandHandler(_unitOfWorkFactoryMock.Object, _boardNotifierMock.Object);
     }
 
     [Fact]

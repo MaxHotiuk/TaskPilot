@@ -2,7 +2,7 @@ using Application.Queries.Tasks;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
-using Application.Common.Dtos.Tasks;
+using Domain.Dtos.Tasks;
 using System.Collections.Generic;
 using Domain.Common.Authorization;
 
