@@ -11,11 +11,13 @@ public class CreateCommentCommandHandler : BaseCommandHandler, IRequestHandler<C
 {
 
     private readonly IBoardNotifier _boardNotifier;
+    private readonly INotificationNotifier _notificationNotifier;
 
-    public CreateCommentCommandHandler(IUnitOfWorkFactory unitOfWorkFactory, IBoardNotifier boardNotifier)
+    public CreateCommentCommandHandler(IUnitOfWorkFactory unitOfWorkFactory, IBoardNotifier boardNotifier, INotificationNotifier notificationNotifier)
         : base(unitOfWorkFactory)
     {
         _boardNotifier = boardNotifier;
+        _notificationNotifier = notificationNotifier;
     }
 
     public async Task<Guid> Handle(CreateCommentCommand request, CancellationToken cancellationToken)
@@ -45,7 +47,21 @@ public class CreateCommentCommandHandler : BaseCommandHandler, IRequestHandler<C
             };
 
             await unitOfWork.Comments.AddAsync(comment, cancellationToken);
-            
+
+            if (task.AssigneeId != null && task.AssigneeId != request.AuthorId)
+            {
+                var notification = unitOfWork.Notifications.BuildNotification(
+                    userId: task.AssigneeId.Value,
+                    type: Domain.Enums.NotificationType.CommentedOnTask,
+                    taskId: task.Id,
+                    taskName: task.Title,
+                    userComment: comment.Content,
+                    boardId: task.BoardId
+                );
+                await unitOfWork.Notifications.AddAsync(notification, cancellationToken);
+                await _notificationNotifier.NotifyUserAsync(task.AssigneeId.Value, notification);
+            }
+
             await _boardNotifier.NotifyTaskUpdatedAsync(comment.TaskId.ToString(), new { action = "commentCreated", commentId = comment.Id });
             return comment.Id;
         }, cancellationToken);

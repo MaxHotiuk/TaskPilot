@@ -11,11 +11,13 @@ public class CreateTaskItemCommandHandler : BaseCommandHandler, IRequestHandler<
 {
 
     private readonly IBoardNotifier _boardNotifier;
+    private readonly INotificationNotifier _notificationNotifier;
 
-    public CreateTaskItemCommandHandler(IUnitOfWorkFactory unitOfWorkFactory, IBoardNotifier boardNotifier)
+    public CreateTaskItemCommandHandler(IUnitOfWorkFactory unitOfWorkFactory, IBoardNotifier boardNotifier, INotificationNotifier notificationNotifier)
         : base(unitOfWorkFactory)
     {
         _boardNotifier = boardNotifier;
+        _notificationNotifier = notificationNotifier;
     }
 
     public async Task<Guid> Handle(CreateTaskItemCommand request, CancellationToken cancellationToken)
@@ -47,7 +49,19 @@ public class CreateTaskItemCommandHandler : BaseCommandHandler, IRequestHandler<
             };
 
             await unitOfWork.Tasks.AddAsync(taskItem, cancellationToken);
-            
+
+            if (request.AssigneeId != null)
+            {
+                var notification = unitOfWork.Notifications.BuildNotification(
+                    userId: request.AssigneeId.Value,
+                    type: Domain.Enums.NotificationType.AssignedToTask,
+                    taskId: taskItem.Id,
+                    taskName: taskItem.Title
+                );
+                await unitOfWork.Notifications.AddAsync(notification, cancellationToken);
+                await _notificationNotifier.NotifyUserAsync(request.AssigneeId.Value, notification);
+            }
+
             await _boardNotifier.NotifyBoardUpdatedAsync(request.BoardId.ToString(), new { action = "created", boardId = request.BoardId });
             return taskItem.Id;
         }, cancellationToken);

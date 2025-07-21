@@ -14,6 +14,7 @@ public class CreateCommentCommandHandlerTests
     private readonly Mock<IUnitOfWorkFactory> _unitOfWorkFactoryMock;
     private readonly Mock<IBoardNotifier> _boardNotifierMock;
     private readonly CreateCommentCommandHandler _handler;
+    private readonly Mock<INotificationNotifier> _notificationNotifierMock;
 
     public CreateCommentCommandHandlerTests()
     {
@@ -31,7 +32,8 @@ public class CreateCommentCommandHandlerTests
             .ReturnsAsync(_unitOfWorkMock.Object);
         
         _boardNotifierMock = _fixture.Freeze<Mock<IBoardNotifier>>();
-        _handler = new CreateCommentCommandHandler(_unitOfWorkFactoryMock.Object, _boardNotifierMock.Object);
+        _notificationNotifierMock = new Mock<INotificationNotifier>();
+        _handler = new CreateCommentCommandHandler(_unitOfWorkFactoryMock.Object, _boardNotifierMock.Object, _notificationNotifierMock.Object);
     }
 
     [Fact]
