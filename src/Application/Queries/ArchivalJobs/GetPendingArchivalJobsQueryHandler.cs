@@ -1,5 +1,5 @@
 using Application.Abstractions.Persistence;
-using Application.Common.Dtos.Boards;
+using Domain.Dtos.Boards;
 using Application.Common.Handlers;
 using Application.Common.Mappings;
 using MediatR;

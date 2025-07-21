@@ -1,4 +1,4 @@
-namespace Application.Common.Dtos.Comments;
+namespace Domain.Dtos.Comments;
 
 public record CommentDto
 {

@@ -1,4 +1,4 @@
-using Application.Common.Dtos.States;
+using Domain.Dtos.States;
 using Domain.Entities;
 
 namespace Application.Common.Mappings;

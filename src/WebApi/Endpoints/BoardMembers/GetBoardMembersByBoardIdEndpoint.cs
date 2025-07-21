@@ -2,7 +2,7 @@ using Application.Queries.BoardMembers;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
-using Application.Common.Dtos.BoardMembers;
+using Domain.Dtos.BoardMembers;
 using System.Collections.Generic;
 using Domain.Common.Authorization;
 

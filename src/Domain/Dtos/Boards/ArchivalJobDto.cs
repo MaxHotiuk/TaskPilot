@@ -1,6 +1,6 @@
 using System;
 
-namespace Application.Common.Dtos.Boards;
+namespace Domain.Dtos.Boards;
 
 public record ArchivalJobDto
 {

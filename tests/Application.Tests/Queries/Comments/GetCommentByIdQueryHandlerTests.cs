@@ -1,5 +1,5 @@
 using Application.Queries.Comments;
-using Application.Common.Dtos.Comments;
+using Domain.Dtos.Comments;
 
 namespace Application.Tests.Queries.Comments;
 

@@ -1,4 +1,4 @@
-namespace Application.Common.Dtos.BoardMembers;
+namespace Domain.Dtos.BoardMembers;
 
 public record BoardMemberDto
 {

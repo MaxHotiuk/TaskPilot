@@ -1,4 +1,4 @@
-using Application.Common.Dtos.Comments;
+using Domain.Dtos.Comments;
 using MediatR;
 
 namespace Application.Queries.Comments;

@@ -1,4 +1,4 @@
-namespace Application.Common.Dtos.States;
+namespace Domain.Dtos.States;
 
 public class SwapStateOrderRequestDto
 {

@@ -1,5 +1,5 @@
 using Application.Abstractions.Storage;
-using Application.Common.Dtos.Attachments;
+using Domain.Dtos.Attachments;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 

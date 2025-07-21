@@ -1,5 +1,5 @@
 using Application.Abstractions.Persistence;
-using Application.Common.Dtos.Users;
+using Domain.Dtos.Users;
 using Application.Common.Handlers;
 using Application.Common.Mappings;
 using Domain.Entities;

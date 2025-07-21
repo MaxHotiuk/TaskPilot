@@ -1,5 +1,5 @@
 using Application.Abstractions.Persistence;
-using Application.Common.Dtos.Boards;
+using Domain.Dtos.Boards;
 using Application.Queries.ArchivalJobs;
 using Domain.Enums;
 using MediatR;

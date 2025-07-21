@@ -3,7 +3,7 @@ using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Domain.Common.Authorization;
-using WebApi.Dtos.Comments;
+using Domain.Dtos.Comments;
 
 namespace WebApi.Endpoints.Comments;
 

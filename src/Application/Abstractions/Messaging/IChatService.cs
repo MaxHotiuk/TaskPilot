@@ -1,4 +1,4 @@
-using Application.Common.Dtos.Chat;
+using Domain.Dtos.Chat;
 
 namespace Application.Abstractions.Messaging;
 

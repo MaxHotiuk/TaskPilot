@@ -1,7 +1,7 @@
 using Application.Commands.States;
 using MediatR;
 using Domain.Common.Authorization;
-using Application.Common.Dtos.States;
+using Domain.Dtos.States;
 
 namespace WebApi.Endpoints.States;
 

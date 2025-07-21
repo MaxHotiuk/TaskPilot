@@ -1,4 +1,4 @@
-namespace Application.Common.Dtos.Tasks;
+namespace Domain.Dtos.Tasks;
 
 public record TaskItemDto
 {

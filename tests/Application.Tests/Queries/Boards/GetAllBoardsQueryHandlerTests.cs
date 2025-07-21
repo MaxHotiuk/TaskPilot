@@ -1,5 +1,5 @@
 using Application.Queries.Boards;
-using Application.Common.Dtos.Boards;
+using Domain.Dtos.Boards;
 
 namespace Application.Tests.Queries.Boards;
 
