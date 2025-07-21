@@ -1,9 +1,10 @@
 using Application.Abstractions.Persistence;
+using Database;
 using Domain.Entities;
 using Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 
-namespace Persistence.Cosmos;
+namespace Persistence.Repositories;
 
 public class CosmosArchivalJobRepository : ICosmosArchivalJobRepository
 {

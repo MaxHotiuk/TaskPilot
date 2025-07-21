@@ -1,8 +1,7 @@
 using Domain.Entities;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Cosmos;
 
-namespace Persistence.Cosmos;
+namespace Database;
 
 public class CosmosDbContext : DbContext
 {

@@ -2,7 +2,7 @@ using DbUp;
 using Microsoft.Extensions.Logging;
 using System.Reflection;
 
-namespace Persistence;
+namespace Database;
 
 public static class DbUpMigrator
 {

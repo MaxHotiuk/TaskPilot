@@ -8,6 +8,7 @@ using Hangfire;
 using Hangfire.MemoryStorage;
 using Application.Abstractions.Archivation;
 using Infrastructure.Hubs;
+using Microsoft.Azure.Amqp.Framing;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -91,7 +92,7 @@ using (var scope = app.Services.CreateScope())
 }
 try
 {
-    Persistence.DependencyInjection.RunDatabaseMigrations(app.Services);
+    Database.DependencyInjection.RunDatabaseMigrations(app.Services);
     app.Logger.LogInformation("Database migration completed successfully");
 }
 catch (Exception ex)

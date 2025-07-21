@@ -1,6 +1,7 @@
 using Application.Abstractions.Persistence;
 using Microsoft.EntityFrameworkCore.Storage;
 using Persistence.Repositories;
+using Database;
 
 namespace Persistence;
 
