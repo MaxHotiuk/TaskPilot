@@ -30,6 +30,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\Persistence\Persistence.csproj" />
     <ProjectReference Include="..\..\src\Domain\Domain.csproj" />
+    <ProjectReference Include="..\..\src\Database\Database.csproj" />
     <ProjectReference Include="..\..\src\Application\Application.csproj" />
   </ItemGroup>
 
