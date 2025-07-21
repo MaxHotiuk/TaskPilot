@@ -1,4 +1,4 @@
-namespace Application.Common.Dtos.Chat;
+namespace Domain.Dtos.Chat;
 
 public class ChatResponse
 {

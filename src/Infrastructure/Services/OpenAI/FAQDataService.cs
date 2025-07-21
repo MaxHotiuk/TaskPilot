@@ -1,6 +1,6 @@
 using System.Text.Json;
 using Application.Abstractions.Messaging;
-using Application.Common.Dtos.Chat;
+using Domain.Dtos.Chat;
 using Microsoft.KernelMemory;
 
 namespace Infrastructure.Services.OpenAI;

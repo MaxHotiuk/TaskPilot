@@ -1,4 +1,4 @@
-namespace Application.Common.Dtos.Avatars;
+namespace Domain.Dtos.Avatars;
 
 public record AvatarDto
 {

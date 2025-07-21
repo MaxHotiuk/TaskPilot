@@ -1,5 +1,5 @@
 using Application.Abstractions.Storage;
-using Application.Common.Dtos.Avatars;
+using Domain.Dtos.Avatars;
 using Domain.Common.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;

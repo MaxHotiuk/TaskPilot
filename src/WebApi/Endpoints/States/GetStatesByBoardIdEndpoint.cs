@@ -2,7 +2,7 @@ using Application.Queries.States;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
-using Application.Common.Dtos.States;
+using Domain.Dtos.States;
 using System.Collections.Generic;
 using Domain.Common.Authorization;
 

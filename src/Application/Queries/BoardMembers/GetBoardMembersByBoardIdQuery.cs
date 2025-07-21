@@ -1,4 +1,4 @@
-using Application.Common.Dtos.BoardMembers;
+using Domain.Dtos.BoardMembers;
 using MediatR;
 
 namespace Application.Queries.BoardMembers;

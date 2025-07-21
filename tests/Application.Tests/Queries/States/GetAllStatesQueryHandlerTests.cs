@@ -1,5 +1,5 @@
 using Application.Queries.States;
-using Application.Common.Dtos.States;
+using Domain.Dtos.States;
 
 namespace Application.Tests.Queries.States;
 

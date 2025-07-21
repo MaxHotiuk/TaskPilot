@@ -1,4 +1,4 @@
-namespace WebApi.Dtos.Comments;
+namespace Domain.Dtos.Comments;
 
 public class CreateCommentRequestDto
 {

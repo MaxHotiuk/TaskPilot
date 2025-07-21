@@ -2,7 +2,7 @@ using Application.Queries.Comments;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
-using Application.Common.Dtos.Comments;
+using Domain.Dtos.Comments;
 using Domain.Common.Authorization;
 
 namespace WebApi.Endpoints.Comments;

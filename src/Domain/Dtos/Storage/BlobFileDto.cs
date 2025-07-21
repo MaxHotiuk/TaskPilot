@@ -1,10 +1,9 @@
-namespace Application.Common.Dtos.Attachments;
+namespace Domain.Dtos.Storage;
 
-public record AttachmentDto
+public record BlobFileDto
 {
     public string FileName { get; init; } = string.Empty;
     public string Url { get; init; } = string.Empty;
     public string ContentType { get; init; } = string.Empty;
     public long Size { get; init; }
-    public DateTime UploadedAt { get; init; }
 }

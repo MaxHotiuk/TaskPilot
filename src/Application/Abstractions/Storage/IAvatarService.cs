@@ -1,4 +1,4 @@
-using Application.Common.Dtos.Avatars;
+using Domain.Dtos.Avatars;
 
 namespace Application.Abstractions.Storage;
 

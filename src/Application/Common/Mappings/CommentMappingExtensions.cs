@@ -1,4 +1,4 @@
-using Application.Common.Dtos.Comments;
+using Domain.Dtos.Comments;
 using Domain.Entities;
 
 namespace Application.Common.Mappings;

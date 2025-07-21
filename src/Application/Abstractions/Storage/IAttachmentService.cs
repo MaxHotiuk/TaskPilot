@@ -1,4 +1,4 @@
-using Application.Common.Dtos.Attachments;
+using Domain.Dtos.Attachments;
 
 namespace Application.Abstractions.Storage;
 

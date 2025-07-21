@@ -1,5 +1,5 @@
 using Application.Abstractions.Messaging;
-using Application.Common.Dtos.Chat;
+using Domain.Dtos.Chat;
 using Domain.Common.Authorization;
 
 namespace WebApi.Endpoints.Chat;

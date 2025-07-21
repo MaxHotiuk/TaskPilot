@@ -1,4 +1,4 @@
-using Application.Common.Dtos.BoardMembers;
+using Domain.Dtos.BoardMembers;
 using Domain.Entities;
 
 namespace Application.Common.Mappings;

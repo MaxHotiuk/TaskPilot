@@ -1,4 +1,4 @@
-namespace Application.Common.Dtos.Users;
+namespace Domain.Dtos.Users;
 
 public record UserDto
 {

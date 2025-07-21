@@ -1,6 +1,6 @@
 using System.Text.Json;
 using Application.Abstractions.Archivation;
-using Application.Common.Dtos.Boards;
+using Domain.Dtos.Boards;
 using Domain.Entities;
 using MediatR;
 using Application.Commands.Boards;

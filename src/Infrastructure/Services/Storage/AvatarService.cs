@@ -1,5 +1,5 @@
 using Application.Abstractions.Storage;
-using Application.Common.Dtos.Avatars;
+using Domain.Dtos.Avatars;
 using Azure.Storage.Blobs;
 using Microsoft.Extensions.Configuration;
 using SixLabors.ImageSharp;

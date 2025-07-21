@@ -1,4 +1,4 @@
-using Application.Common.Dtos.Boards;
+using Domain.Dtos.Boards;
 using MediatR;
 using System;
 using System.Collections.Generic;

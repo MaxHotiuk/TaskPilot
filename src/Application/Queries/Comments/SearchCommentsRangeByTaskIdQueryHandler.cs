@@ -1,5 +1,5 @@
 using Application.Abstractions.Persistence;
-using Application.Common.Dtos.Comments;
+using Domain.Dtos.Comments;
 using Application.Common.Handlers;
 using Application.Common.Mappings;
 using MediatR;

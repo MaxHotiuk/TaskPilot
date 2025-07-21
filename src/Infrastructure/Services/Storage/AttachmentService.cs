@@ -1,5 +1,5 @@
 using Application.Abstractions.Storage;
-using Application.Common.Dtos.Attachments;
+using Domain.Dtos.Attachments;
 using System.Diagnostics;
 
 namespace Infrastructure.Services.Storage;

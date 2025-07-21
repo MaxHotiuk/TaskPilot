@@ -1,4 +1,4 @@
-using Application.Common.Dtos.Boards;
+using Domain.Dtos.Boards;
 using Domain.Enums;
 
 namespace Application.Abstractions.Archivation;

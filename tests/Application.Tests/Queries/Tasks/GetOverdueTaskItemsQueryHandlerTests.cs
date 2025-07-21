@@ -1,5 +1,5 @@
 using Application.Queries.Tasks;
-using Application.Common.Dtos.Tasks;
+using Domain.Dtos.Tasks;
 
 namespace Application.Tests.Queries.Tasks;
 
