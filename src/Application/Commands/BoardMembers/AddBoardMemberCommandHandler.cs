@@ -9,13 +9,14 @@ namespace Application.Commands.BoardMembers;
 
 public class AddBoardMemberCommandHandler : BaseCommandHandler, IRequestHandler<AddBoardMemberCommand>
 {
-
     private readonly IBoardNotifier _boardNotifier;
+    private readonly INotificationNotifier _notificationNotifier;
 
-    public AddBoardMemberCommandHandler(IUnitOfWorkFactory unitOfWorkFactory, IBoardNotifier boardNotifier)
+    public AddBoardMemberCommandHandler(IUnitOfWorkFactory unitOfWorkFactory, IBoardNotifier boardNotifier, INotificationNotifier notificationNotifier)
         : base(unitOfWorkFactory)
     {
         _boardNotifier = boardNotifier;
+        _notificationNotifier = notificationNotifier;
     }
 
     public async Task Handle(AddBoardMemberCommand request, CancellationToken cancellationToken)
@@ -49,6 +50,16 @@ public class AddBoardMemberCommandHandler : BaseCommandHandler, IRequestHandler<
             };
 
             await unitOfWork.BoardMembers.AddAsync(boardMember, cancellationToken);
+
+            var notification = unitOfWork.Notifications.BuildNotification(
+                userId: request.UserId,
+                type: Domain.Enums.NotificationType.AddedToBoard,
+                boardId: request.BoardId,
+                boardName: board.Name
+            );
+            await unitOfWork.Notifications.AddAsync(notification, cancellationToken);
+
+            await _notificationNotifier.NotifyUserAsync(request.UserId, notification);
 
             await _boardNotifier.NotifyBoardUpdatedAsync(boardMember.BoardId.ToString(), new { action = "addedUser", boardId = boardMember.BoardId });
         }, cancellationToken);

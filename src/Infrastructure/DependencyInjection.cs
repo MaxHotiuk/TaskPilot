@@ -30,6 +30,7 @@ public static class DependencyInjection
         services.AddScoped<IArchivalJobScheduler, ArchivalJobScheduler>();
 
         services.AddScoped<IBoardNotifier, BoardNotifier>();
+        services.AddScoped<INotificationNotifier, NotificationNotifier>();
 
         services.AddSingleton(provider =>
         {

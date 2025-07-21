@@ -138,5 +138,6 @@ app.UseAuthorization();
 app.MapEndpoints();
 app.MapHub<BoardHub>("/hubs/board");
 app.MapHub<WebRtcHub>("/webrtc");
+app.MapHub<NotificationHub>("/hubs/notification");
 
 app.Run();
