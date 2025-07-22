@@ -2,6 +2,7 @@ using Application.Abstractions.Persistence;
 using Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Database;
+using Domain.Dtos.Tasks;
 
 namespace Persistence.Repositories;
 
@@ -55,6 +56,24 @@ public class TaskItemRepository : Repository<TaskItem, Guid>, ITaskItemRepositor
             .Include(t => t.Assignee)
             .Include(t => t.Board)
             .Where(t => t.DueDate.HasValue && t.DueDate.Value < now)
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<IEnumerable<TaskCalendarItemDto>> GetTasksForCalendarAsync(
+        Guid userId,
+        DateTime startDate,
+        DateTime endDate,
+        CancellationToken cancellationToken = default)
+    {
+        return await DbSet
+            .Where(t => t.AssigneeId == userId && t.DueDate.HasValue && t.DueDate.Value >= startDate && t.DueDate.Value <= endDate)
+            .Select(t => new TaskCalendarItemDto
+            {
+                Id = t.Id,
+                BoardId = t.BoardId,
+                Title = t.Title,
+                DueDate = t.DueDate
+            })
             .ToListAsync(cancellationToken);
     }
 }
