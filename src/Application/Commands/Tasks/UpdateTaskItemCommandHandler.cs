@@ -51,6 +51,7 @@ public class UpdateTaskItemCommandHandler : BaseCommandHandler, IRequestHandler<
                     userId: request.AssigneeId.Value,
                     type: Domain.Enums.NotificationType.AssignedToTask,
                     taskId: taskItem.Id,
+                    boardId: taskItem.BoardId,
                     taskName: taskItem.Title
                 );
                 await unitOfWork.Notifications.AddAsync(notification, cancellationToken);
