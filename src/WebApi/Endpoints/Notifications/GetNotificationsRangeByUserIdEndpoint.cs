@@ -5,18 +5,20 @@ using Domain.Common.Authorization;
 
 namespace WebApi.Endpoints.Notifications;
 
-public class GetNotificationsByUserIdEndpoint : EndpointBaseWithRequest<GetNotificationsByUserIdQuery, IEnumerable<NotificationDto>>
+public class GetNotificationsRangeByUserIdEndpoint : EndpointBaseWithRequest<GetNotificationsRangeByUserIdQuery, IEnumerable<NotificationDto>>
 {
     public override void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapGet("/api/notifications/{userId:guid}", async (
+        app.MapGet("/api/notifications/{userId:guid}/range", async (
                 Guid userId,
+                int page,
+                int pageSize,
                 IMediator mediator,
                 CancellationToken cancellationToken) =>
             {
-                return await HandleAsync(new GetNotificationsByUserIdQuery(userId), mediator, cancellationToken);
+                return await HandleAsync(new GetNotificationsRangeByUserIdQuery(userId, page, pageSize), mediator, cancellationToken);
             })
-            .WithName("GetNotificationsByUserId")
+            .WithName("GetNotificationsRangeByUserId")
             .WithTags("Notifications")
             .RequireAuthorization(Policies.RequireUserRole)
             .Produces<IEnumerable<NotificationDto>>(StatusCodes.Status200OK)
@@ -24,7 +26,7 @@ public class GetNotificationsByUserIdEndpoint : EndpointBaseWithRequest<GetNotif
             .ProducesProblem(StatusCodes.Status500InternalServerError);
     }
 
-    public override async Task<IResult> HandleAsync(GetNotificationsByUserIdQuery request, IMediator mediator, CancellationToken cancellationToken)
+    public override async Task<IResult> HandleAsync(GetNotificationsRangeByUserIdQuery request, IMediator mediator, CancellationToken cancellationToken)
     {
         var result = await mediator.Send(request, cancellationToken);
         return Results.Ok(result);

@@ -17,15 +17,26 @@ public class NotificationNotifier : INotificationNotifier
 
     public async Task NotifyUserAsync(Guid userId, Notification notification)
     {
-        await _hubContext.Clients.Group($"user-{userId}").SendAsync("ReceiveNotification", new
+        try
         {
-            notification.Id,
-            notification.Text,
-            notification.Type,
-            notification.BoardId,
-            notification.TaskId,
-            notification.IsRead,
-            notification.CreatedAt
-        });
+            var groupName = $"user-{userId}";
+
+            var notificationData = new
+            {
+                notification.Id,
+                notification.UserId,
+                notification.Text,
+                notification.Type,
+                notification.BoardId,
+                notification.TaskId,
+                notification.IsRead,
+                notification.CreatedAt
+            };
+
+            await _hubContext.Clients.Group(groupName).SendAsync("ReceiveNotification", notificationData);
+        }
+        catch (Exception)
+        {
+        }
     }
 }

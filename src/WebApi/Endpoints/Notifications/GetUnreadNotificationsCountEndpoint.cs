@@ -8,7 +8,7 @@ public class GetUnreadNotificationsCountEndpoint : EndpointBaseWithRequest<GetUn
 {
     public override void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapGet("/api/notifications/unread-count", async (
+        app.MapGet("/api/notifications/unread-count/{userId:guid}", async (
                 Guid userId,
                 IMediator mediator,
                 CancellationToken cancellationToken) =>

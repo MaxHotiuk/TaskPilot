@@ -65,6 +65,20 @@ public class NotificationRepository : Repository<Notification, Guid>, INotificat
             .CountAsync(n => n.UserId == userId && !n.IsRead, cancellationToken);
     }
 
+    public async Task<IEnumerable<Notification>> GetNotificationsRangeByUserIdAsync(
+        Guid userId,
+        int page,
+        int pageSize,
+        CancellationToken cancellationToken = default)
+    {
+        return await Context.Notifications
+            .Where(n => n.UserId == userId)
+            .OrderByDescending(n => n.CreatedAt)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(cancellationToken);
+    }
+
     public async Task MarkAllAsReadAsync(Guid userId, CancellationToken cancellationToken = default)
     {
         var notifications = await Context.Notifications

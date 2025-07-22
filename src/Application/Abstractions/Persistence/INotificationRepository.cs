@@ -15,6 +15,11 @@ public interface INotificationRepository : IRepository<Notification, Guid>
         string? taskName = null,
         string? userComment = null);
     Task<IEnumerable<Notification>> GetNotificationsByUserIdAsync(Guid userId, CancellationToken cancellationToken = default);
+    Task<IEnumerable<Notification>> GetNotificationsRangeByUserIdAsync(
+        Guid userId,
+        int page,
+        int pageSize,
+        CancellationToken cancellationToken = default);
     Task<int> GetUnreadCountByUserIdAsync(Guid userId, CancellationToken cancellationToken = default);
     Task MarkAllAsReadAsync(Guid userId, CancellationToken cancellationToken = default);
     Task MarkAsReadAsync(Guid notificationId, CancellationToken cancellationToken = default);
