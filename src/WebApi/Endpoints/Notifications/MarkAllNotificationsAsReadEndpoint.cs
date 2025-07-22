@@ -10,7 +10,7 @@ public class MarkAllNotificationsAsReadEndpoint : EndpointBaseWithRequest<MarkAl
 {
     public override void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapPost("/api/notifications/mark-all-read", async (
+        app.MapPost("/api/notifications/mark-all-read/{userId:guid}", async (
                 Guid userId,
                 IMediator mediator,
                 CancellationToken cancellationToken) =>

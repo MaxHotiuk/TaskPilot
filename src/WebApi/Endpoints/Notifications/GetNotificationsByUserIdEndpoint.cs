@@ -9,7 +9,7 @@ public class GetNotificationsByUserIdEndpoint : EndpointBaseWithRequest<GetNotif
 {
     public override void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapGet("/api/notifications", async (
+        app.MapGet("/api/notifications/{userId:guid}", async (
                 Guid userId,
                 IMediator mediator,
                 CancellationToken cancellationToken) =>
