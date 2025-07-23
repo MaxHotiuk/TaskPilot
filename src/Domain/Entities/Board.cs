@@ -13,6 +13,7 @@ public class Board : AuditableEntity<Guid>
     public User Owner { get; set; } = null!;
     public ICollection<State> States { get; set; } = new List<State>();
     public ICollection<TaskItem> Tasks { get; set; } = new List<TaskItem>();
+    public ICollection<Tag> Tags { get; set; } = new List<Tag>();
     public ICollection<BoardMember> Members { get; set; } = new List<BoardMember>();
     public ICollection<ArchivalJob> ArchivalJobs { get; set; } = new List<ArchivalJob>();
 }

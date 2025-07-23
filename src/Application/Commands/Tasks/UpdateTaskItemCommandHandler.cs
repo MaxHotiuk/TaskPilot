@@ -40,6 +40,8 @@ public class UpdateTaskItemCommandHandler : BaseCommandHandler, IRequestHandler<
             taskItem.Description = request.Description;
             taskItem.StateId = request.StateId;
             taskItem.AssigneeId = request.AssigneeId;
+            taskItem.TagId = request.TagId;
+            taskItem.Priority = request.Priority;
             taskItem.DueDate = request.DueDate;
             taskItem.UpdatedAt = DateTime.UtcNow;
 

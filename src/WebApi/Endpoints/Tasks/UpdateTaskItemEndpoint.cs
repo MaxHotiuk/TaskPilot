@@ -22,6 +22,8 @@ public class UpdateTaskItemEndpoint : EndpointBaseWithRequest<UpdateTaskItemComm
                     dto.Description,
                     dto.StateId,
                     dto.AssigneeId,
+                    dto.TagId,
+                    dto.Priority,
                     dto.DueDate
                 );
                 
@@ -49,5 +51,7 @@ public record UpdateTaskItemRequestDto(
     string Title,
     string? Description,
     int StateId,
+    int? TagId,
+    int Priority,
     Guid? AssigneeId,
     DateTime? DueDate);
