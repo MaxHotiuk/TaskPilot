@@ -21,7 +21,7 @@ public class SearchArchivedRangeTaskItemsEndpoint : EndpointBaseWithRequest<Sear
             {
                 return await HandleAsync(new SearchArchivedRangeTaskItemsQuery(page, pageSize, boardId, searchTerm), mediator, cancellationToken);
             })
-            .WithName("GetArchivedRangeTaskItems")
+            .WithName("SearchArchivedRangeTaskItems")
             .WithTags("Tasks")
             .RequireAuthorization(Policies.RequireBoardMemberOrOwner)
             .Produces<IEnumerable<TaskItemDto>>(StatusCodes.Status200OK)
