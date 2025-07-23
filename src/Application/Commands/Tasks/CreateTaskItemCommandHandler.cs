@@ -42,6 +42,8 @@ public class CreateTaskItemCommandHandler : BaseCommandHandler, IRequestHandler<
                 Title = request.Title,
                 Description = request.Description,
                 StateId = request.StateId,
+                TagId = request.TagId,
+                Priority = request.Priority,
                 AssigneeId = request.AssigneeId,
                 DueDate = request.DueDate,
                 CreatedAt = DateTime.UtcNow,

@@ -50,6 +50,8 @@ public class CreateTaskItemCommandHandlerTests
             Title: "Test Task",
             Description: "Test Description",
             StateId: stateId,
+            TagId: 1,
+            Priority: 2,
             AssigneeId: assigneeId,
             DueDate: dueDate
         );
@@ -99,6 +101,8 @@ public class CreateTaskItemCommandHandlerTests
             BoardId: boardId,
             Title: "Test Task",
             Description: "Test Description",
+            TagId: 1,
+            Priority: 2,
             StateId: 1,
             AssigneeId: Guid.NewGuid(),
             DueDate: DateTime.UtcNow.AddDays(7)
@@ -128,6 +132,8 @@ public class CreateTaskItemCommandHandlerTests
             Title: "Test Task",
             Description: "Test Description",
             StateId: stateId,
+            TagId: 1,
+            Priority: 2,
             AssigneeId: Guid.NewGuid(),
             DueDate: DateTime.UtcNow.AddDays(7)
         );
@@ -166,6 +172,8 @@ public class CreateTaskItemCommandHandlerTests
         var command = new CreateTaskItemCommand(
             BoardId: boardId,
             Title: "Test Task",
+            TagId: 1,
+            Priority: 2,
             Description: null,
             StateId: stateId,
             AssigneeId: null,
@@ -210,6 +218,8 @@ public class CreateTaskItemCommandHandlerTests
         var command = new CreateTaskItemCommand(
             BoardId: boardId,
             Title: "Test Task",
+            TagId: 1,
+            Priority: 2,
             Description: "Test Description",
             StateId: 1,
             AssigneeId: Guid.NewGuid(),

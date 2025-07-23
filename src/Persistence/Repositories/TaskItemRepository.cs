@@ -18,6 +18,7 @@ public class TaskItemRepository : Repository<TaskItem, Guid>, ITaskItemRepositor
             .Include(t => t.State)
             .Include(t => t.Assignee)
             .Where(t => t.BoardId == boardId)
+            .OrderBy(t => t.DueDate)
             .ToListAsync(cancellationToken);
     }
 

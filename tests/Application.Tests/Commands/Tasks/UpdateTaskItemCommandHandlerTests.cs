@@ -59,6 +59,8 @@ public class UpdateTaskItemCommandHandlerTests
         var command = new UpdateTaskItemCommand(
             Id: taskId,
             Title: "Updated Title",
+            TagId: 1,
+            Priority: 2,
             Description: "Updated Description",
             StateId: newStateId,
             AssigneeId: newAssigneeId,
@@ -99,6 +101,8 @@ public class UpdateTaskItemCommandHandlerTests
         var command = new UpdateTaskItemCommand(
             Id: taskId,
             Title: "Updated Title",
+            TagId: 1,
+            Priority: 2,
             Description: "Updated Description",
             StateId: 2,
             AssigneeId: Guid.NewGuid(),
@@ -138,6 +142,8 @@ public class UpdateTaskItemCommandHandlerTests
         var command = new UpdateTaskItemCommand(
             Id: taskId,
             Title: "Updated Title",
+            TagId: 1,
+            Priority: 2,
             Description: "Updated Description",
             StateId: invalidStateId,
             AssigneeId: Guid.NewGuid(),
@@ -183,6 +189,8 @@ public class UpdateTaskItemCommandHandlerTests
         var command = new UpdateTaskItemCommand(
             Id: taskId,
             Title: "Updated Title",
+            TagId: 1,
+            Priority: 2,
             Description: null,
             StateId: 1,
             AssigneeId: null,
@@ -229,6 +237,8 @@ public class UpdateTaskItemCommandHandlerTests
             Title: "Updated Title",
             Description: "Updated Description",
             StateId: 1,
+            TagId: 1,
+            Priority: 2,
             AssigneeId: Guid.NewGuid(),
             DueDate: DateTime.UtcNow.AddDays(10)
         );
