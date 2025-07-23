@@ -14,6 +14,7 @@ public class UnitOfWork : IUnitOfWork
     private IUserRepository? _users;
     private IBoardRepository? _boards;
     private ITaskItemRepository? _tasks;
+    private ITagRepository? _tags;
     private IStateRepository? _states;
     private IBoardMemberRepository? _boardMembers;
     private ICommentRepository? _comments;
@@ -28,6 +29,7 @@ public class UnitOfWork : IUnitOfWork
     public IUserRepository Users => _users ??= new UserRepository(_context);
     public IBoardRepository Boards => _boards ??= new BoardRepository(_context);
     public ITaskItemRepository Tasks => _tasks ??= new TaskItemRepository(_context);
+    public ITagRepository Tags => _tags ??= new TagRepository(_context);
     public IStateRepository States => _states ??= new StateRepository(_context);
     public IBoardMemberRepository BoardMembers => _boardMembers ??= new BoardMemberRepository(_context);
     public ICommentRepository Comments => _comments ??= new CommentRepository(_context);

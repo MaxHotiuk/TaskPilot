@@ -18,9 +18,11 @@ public class CreateTaskItemCommandValidatorTests
         // Arrange
         var command = new CreateTaskItemCommand(
             BoardId: Guid.NewGuid(),
+            TagId: 1,
             Title: "Test Task",
             Description: "Test Description",
             StateId: 1,
+            Priority: 2,
             AssigneeId: Guid.NewGuid(),
             DueDate: DateTime.UtcNow.AddDays(7)
         );
@@ -44,6 +46,8 @@ public class CreateTaskItemCommandValidatorTests
             Title: title,
             Description: "Test Description",
             StateId: 1,
+            TagId: 1,
+            Priority: 2,
             AssigneeId: Guid.NewGuid(),
             DueDate: DateTime.UtcNow.AddDays(7)
         );
@@ -65,8 +69,10 @@ public class CreateTaskItemCommandValidatorTests
             Title: null!,
             Description: "Test Description",
             StateId: 1,
+            Priority: 2,
             AssigneeId: Guid.NewGuid(),
-            DueDate: DateTime.UtcNow.AddDays(7)
+            DueDate: DateTime.UtcNow.AddDays(7),
+            TagId: 1
         );
 
         // Act
@@ -87,6 +93,8 @@ public class CreateTaskItemCommandValidatorTests
             Title: longTitle,
             Description: "Test Description",
             StateId: 1,
+            TagId: 1,
+            Priority: 2,
             AssigneeId: Guid.NewGuid(),
             DueDate: DateTime.UtcNow.AddDays(7)
         );
@@ -108,6 +116,8 @@ public class CreateTaskItemCommandValidatorTests
             Title: "Test Task",
             Description: "Test Description",
             StateId: 1,
+            TagId: 1,
+            Priority: 2,
             AssigneeId: Guid.NewGuid(),
             DueDate: DateTime.UtcNow.AddDays(7)
         );
@@ -129,6 +139,8 @@ public class CreateTaskItemCommandValidatorTests
             Title: "Test Task",
             Description: "Test Description",
             StateId: 0,
+            TagId: 1,
+            Priority: 2,
             AssigneeId: Guid.NewGuid(),
             DueDate: DateTime.UtcNow.AddDays(7)
         );
@@ -150,6 +162,8 @@ public class CreateTaskItemCommandValidatorTests
             Title: "Test Task",
             Description: null,
             StateId: 1,
+            TagId: 1,
+            Priority: 2,
             AssigneeId: null,
             DueDate: null
         );
@@ -172,6 +186,8 @@ public class CreateTaskItemCommandValidatorTests
             Title: "Test Task",
             Description: longDescription,
             StateId: 1,
+            TagId: 1,
+            Priority: 2,
             AssigneeId: Guid.NewGuid(),
             DueDate: DateTime.UtcNow.AddDays(7)
         );
@@ -193,6 +209,8 @@ public class CreateTaskItemCommandValidatorTests
             Title: "Test Task",
             Description: "Test Description",
             StateId: 1,
+            TagId: 1,
+            Priority: 2,
             AssigneeId: Guid.NewGuid(),
             DueDate: DateTime.UtcNow.AddDays(-1) // Past date
         );

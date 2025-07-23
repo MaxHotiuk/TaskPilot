@@ -8,5 +8,7 @@ public record UpdateTaskItemCommand(
     string? Description,
     int StateId,
     Guid? AssigneeId,
+    int? TagId,
+    int Priority,
     DateTime? DueDate
 ) : IRequest;

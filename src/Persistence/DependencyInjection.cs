@@ -30,6 +30,7 @@ public static class DependencyInjection
         services.AddScoped<IBoardMemberRepository, BoardMemberRepository>();
         services.AddScoped<ICommentRepository, CommentRepository>();
         services.AddScoped<INotificationRepository, NotificationRepository>();
+        services.AddScoped<ITagRepository, TagRepository>();
 
         services.AddScoped<ICosmosArchivalJobRepository, CosmosArchivalJobRepository>();
 

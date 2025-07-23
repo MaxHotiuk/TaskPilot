@@ -8,10 +8,13 @@ public class TaskItem : AuditableEntity<Guid>
     public int StateId { get; set; }
     public Guid? AssigneeId { get; set; }
     public DateTime? DueDate { get; set; }
+    public int? TagId { get; set; }
+    public int Priority { get; set; } = 2;
 
     // Navigation properties
     public Board Board { get; set; } = null!;
     public State State { get; set; } = null!;
     public User? Assignee { get; set; }
+    public Tag? Tag { get; set; }
     public ICollection<Comment> Comments { get; set; } = new List<Comment>();
 }
