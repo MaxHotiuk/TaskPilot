@@ -15,4 +15,7 @@ public interface ITaskItemRepository : IRepository<TaskItem, Guid>
         DateTime startDate,
         DateTime endDate,
         CancellationToken cancellationToken = default);
+    Task<IEnumerable<ArchivedTaskDto>> SearchArchivedRangeByBoardIdAsync(Guid boardId, int page, int pageSize, string searchTerm, CancellationToken cancellationToken = default);
+    Task ArchiveTaskAsync(Guid taskId, CancellationToken cancellationToken = default);
+    Task RestoreTaskAsync(Guid taskId, CancellationToken cancellationToken = default);
 }

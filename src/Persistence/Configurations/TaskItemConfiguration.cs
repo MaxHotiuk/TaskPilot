@@ -35,6 +35,10 @@ public class TaskItemConfiguration : IEntityTypeConfiguration<TaskItem>
             
         builder.Property(t => t.DueDate)
             .IsRequired(false);
+        
+        builder.Property(t => t.IsArchived)
+            .IsRequired()
+            .HasDefaultValue(false);
             
         // Relationships
         builder.HasOne(t => t.Board)
