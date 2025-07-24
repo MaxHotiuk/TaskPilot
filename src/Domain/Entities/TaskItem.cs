@@ -10,6 +10,7 @@ public class TaskItem : AuditableEntity<Guid>
     public DateTime? DueDate { get; set; }
     public int? TagId { get; set; }
     public int Priority { get; set; } = 2;
+    public bool IsArchived { get; set; } = false;
 
     // Navigation properties
     public Board Board { get; set; } = null!;
