@@ -32,7 +32,14 @@ public class CreateBoardCommandHandler : BaseCommandHandler, IRequestHandler<Cre
             };
 
             await unitOfWork.Boards.AddAsync(board, cancellationToken);
-            
+
+            var backlogEntry = new Domain.Entities.Backlog
+            {
+                BoardId = board.Id,
+                Description = $"Board '{board.Name}' was created."
+            };
+            await unitOfWork.Backlogs.AddAsync(backlogEntry, cancellationToken);
+
             await _boardNotifier.NotifyBoardUpdatedAsync(board.Id.ToString(), new { action = "created", boardId = board.Id });
             return board.Id;
         }, cancellationToken);

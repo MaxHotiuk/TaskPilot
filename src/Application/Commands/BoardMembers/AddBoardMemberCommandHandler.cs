@@ -51,6 +51,13 @@ public class AddBoardMemberCommandHandler : BaseCommandHandler, IRequestHandler<
 
             await unitOfWork.BoardMembers.AddAsync(boardMember, cancellationToken);
 
+            var backlogEntry = new Backlog
+            {
+                BoardId = request.BoardId,
+                Description = $"User '{user.Username ?? user.Id.ToString()}' was added to the board as '{request.Role}'."
+            };
+            await unitOfWork.Backlogs.AddAsync(backlogEntry, cancellationToken);
+
             var notification = unitOfWork.Notifications.BuildNotification(
                 userId: request.UserId,
                 type: Domain.Enums.NotificationType.AddedToBoard,
