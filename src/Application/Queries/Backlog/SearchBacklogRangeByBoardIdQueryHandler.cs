@@ -18,7 +18,14 @@ public class SearchBacklogRangeByBoardIdQueryHandler : BaseQueryHandler, IReques
     {
         return await ExecuteQueryAsync(async unitOfWork =>
         {
-            return await unitOfWork.Backlogs.SearchBacklogsForBoardAsync(request.BoardId, request.SearchTerm, request.Page, request.PageSize, cancellationToken);
+            return await unitOfWork.Backlogs.SearchBacklogsForBoardAsync(
+                request.BoardId,
+                request.SearchTerm,
+                request.Page,
+                request.PageSize,
+                request.StartDate,
+                request.EndDate,
+                cancellationToken);
         }, cancellationToken);
     }
 }

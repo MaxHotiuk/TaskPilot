@@ -14,10 +14,19 @@ public class SearchBacklogRangeByBoardIdEndpoint : EndpointBaseWithRequest<Searc
                 string searchTerm,
                 int page,
                 int pageSize,
+                DateOnly startDate,
+                DateOnly endDate,
                 IMediator mediator,
                 CancellationToken cancellationToken) =>
             {
-                var query = new SearchBacklogRangeByBoardIdQuery(boardId, searchTerm, page, pageSize);
+                var query = new SearchBacklogRangeByBoardIdQuery(
+                    boardId,
+                    searchTerm,
+                    startDate,
+                    endDate,
+                    page,
+                    pageSize);
+                Console.WriteLine($"Searching backlog for board {boardId} with search term '{searchTerm}' from {startDate} to {endDate}, page {page}, page size {pageSize}");
                 return await HandleAsync(query, mediator, cancellationToken);
             })
             .WithName("SearchBacklogRangeByBoardId")
