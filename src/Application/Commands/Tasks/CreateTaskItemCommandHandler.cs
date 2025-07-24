@@ -52,6 +52,9 @@ public class CreateTaskItemCommandHandler : BaseCommandHandler, IRequestHandler<
 
             await unitOfWork.Tasks.AddAsync(taskItem, cancellationToken);
 
+            var backlogEntry = Application.Common.Helpers.BacklogEntryHelper.CreateBacklogForTaskCreate(taskItem, unitOfWork.States, unitOfWork.Users);
+            await unitOfWork.Backlogs.AddAsync(backlogEntry, cancellationToken);
+
             if (request.AssigneeId != null)
             {
                 var notification = unitOfWork.Notifications.BuildNotification(

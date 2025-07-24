@@ -17,6 +17,7 @@ public class ApplicationDbContext : DbContext
     public DbSet<Comment> Comments { get; set; }
     public DbSet<BoardMember> BoardMembers { get; set; }
     public DbSet<Notification> Notifications { get; set; }
+    public DbSet<Backlog> Backlog { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

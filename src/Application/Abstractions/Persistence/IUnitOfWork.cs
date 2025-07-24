@@ -10,6 +10,7 @@ public interface IUnitOfWork : IDisposable
     IBoardMemberRepository BoardMembers { get; }
     ICommentRepository Comments { get; }
     INotificationRepository Notifications { get; }
+    IBacklogRepository Backlogs { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
     Task CommitTransactionAsync(CancellationToken cancellationToken = default);

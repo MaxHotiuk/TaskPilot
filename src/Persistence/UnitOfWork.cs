@@ -19,6 +19,7 @@ public class UnitOfWork : IUnitOfWork
     private IBoardMemberRepository? _boardMembers;
     private ICommentRepository? _comments;
     private INotificationRepository? _notifications;
+    private IBacklogRepository? _backlogs;
 
     public UnitOfWork(ApplicationDbContext context, IDbContextTransaction transaction)
     {
@@ -34,6 +35,7 @@ public class UnitOfWork : IUnitOfWork
     public IBoardMemberRepository BoardMembers => _boardMembers ??= new BoardMemberRepository(_context);
     public ICommentRepository Comments => _comments ??= new CommentRepository(_context);
     public INotificationRepository Notifications => _notifications ??= new NotificationRepository(_context);
+    public IBacklogRepository Backlogs => _backlogs ??= new BacklogRepository(_context);
 
     public bool HasActiveTransaction => _transaction != null && !_disposed;
 

@@ -34,6 +34,25 @@ public class UpdateTaskItemCommandHandler : BaseCommandHandler, IRequestHandler<
                 throw new ValidationException($"State with ID {request.StateId} is not valid for board {taskItem.BoardId}");
             }
 
+            var oldTask = new Domain.Entities.TaskItem
+            {
+                Id = taskItem.Id,
+                BoardId = taskItem.BoardId,
+                Title = taskItem.Title,
+                Description = taskItem.Description,
+                StateId = taskItem.StateId,
+                AssigneeId = taskItem.AssigneeId,
+                TagId = taskItem.TagId,
+                Priority = taskItem.Priority,
+                DueDate = taskItem.DueDate,
+                IsArchived = taskItem.IsArchived,
+                CreatedAt = taskItem.CreatedAt,
+                UpdatedAt = taskItem.UpdatedAt,
+                State = taskItem.State,
+                Assignee = taskItem.Assignee,
+                Tag = taskItem.Tag
+            };
+
             var previousAssigneeId = taskItem.AssigneeId;
 
             taskItem.Title = request.Title;
@@ -46,6 +65,9 @@ public class UpdateTaskItemCommandHandler : BaseCommandHandler, IRequestHandler<
             taskItem.UpdatedAt = DateTime.UtcNow;
 
             unitOfWork.Tasks.Update(taskItem);
+
+            var backlogEntry = Application.Common.Helpers.BacklogEntryHelper.CreateBacklogForTaskChange(oldTask, taskItem, unitOfWork.States, unitOfWork.Users);
+            await unitOfWork.Backlogs.AddAsync(backlogEntry, cancellationToken);
 
             if (request.AssigneeId != null && request.AssigneeId != previousAssigneeId)
             {
