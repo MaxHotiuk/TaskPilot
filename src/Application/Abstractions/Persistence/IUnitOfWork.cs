@@ -11,6 +11,8 @@ public interface IUnitOfWork : IDisposable
     ICommentRepository Comments { get; }
     INotificationRepository Notifications { get; }
     IBacklogRepository Backlogs { get; }
+    IMeetingRepository Meetings { get; }
+    IMeetingMemberRepository MeetingMembers { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
     Task CommitTransactionAsync(CancellationToken cancellationToken = default);
