@@ -33,7 +33,7 @@ public class MeetingRepository : Repository<Meeting, Guid>, IMeetingRepository
         CancellationToken cancellationToken = default)
     {
         return await DbSet
-            .Where(m => m.ScheduledAt >= startDate && m.ScheduledAt <= endDate && m.Members.Any(mm => mm.UserId == userId))
+            .Where(m => m.ScheduledAt >= startDate && m.ScheduledAt <= endDate && (m.Members.Any(mm => mm.UserId == userId) || m.CreatedBy == userId))
             .Select(m => new MeetingCalendarItemDto
             {
                 Id = m.Id,

@@ -15,7 +15,7 @@ public class GetMeetingMembersByMeetingIdQueryHandler : BaseQueryHandler, IReque
     {
         return await ExecuteQueryAsync(async unitOfWork =>
         {
-            var members = await unitOfWork.MeetingMembers.FindAsync(m => m.MeetingId == request.MeetingId, cancellationToken);
+            var members = await unitOfWork.MeetingMembers.GetMembersByMeetingIdAsync(request.MeetingId, cancellationToken);
             return members.Select(m => m.ToDto());
         }, cancellationToken);
     }
