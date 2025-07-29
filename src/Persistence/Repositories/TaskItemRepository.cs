@@ -69,8 +69,8 @@ public class TaskItemRepository : Repository<TaskItem, Guid>, ITaskItemRepositor
         return await DbSet
             .Where(t => t.AssigneeId == userId
                 && t.DueDate.HasValue
-                && t.DueDate.Value >= startDate
-                && t.DueDate.Value <= endDate
+                && t.DueDate.Value.Date >= startDate.Date
+                && t.DueDate.Value.Date <= endDate.Date
                 && !t.IsArchived)
             .Select(t => new TaskCalendarItemDto
             {

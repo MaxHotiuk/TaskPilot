@@ -18,6 +18,8 @@ public class ApplicationDbContext : DbContext
     public DbSet<BoardMember> BoardMembers { get; set; }
     public DbSet<Notification> Notifications { get; set; }
     public DbSet<Backlog> Backlog { get; set; }
+    public DbSet<Meeting> Meetings { get; set; }
+    public DbSet<MeetingMember> MeetingMembers { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
