@@ -15,8 +15,7 @@ public class GetMeetingsByUserIdQueryHandler : BaseQueryHandler, IRequestHandler
     {
         return await ExecuteQueryAsync(async unitOfWork =>
         {
-            var meetings = await unitOfWork.Meetings.GetMeetingsByUserIdAsync(request.UserId, cancellationToken);
-            return meetings.Select(m => m.ToDto());
+            return await unitOfWork.Meetings.GetMeetingsByUserIdAsync(request.UserId, cancellationToken);
         }, cancellationToken);
     }
 }

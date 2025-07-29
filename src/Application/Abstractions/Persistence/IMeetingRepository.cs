@@ -5,8 +5,8 @@ namespace Application.Abstractions.Persistence;
 
 public interface IMeetingRepository : IRepository<Meeting, Guid>
 {
-    Task<IEnumerable<Meeting>> GetMeetingsByBoardIdAsync(Guid boardId, CancellationToken cancellationToken = default);
-    Task<IEnumerable<Meeting>> GetMeetingsByUserIdAsync(Guid userId, CancellationToken cancellationToken = default);
+    Task<IEnumerable<MeetingDto>> GetMeetingsByBoardIdAsync(Guid boardId, CancellationToken cancellationToken = default);
+    Task<IEnumerable<MeetingDto>> GetMeetingsByUserIdAsync(Guid userId, CancellationToken cancellationToken = default);
     Task<IEnumerable<MeetingCalendarItemDto>> GetMeetingCalendarItemsAsync(
         Guid userId,
         DateTime startDate,

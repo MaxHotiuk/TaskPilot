@@ -13,4 +13,5 @@ public record MeetingDto
     public DateTime? ScheduledAt { get; init; }
     public int? Duration { get; init; }
     public string Status { get; init; } = string.Empty;
+    public List<Guid>? MemberIds { get; set; } = new();
 }

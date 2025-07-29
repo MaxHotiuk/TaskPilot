@@ -15,8 +15,7 @@ public class GetMeetingsByBoardIdQueryHandler : BaseQueryHandler, IRequestHandle
     {
         return await ExecuteQueryAsync(async unitOfWork =>
         {
-            var meetings = await unitOfWork.Meetings.GetMeetingsByBoardIdAsync(request.BoardId, cancellationToken);
-            return meetings.Select(m => m.ToDto());
+            return await unitOfWork.Meetings.GetMeetingsByBoardIdAsync(request.BoardId, cancellationToken);
         }, cancellationToken);
     }
 }

@@ -11,19 +11,64 @@ public class MeetingRepository : Repository<Meeting, Guid>, IMeetingRepository
     {
     }
 
-    public async Task<IEnumerable<Meeting>> GetMeetingsByBoardIdAsync(Guid boardId, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<MeetingDto>> GetMeetingsByBoardIdAsync(Guid boardId, CancellationToken cancellationToken = default)
     {
-        return await Context.Meetings
+        var meetings = await DbSet
             .Where(m => m.BoardId == boardId)
+            .Select(m => new MeetingDto
+            {
+                Id = m.Id,
+                Title = m.Title,
+                Description = m.Description ?? string.Empty,
+                Link = m.Link ?? string.Empty,
+                BoardId = m.BoardId,
+                CreatedBy = m.CreatedBy,
+                ScheduledAt = m.ScheduledAt,
+                Duration = m.Duration,
+                Status = m.Status,
+                MemberIds = m.Members.Select(mm => mm.UserId).ToList()
+            })
             .ToListAsync(cancellationToken);
+
+        meetings.ForEach(m =>
+        {
+            if (!m.MemberIds!.Contains(m.CreatedBy))
+            {
+                m.MemberIds.Add(m.CreatedBy);
+            }
+        });
+
+        return meetings;
     }
 
 
-    public async Task<IEnumerable<Meeting>> GetMeetingsByUserIdAsync(Guid userId, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<MeetingDto>> GetMeetingsByUserIdAsync(Guid userId, CancellationToken cancellationToken = default)
     {
-        return await DbSet
-            .Where(m => m.Members.Any(mm => mm.UserId == userId))
+        var meetings = await DbSet
+            .Where(m => m.Members.Any(mm => mm.UserId == userId) || m.CreatedBy == userId)
+            .Select(m => new MeetingDto
+            {
+                Id = m.Id,
+                Title = m.Title,
+                Description = m.Description ?? string.Empty,
+                Link = m.Link ?? string.Empty,
+                BoardId = m.BoardId,
+                CreatedBy = m.CreatedBy,
+                ScheduledAt = m.ScheduledAt,
+                Duration = m.Duration,
+                Status = m.Status,
+                MemberIds = m.Members.Select(mm => mm.UserId).ToList()
+            })
             .ToListAsync(cancellationToken);
+
+        meetings.ForEach(m =>
+        {
+            if (!m.MemberIds!.Contains(m.CreatedBy))
+            {
+                m.MemberIds.Add(m.CreatedBy);
+            }
+        });
+        return meetings;
     }
 
     public async Task<IEnumerable<MeetingCalendarItemDto>> GetMeetingCalendarItemsAsync(
@@ -32,17 +77,23 @@ public class MeetingRepository : Repository<Meeting, Guid>, IMeetingRepository
         DateTime endDate,
         CancellationToken cancellationToken = default)
     {
-        return await DbSet
-            .Where(m => m.ScheduledAt >= startDate && m.ScheduledAt <= endDate && (m.Members.Any(mm => mm.UserId == userId) || m.CreatedBy == userId))
+        var meetings = await DbSet
+            .Where(m =>
+            m.ScheduledAt.HasValue &&
+            m.ScheduledAt.Value.Date >= startDate.Date &&
+            m.ScheduledAt.Value.Date <= endDate.Date &&
+            (m.Members.Any(mm => mm.UserId == userId) || m.CreatedBy == userId))
             .Select(m => new MeetingCalendarItemDto
             {
-                Id = m.Id,
-                BoardId = m.BoardId,
-                Title = m.Title,
-                ScheduledAt = m.ScheduledAt,
-                Duration = m.Duration,
-                Description = m.Description
+            Id = m.Id,
+            BoardId = m.BoardId,
+            Title = m.Title,
+            ScheduledAt = m.ScheduledAt,
+            Duration = m.Duration,
+            Description = m.Description
             })
             .ToListAsync(cancellationToken);
+
+        return meetings;
     }
 }
