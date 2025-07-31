@@ -15,7 +15,7 @@
   <ItemGroup>
     <PackageReference Include="DbUp" Version="5.0.41" />
     <PackageReference Include="DbUp-SqlServer" Version="6.0.0" />
-    <PackageReference Include="Microsoft.Azure.Cosmos" Version="3.53.0-preview.0" />
+    <PackageReference Include="Microsoft.Azure.Cosmos" Version="3.49.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.7" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Cosmos" Version="9.0.7" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.7" />
