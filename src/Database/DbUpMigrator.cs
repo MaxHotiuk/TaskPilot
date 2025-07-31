@@ -15,7 +15,7 @@ public static class DbUpMigrator
             var upgrader = DeployChanges.To
                 .SqlDatabase(connectionString)
                 .WithScriptsEmbeddedInAssembly(Assembly.GetExecutingAssembly(), name => name.Contains(".Migrations."))
-                .LogToAutodetectedLog()
+                .LogToConsole()
                 .Build();
 
             if (!upgrader.IsUpgradeRequired())

@@ -15,13 +15,13 @@
     <PackageReference Include="Azure.Messaging.ServiceBus" Version="7.20.1" />
     <PackageReference Include="Azure.Storage.Blobs" Version="12.26.0-beta.1" />
     <PackageReference Include="Hangfire" Version="1.8.20" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.0-preview.5.25277.114" />
-    <PackageReference Include="Microsoft.Extensions.Configuration" Version="9.0.0" />
-    <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.2.0" />
-    <PackageReference Include="Microsoft.KernelMemory" Version="0.90.241020.3+ef6ec96" />
-    <PackageReference Include="Microsoft.KernelMemory.Abstractions" Version="0.90.241020.3+ef6ec96" />
-    <PackageReference Include="Microsoft.KernelMemory.Core" Version="0.90.241020.3+ef6ec96" />
-    <PackageReference Include="SixLabors.ImageSharp" Version="3.1.10" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.0-preview.6.25358.103" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="9.0.7" />
+    <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.3.0" />
+    <PackageReference Include="Microsoft.KernelMemory" Version="0.98.250508.3" />
+    <PackageReference Include="Microsoft.KernelMemory.Abstractions" Version="0.98.250508.3" />
+    <PackageReference Include="Microsoft.KernelMemory.Core" Version="0.98.250508.3" />
+    <PackageReference Include="SixLabors.ImageSharp" Version="3.1.11" />
   </ItemGroup>
 
   <ItemGroup>
