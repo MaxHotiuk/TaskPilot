@@ -14,6 +14,7 @@ public class CreateTaskItemCommandHandlerTests
     private readonly Mock<IUnitOfWorkFactory> _unitOfWorkFactoryMock;
     private readonly Mock<IBoardNotifier> _boardNotifierMock;
     private readonly CreateTaskItemCommandHandler _handler;
+    private readonly Mock<INotificationNotifier> _notificationNotifierMock;
 
     public CreateTaskItemCommandHandlerTests()
     {
@@ -31,7 +32,8 @@ public class CreateTaskItemCommandHandlerTests
             .ReturnsAsync(_unitOfWorkMock.Object);
         
         _boardNotifierMock = _fixture.Freeze<Mock<IBoardNotifier>>();
-        _handler = new CreateTaskItemCommandHandler(_unitOfWorkFactoryMock.Object, _boardNotifierMock.Object);
+        _notificationNotifierMock = new Mock<INotificationNotifier>();
+        _handler = new CreateTaskItemCommandHandler(_unitOfWorkFactoryMock.Object, _boardNotifierMock.Object, _notificationNotifierMock.Object);
     }
 
     [Fact]
@@ -48,6 +50,8 @@ public class CreateTaskItemCommandHandlerTests
             Title: "Test Task",
             Description: "Test Description",
             StateId: stateId,
+            TagId: 1,
+            Priority: 2,
             AssigneeId: assigneeId,
             DueDate: dueDate
         );
@@ -97,6 +101,8 @@ public class CreateTaskItemCommandHandlerTests
             BoardId: boardId,
             Title: "Test Task",
             Description: "Test Description",
+            TagId: 1,
+            Priority: 2,
             StateId: 1,
             AssigneeId: Guid.NewGuid(),
             DueDate: DateTime.UtcNow.AddDays(7)
@@ -126,6 +132,8 @@ public class CreateTaskItemCommandHandlerTests
             Title: "Test Task",
             Description: "Test Description",
             StateId: stateId,
+            TagId: 1,
+            Priority: 2,
             AssigneeId: Guid.NewGuid(),
             DueDate: DateTime.UtcNow.AddDays(7)
         );
@@ -164,6 +172,8 @@ public class CreateTaskItemCommandHandlerTests
         var command = new CreateTaskItemCommand(
             BoardId: boardId,
             Title: "Test Task",
+            TagId: 1,
+            Priority: 2,
             Description: null,
             StateId: stateId,
             AssigneeId: null,
@@ -208,6 +218,8 @@ public class CreateTaskItemCommandHandlerTests
         var command = new CreateTaskItemCommand(
             BoardId: boardId,
             Title: "Test Task",
+            TagId: 1,
+            Priority: 2,
             Description: "Test Description",
             StateId: 1,
             AssigneeId: Guid.NewGuid(),

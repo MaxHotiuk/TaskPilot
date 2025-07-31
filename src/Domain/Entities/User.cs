@@ -12,4 +12,5 @@ public class User : AuditableEntity<Guid>
     public ICollection<TaskItem> AssignedTasks { get; set; } = new List<TaskItem>();
     public ICollection<Comment> Comments { get; set; } = new List<Comment>();
     public ICollection<BoardMember> BoardMemberships { get; set; } = new List<BoardMember>();
+    public ICollection<Notification> Notifications { get; set; } = new List<Notification>();
 }

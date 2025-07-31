@@ -1,5 +1,6 @@
 using Bogus;
 using Microsoft.EntityFrameworkCore;
+using Database;
 using Domain.Entities;
 using Persistence.Tests.Builders;
 

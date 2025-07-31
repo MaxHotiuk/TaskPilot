@@ -20,9 +20,5 @@ public class UpdateTaskItemCommandValidator : AbstractValidator<UpdateTaskItemCo
 
         RuleFor(x => x.StateId)
             .GreaterThan(0).WithMessage("State ID must be greater than 0.");
-
-        RuleFor(x => x.DueDate)
-            .GreaterThanOrEqualTo(DateTime.Today).WithMessage("Due date cannot be in the past.")
-            .When(x => x.DueDate.HasValue);
     }
 }

@@ -13,6 +13,7 @@ public class UpdateTaskItemCommandHandlerTests
     private readonly Mock<IUnitOfWorkFactory> _unitOfWorkFactoryMock;
     private readonly Mock<IBoardNotifier> _boardNotifierMock;
     private readonly UpdateTaskItemCommandHandler _handler;
+    private readonly Mock<INotificationNotifier> _notificationNotifierMock;
 
     public UpdateTaskItemCommandHandlerTests()
     {
@@ -28,7 +29,8 @@ public class UpdateTaskItemCommandHandlerTests
             .ReturnsAsync(_unitOfWorkMock.Object);
         
         _boardNotifierMock = _fixture.Freeze<Mock<IBoardNotifier>>();
-        _handler = new UpdateTaskItemCommandHandler(_unitOfWorkFactoryMock.Object, _boardNotifierMock.Object);
+        _notificationNotifierMock = new Mock<INotificationNotifier>();
+        _handler = new UpdateTaskItemCommandHandler(_unitOfWorkFactoryMock.Object, _boardNotifierMock.Object, _notificationNotifierMock.Object);
     }
 
     [Fact]
@@ -57,6 +59,8 @@ public class UpdateTaskItemCommandHandlerTests
         var command = new UpdateTaskItemCommand(
             Id: taskId,
             Title: "Updated Title",
+            TagId: 1,
+            Priority: 2,
             Description: "Updated Description",
             StateId: newStateId,
             AssigneeId: newAssigneeId,
@@ -97,6 +101,8 @@ public class UpdateTaskItemCommandHandlerTests
         var command = new UpdateTaskItemCommand(
             Id: taskId,
             Title: "Updated Title",
+            TagId: 1,
+            Priority: 2,
             Description: "Updated Description",
             StateId: 2,
             AssigneeId: Guid.NewGuid(),
@@ -136,6 +142,8 @@ public class UpdateTaskItemCommandHandlerTests
         var command = new UpdateTaskItemCommand(
             Id: taskId,
             Title: "Updated Title",
+            TagId: 1,
+            Priority: 2,
             Description: "Updated Description",
             StateId: invalidStateId,
             AssigneeId: Guid.NewGuid(),
@@ -181,6 +189,8 @@ public class UpdateTaskItemCommandHandlerTests
         var command = new UpdateTaskItemCommand(
             Id: taskId,
             Title: "Updated Title",
+            TagId: 1,
+            Priority: 2,
             Description: null,
             StateId: 1,
             AssigneeId: null,
@@ -227,6 +237,8 @@ public class UpdateTaskItemCommandHandlerTests
             Title: "Updated Title",
             Description: "Updated Description",
             StateId: 1,
+            TagId: 1,
+            Priority: 2,
             AssigneeId: Guid.NewGuid(),
             DueDate: DateTime.UtcNow.AddDays(10)
         );

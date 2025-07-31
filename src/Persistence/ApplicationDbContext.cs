@@ -16,11 +16,15 @@ public class ApplicationDbContext : DbContext
     public DbSet<TaskItem> Tasks { get; set; }
     public DbSet<Comment> Comments { get; set; }
     public DbSet<BoardMember> BoardMembers { get; set; }
+    public DbSet<Notification> Notifications { get; set; }
+    public DbSet<Backlog> Backlog { get; set; }
+    public DbSet<Meeting> Meetings { get; set; }
+    public DbSet<MeetingMember> MeetingMembers { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
-        
+
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
     }
 }

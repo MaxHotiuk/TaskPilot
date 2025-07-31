@@ -8,6 +8,7 @@ using Hangfire;
 using Hangfire.MemoryStorage;
 using Application.Abstractions.Archivation;
 using Infrastructure.Hubs;
+using Microsoft.Azure.Amqp.Framing;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -91,7 +92,7 @@ using (var scope = app.Services.CreateScope())
 }
 try
 {
-    Persistence.DependencyInjection.RunDatabaseMigrations(app.Services);
+    Database.DependencyInjection.RunDatabaseMigrations(app.Services);
     app.Logger.LogInformation("Database migration completed successfully");
 }
 catch (Exception ex)
@@ -137,5 +138,6 @@ app.UseAuthorization();
 app.MapEndpoints();
 app.MapHub<BoardHub>("/hubs/board");
 app.MapHub<WebRtcHub>("/webrtc");
+app.MapHub<NotificationHub>("/hubs/notification");
 
 app.Run();

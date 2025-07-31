@@ -20,6 +20,8 @@ public class CreateTaskItemEndpoint : EndpointBaseWithRequest<CreateTaskItemComm
                     dto.Title,
                     dto.Description,
                     dto.StateId,
+                    dto.TagId,
+                    dto.Priority,
                     dto.AssigneeId,
                     dto.DueDate
                 );
@@ -46,7 +48,9 @@ public class CreateTaskItemEndpoint : EndpointBaseWithRequest<CreateTaskItemComm
 public record CreateTaskItemRequestDto(
     Guid BoardId,
     string Title,
-    string? Description,
     int StateId,
-    Guid? AssigneeId,
-    DateTime? DueDate);
+    string? Description = null,
+    int Priority = 2,
+    int? TagId = null,
+    Guid? AssigneeId = null,
+    DateTime? DueDate = null);

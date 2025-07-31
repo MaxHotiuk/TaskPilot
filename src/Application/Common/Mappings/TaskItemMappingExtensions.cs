@@ -15,6 +15,8 @@ public static class TaskItemMappingExtensions
             Description = taskItem.Description,
             StateId = taskItem.StateId,
             AssigneeId = taskItem.AssigneeId,
+            TagId = taskItem.TagId,
+            Priority = taskItem.Priority,
             DueDate = taskItem.DueDate,
             CreatedAt = taskItem.CreatedAt,
             UpdatedAt = taskItem.UpdatedAt

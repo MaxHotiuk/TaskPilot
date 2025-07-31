@@ -3,6 +3,7 @@ using Infrastructure.Services.Authentication;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Persistence;
+using Database;
 using Application.Abstractions.Storage;
 using Infrastructure.Services.Storage;
 using Application.Abstractions.Archivation;
@@ -19,6 +20,7 @@ public static class DependencyInjection
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddPersistence(configuration);
+        services.AddDatabase(configuration);
         services.AddScoped<IAuthenticationService, AuthenticationService>();
         services.AddScoped<IBlobStorageService, BlobStorageService>();
         services.AddScoped<IAvatarService, AvatarService>();
@@ -28,6 +30,7 @@ public static class DependencyInjection
         services.AddScoped<IArchivalJobScheduler, ArchivalJobScheduler>();
 
         services.AddScoped<IBoardNotifier, BoardNotifier>();
+        services.AddScoped<INotificationNotifier, NotificationNotifier>();
 
         services.AddSingleton(provider =>
         {
