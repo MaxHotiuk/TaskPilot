@@ -33,7 +33,7 @@ public static class DependencyInjectionKernelMemory
                     APIKey = configuration["AzureAISearch:ApiKey"] ?? throw new ArgumentNullException("AzureAISearch:APIKey"),
                     Endpoint = configuration["AzureAISearch:Endpoint"] ?? throw new ArgumentNullException("AzureAISearch:Endpoint")
                 })
-                .Build();
+                .Build(new KernelMemoryBuilderBuildOptions { AllowMixingVolatileAndPersistentData = true });
             return memory;
         });
 
