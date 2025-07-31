@@ -156,7 +156,7 @@ resource webApiApp 'Microsoft.Web/sites@2022-09-01' = {
     serverFarmId: appServicePlan.id
     httpsOnly: true
     siteConfig: {
-      netFrameworkVersion: 'v8.0'
+      netFrameworkVersion: 'v9.0'
       metadata: [
         {
           name: 'CURRENT_STACK'
