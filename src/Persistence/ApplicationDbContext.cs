@@ -11,6 +11,7 @@ public class ApplicationDbContext : DbContext
 
     // DbSets for entities
     public DbSet<User> Users { get; set; }
+    public DbSet<UserProfile> UserProfiles { get; set; }
     public DbSet<Board> Boards { get; set; }
     public DbSet<State> States { get; set; }
     public DbSet<TaskItem> Tasks { get; set; }
