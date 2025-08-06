@@ -232,6 +232,22 @@ resource webApiApp 'Microsoft.Web/sites@2022-09-01' = {
           name: 'KernelMemory__EmbeddingGenerator__DeploymentName'
           value: 'text-embedding-3-small'
         }
+        {
+          name: 'AzureOpenAI__ApiKey'
+          value: azureOpenAIApiKey
+        }
+        {
+          name: 'AzureAISearch__ApiKey'
+          value: azureSearchApiKey
+        }
+        {
+          name: 'KernelMemory__EmbeddingGenerator__ApiKey'
+          value: azureOpenAIApiKey
+        }
+        {
+          name: 'AzureBlob__ConnectionString'
+          value: azureBlobConnectionString
+        }
       ]
       connectionStrings: [
         {
@@ -247,26 +263,6 @@ resource webApiApp 'Microsoft.Web/sites@2022-09-01' = {
         {
           name: 'CosmosDb'
           connectionString: cosmosDbConnectionString
-          type: 'Custom'
-        }
-        {
-          name: 'AzureBlob__ConnectionString'
-          connectionString: azureBlobConnectionString
-          type: 'Custom'
-        }
-        {
-          name: 'AzureOpenAI__ApiKey'
-          connectionString: azureOpenAIApiKey
-          type: 'Custom'
-        }
-        {
-          name: 'AzureAISearch__ApiKey'
-          connectionString: azureSearchApiKey
-          type: 'Custom'
-        }
-        {
-          name: 'KernelMemory__EmbeddingGenerator__ApiKey'
-          connectionString: azureOpenAIApiKey
           type: 'Custom'
         }
       ]
@@ -285,7 +281,7 @@ resource blazorApp 'Microsoft.Web/sites@2022-09-01' = {
     serverFarmId: appServicePlan.id
     httpsOnly: true
     siteConfig: {
-      netFrameworkVersion: 'v8.0'
+      netFrameworkVersion: 'v9.0'
       metadata: [
         {
           name: 'CURRENT_STACK'
