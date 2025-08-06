@@ -3,6 +3,7 @@ namespace Application.Abstractions.Persistence;
 public interface IUnitOfWork : IDisposable
 {
     IUserRepository Users { get; }
+    IUserProfileRepository UserProfiles { get; }
     IBoardRepository Boards { get; }
     ITaskItemRepository Tasks { get; }
     ITagRepository Tags { get; }

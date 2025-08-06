@@ -22,6 +22,7 @@ public class UnitOfWork : IUnitOfWork
     private IBacklogRepository? _backlogs;
     private IMeetingMemberRepository? _meetingMembers;
     private IMeetingRepository? _meetings;
+    private IUserProfileRepository? _userProfiles;
 
     public UnitOfWork(ApplicationDbContext context, IDbContextTransaction transaction)
     {
@@ -40,6 +41,7 @@ public class UnitOfWork : IUnitOfWork
     public IBacklogRepository Backlogs => _backlogs ??= new BacklogRepository(_context);
     public IMeetingMemberRepository MeetingMembers => _meetingMembers ??= new MeetingMemberRepository(_context);
     public IMeetingRepository Meetings => _meetings ??= new MeetingRepository(_context);
+    public IUserProfileRepository UserProfiles => _userProfiles ??= new UserProfileRepository(_context);
 
     public bool HasActiveTransaction => _transaction != null && !_disposed;
 
