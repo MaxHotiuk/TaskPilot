@@ -20,6 +20,8 @@ public class ApplicationDbContext : DbContext
     public DbSet<Backlog> Backlog { get; set; }
     public DbSet<Meeting> Meetings { get; set; }
     public DbSet<MeetingMember> MeetingMembers { get; set; }
+    public DbSet<Organization> Organizations { get; set; }
+    public DbSet<OrganizationMember> OrganizationMembers { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

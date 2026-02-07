@@ -13,10 +13,12 @@ public interface IUnitOfWork : IDisposable
     IBacklogRepository Backlogs { get; }
     IMeetingRepository Meetings { get; }
     IMeetingMemberRepository MeetingMembers { get; }
+    IOrganizationRepository Organizations { get; }
+    IOrganizationMemberRepository OrganizationMembers { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
     Task CommitTransactionAsync(CancellationToken cancellationToken = default);
     Task RollbackTransactionAsync(CancellationToken cancellationToken = default);
-    
+
     bool HasActiveTransaction { get; }
 }

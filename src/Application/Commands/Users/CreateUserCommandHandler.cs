@@ -40,7 +40,48 @@ public class CreateUserCommandHandler : BaseCommandHandler, IRequestHandler<Crea
 
             await unitOfWork.Users.AddAsync(user, cancellationToken);
 
+            await EnsureUserInOrganizationAsync(user, unitOfWork, cancellationToken);
+
             return user.Id;
         }, cancellationToken);
+    }
+
+    private async Task EnsureUserInOrganizationAsync(User user, IUnitOfWork unitOfWork, CancellationToken cancellationToken)
+    {
+        var domain = user.Email.Split('@').LastOrDefault();
+        if (string.IsNullOrEmpty(domain))
+        {
+            return;
+        }
+
+        var organization = await unitOfWork.Organizations.GetByDomainAsync(domain, cancellationToken);
+        if (organization == null)
+        {
+            organization = new Organization
+            {
+                Id = Guid.NewGuid(),
+                Domain = domain,
+                Name = domain,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
+            await unitOfWork.Organizations.AddAsync(organization, cancellationToken);
+        }
+
+        var isMember = await unitOfWork.OrganizationMembers.IsMemberOfOrganizationAsync(
+            organization.Id, user.Id, cancellationToken);
+
+        if (!isMember)
+        {
+            var organizationMember = new OrganizationMember
+            {
+                OrganizationId = organization.Id,
+                UserId = user.Id,
+                IsInvited = false,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
+            await unitOfWork.OrganizationMembers.AddAsync(organizationMember, cancellationToken);
+        }
     }
 }
