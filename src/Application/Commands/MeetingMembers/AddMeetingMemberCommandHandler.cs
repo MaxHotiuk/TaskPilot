@@ -26,6 +26,20 @@ public class AddMeetingMemberCommandHandler : BaseCommandHandler, IRequestHandle
                 throw new InvalidOperationException("User is already a member of the meeting.");
             }
 
+            var board = await unitOfWork.Boards.GetByIdAsync(meeting.BoardId, cancellationToken)
+                ?? throw new NotFoundException($"Board with ID {meeting.BoardId} was not found");
+
+            var ownerOrgIds = await unitOfWork.OrganizationMembers
+                .GetOrganizationIdsByUserIdAsync(board.OwnerId, cancellationToken);
+            var userOrgIds = await unitOfWork.OrganizationMembers
+                .GetOrganizationIdsByUserIdAsync(request.UserId, cancellationToken);
+
+            var sharedOrganizations = ownerOrgIds.Intersect(userOrgIds).ToList();
+            if (!sharedOrganizations.Any())
+            {
+                throw new ValidationException($"User {request.UserId} is not in the same organization as the board owner");
+            }
+
             var newMember = new MeetingMember
             {
                 MeetingId = request.MeetingId,

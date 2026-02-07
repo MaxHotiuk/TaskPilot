@@ -40,6 +40,23 @@ public class AddBoardMemberCommandHandler : BaseCommandHandler, IRequestHandler<
                 throw new ValidationException($"User {request.UserId} is already a member of board {request.BoardId}");
             }
 
+            var boardOwner = await unitOfWork.Users.GetByIdAsync(board.OwnerId, cancellationToken);
+            if (boardOwner is null)
+            {
+                throw new ValidationException($"Board owner with ID {board.OwnerId} does not exist");
+            }
+
+            var ownerOrgIds = await unitOfWork.OrganizationMembers
+                .GetOrganizationIdsByUserIdAsync(board.OwnerId, cancellationToken);
+            var userOrgIds = await unitOfWork.OrganizationMembers
+                .GetOrganizationIdsByUserIdAsync(request.UserId, cancellationToken);
+
+            var sharedOrganizations = ownerOrgIds.Intersect(userOrgIds).ToList();
+            if (!sharedOrganizations.Any())
+            {
+                throw new ValidationException($"User {request.UserId} is not in the same organization as the board owner");
+            }
+
             var boardMember = new BoardMember
             {
                 BoardId = request.BoardId,

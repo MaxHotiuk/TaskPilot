@@ -1,3 +1,4 @@
+using Application.Abstractions.Authentication;
 using Application.Abstractions.Persistence;
 using Domain.Dtos.Users;
 using Application.Common.Handlers;
@@ -8,9 +9,12 @@ namespace Application.Queries.Users;
 
 public class GetUserByEmailQueryHandler : BaseQueryHandler, IRequestHandler<GetUserByEmailQuery, UserDto?>
 {
-    public GetUserByEmailQueryHandler(IUnitOfWorkFactory unitOfWorkFactory) 
+    private readonly IAuthenticationService _authenticationService;
+
+    public GetUserByEmailQueryHandler(IAuthenticationService authenticationService, IUnitOfWorkFactory unitOfWorkFactory) 
         : base(unitOfWorkFactory)
     {
+        _authenticationService = authenticationService;
     }
 
     public async Task<UserDto?> Handle(GetUserByEmailQuery request, CancellationToken cancellationToken)
@@ -18,7 +22,40 @@ public class GetUserByEmailQueryHandler : BaseQueryHandler, IRequestHandler<GetU
         return await ExecuteQueryAsync(async unitOfWork =>
         {
             var user = await unitOfWork.Users.GetByEmailAsync(request.Email, cancellationToken);
-            return user?.ToDto();
+            if (user == null)
+            {
+                return null;
+            }
+
+            var entraId = await _authenticationService.GetCurrentUserEntraIdAsync();
+            if (string.IsNullOrEmpty(entraId))
+            {
+                return null;
+            }
+
+            var currentUser = await unitOfWork.Users.GetByEntraIdAsync(entraId, cancellationToken);
+            if (currentUser == null)
+            {
+                return null;
+            }
+
+            if (currentUser.Id == user.Id)
+            {
+                return user.ToDto();
+            }
+
+            var currentUserOrgIds = await unitOfWork.OrganizationMembers
+                .GetOrganizationIdsByUserIdAsync(currentUser.Id, cancellationToken);
+            var targetUserOrgIds = await unitOfWork.OrganizationMembers
+                .GetOrganizationIdsByUserIdAsync(user.Id, cancellationToken);
+
+            var sharedOrganizations = currentUserOrgIds.Intersect(targetUserOrgIds);
+            if (!sharedOrganizations.Any())
+            {
+                return null;
+            }
+
+            return user.ToDto();
         }, cancellationToken);
     }
 }

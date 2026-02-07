@@ -25,17 +25,17 @@ public class FAQDataService : IFAQDataService
         if (faqData == null)
             throw new Exception("Failed to deserialize FAQ data from JSON.");
 
-        foreach (var faq in faqData)
-        {
-            await _memory.ImportTextAsync(
-                $"Q: {faq.Question}\nA: {faq.Answer}",
-                documentId: Guid.NewGuid().ToString(),
-                tags: new TagCollection
-                {
-                    { "type", "faq" },
-                    { "category", "task-management" }
-                }
-            );
-        }
+        //foreach (var faq in faqData)
+        //{
+        //    await _memory.ImportTextAsync(
+        //        $"Q: {faq.Question}\nA: {faq.Answer}",
+        //        documentId: Guid.NewGuid().ToString(),
+        //        tags: new TagCollection
+        //        {
+        //            { "type", "faq" },
+        //            { "category", "task-management" }
+        //        }
+        //    );
+        //}
     }
 }

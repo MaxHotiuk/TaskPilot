@@ -1,3 +1,4 @@
+using Application.Abstractions.Authentication;
 using Application.Queries.Users;
 
 namespace Application.Tests.Queries.Users;
@@ -6,22 +7,27 @@ public class GetUserByEmailQueryHandlerTests
 {
     private readonly IFixture _fixture;
     private readonly Mock<IUserRepository> _userRepositoryMock;
+    private readonly Mock<IOrganizationMemberRepository> _organizationMemberRepositoryMock;
     private readonly Mock<IUnitOfWork> _unitOfWorkMock;
     private readonly Mock<IUnitOfWorkFactory> _unitOfWorkFactoryMock;
+    private readonly Mock<IAuthenticationService> _authenticationServiceMock;
     private readonly GetUserByEmailQueryHandler _handler;
 
     public GetUserByEmailQueryHandlerTests()
     {
         _fixture = new Fixture().Customize(new AutoMoqCustomization());
         _userRepositoryMock = _fixture.Freeze<Mock<IUserRepository>>();
+        _organizationMemberRepositoryMock = _fixture.Freeze<Mock<IOrganizationMemberRepository>>();
         _unitOfWorkMock = _fixture.Freeze<Mock<IUnitOfWork>>();
         _unitOfWorkFactoryMock = _fixture.Freeze<Mock<IUnitOfWorkFactory>>();
-        
+        _authenticationServiceMock = _fixture.Freeze<Mock<IAuthenticationService>>();
+
         _unitOfWorkMock.Setup(x => x.Users).Returns(_userRepositoryMock.Object);
+        _unitOfWorkMock.Setup(x => x.OrganizationMembers).Returns(_organizationMemberRepositoryMock.Object);
         _unitOfWorkFactoryMock.Setup(x => x.CreateAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(_unitOfWorkMock.Object);
-        
-        _handler = new GetUserByEmailQueryHandler(_unitOfWorkFactoryMock.Object);
+
+        _handler = new GetUserByEmailQueryHandler(_authenticationServiceMock.Object, _unitOfWorkFactoryMock.Object);
     }
 
     [Fact]
@@ -29,6 +35,21 @@ public class GetUserByEmailQueryHandlerTests
     {
         // Arrange
         const string email = "test@example.com";
+        var currentUserId = Guid.NewGuid();
+        var organizationId = Guid.NewGuid();
+        var currentEntraId = "current-entra-id";
+
+        var currentUser = new User
+        {
+            Id = currentUserId,
+            Email = "current@example.com",
+            Username = "currentuser",
+            Role = "User",
+            EntraId = currentEntraId,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+
         var expectedUser = new User
         {
             Id = Guid.NewGuid(),
@@ -42,9 +63,25 @@ public class GetUserByEmailQueryHandlerTests
 
         var query = new GetUserByEmailQuery(email);
 
+        _authenticationServiceMock
+            .Setup(x => x.GetCurrentUserEntraIdAsync())
+            .ReturnsAsync(currentEntraId);
+
+        _userRepositoryMock
+            .Setup(x => x.GetByEntraIdAsync(currentEntraId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(currentUser);
+
         _userRepositoryMock
             .Setup(x => x.GetByEmailAsync(email, It.IsAny<CancellationToken>()))
             .ReturnsAsync(expectedUser);
+
+        _organizationMemberRepositoryMock
+            .Setup(x => x.GetOrganizationIdsByUserIdAsync(currentUserId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new List<Guid> { organizationId });
+
+        _organizationMemberRepositoryMock
+            .Setup(x => x.GetOrganizationIdsByUserIdAsync(expectedUser.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new List<Guid> { organizationId });
 
         // Act
         var result = await _handler.Handle(query, CancellationToken.None);
