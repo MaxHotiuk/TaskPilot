@@ -31,6 +31,7 @@ public static class DependencyInjection
 
         services.AddScoped<IBoardNotifier, BoardNotifier>();
         services.AddScoped<INotificationNotifier, NotificationNotifier>();
+        services.AddScoped<IChatNotifier, ChatNotifier>();
 
         services.AddSingleton(provider =>
         {

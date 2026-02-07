@@ -22,6 +22,9 @@ public class ApplicationDbContext : DbContext
     public DbSet<MeetingMember> MeetingMembers { get; set; }
     public DbSet<Organization> Organizations { get; set; }
     public DbSet<OrganizationMember> OrganizationMembers { get; set; }
+    public DbSet<Chat> Chats { get; set; }
+    public DbSet<ChatMember> ChatMembers { get; set; }
+    public DbSet<ChatMessage> ChatMessages { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
