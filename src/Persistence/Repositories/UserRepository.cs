@@ -30,4 +30,13 @@ public class UserRepository : Repository<User, Guid>, IUserRepository
     {
         return await DbSet.AnyAsync(u => u.Email == email, cancellationToken);
     }
+
+    public async Task<IEnumerable<User>> GetByOrganizationIdsAsync(IEnumerable<Guid> organizationIds, CancellationToken cancellationToken = default)
+    {
+        return await Context.OrganizationMembers
+            .Where(om => organizationIds.Contains(om.OrganizationId))
+            .Select(om => om.User)
+            .Distinct()
+            .ToListAsync(cancellationToken);
+    }
 }

@@ -1,3 +1,4 @@
+using Application.Abstractions.Authentication;
 using Application.Queries.Users;
 
 namespace Application.Tests.Queries.Users;
@@ -6,28 +7,48 @@ public class GetAllUsersQueryHandlerTests
 {
     private readonly IFixture _fixture;
     private readonly Mock<IUserRepository> _userRepositoryMock;
+    private readonly Mock<IOrganizationMemberRepository> _organizationMemberRepositoryMock;
     private readonly Mock<IUnitOfWork> _unitOfWorkMock;
     private readonly Mock<IUnitOfWorkFactory> _unitOfWorkFactoryMock;
+    private readonly Mock<IAuthenticationService> _authenticationServiceMock;
     private readonly GetAllUsersQueryHandler _handler;
 
     public GetAllUsersQueryHandlerTests()
     {
         _fixture = new Fixture().Customize(new AutoMoqCustomization());
         _userRepositoryMock = _fixture.Freeze<Mock<IUserRepository>>();
+        _organizationMemberRepositoryMock = _fixture.Freeze<Mock<IOrganizationMemberRepository>>();
         _unitOfWorkMock = _fixture.Freeze<Mock<IUnitOfWork>>();
         _unitOfWorkFactoryMock = _fixture.Freeze<Mock<IUnitOfWorkFactory>>();
-        
+        _authenticationServiceMock = _fixture.Freeze<Mock<IAuthenticationService>>();
+
         _unitOfWorkMock.Setup(x => x.Users).Returns(_userRepositoryMock.Object);
+        _unitOfWorkMock.Setup(x => x.OrganizationMembers).Returns(_organizationMemberRepositoryMock.Object);
         _unitOfWorkFactoryMock.Setup(x => x.CreateAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(_unitOfWorkMock.Object);
-        
-        _handler = new GetAllUsersQueryHandler(_unitOfWorkFactoryMock.Object);
+
+        _handler = new GetAllUsersQueryHandler(_authenticationServiceMock.Object, _unitOfWorkFactoryMock.Object);
     }
 
     [Fact]
     public async Task Handle_WithUsersInRepository_ShouldReturnAllUsers()
     {
         // Arrange
+        var currentUserId = Guid.NewGuid();
+        var organizationId = Guid.NewGuid();
+        var currentEntraId = "current-entra-id";
+
+        var currentUser = new User
+        {
+            Id = currentUserId,
+            Email = "current@example.com",
+            Username = "currentuser",
+            Role = "User",
+            EntraId = currentEntraId,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+
         var expectedUsers = new[]
         {
             new User
@@ -64,8 +85,20 @@ public class GetAllUsersQueryHandlerTests
 
         var query = new GetAllUsersQuery();
 
+        _authenticationServiceMock
+            .Setup(x => x.GetCurrentUserEntraIdAsync())
+            .ReturnsAsync(currentEntraId);
+
         _userRepositoryMock
-            .Setup(x => x.GetAllAsync(It.IsAny<CancellationToken>()))
+            .Setup(x => x.GetByEntraIdAsync(currentEntraId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(currentUser);
+
+        _organizationMemberRepositoryMock
+            .Setup(x => x.GetOrganizationIdsByUserIdAsync(currentUserId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new List<Guid> { organizationId });
+
+        _userRepositoryMock
+            .Setup(x => x.GetByOrganizationIdsAsync(It.IsAny<IEnumerable<Guid>>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(expectedUsers);
 
         // Act
@@ -74,7 +107,7 @@ public class GetAllUsersQueryHandlerTests
         // Assert
         result.Should().NotBeNull();
         result.Should().HaveCount(3);
-        
+
         var resultArray = result.ToArray();
         resultArray[0].Id.Should().Be(expectedUsers[0].Id);
         resultArray[0].EntraId.Should().Be(expectedUsers[0].EntraId);
@@ -95,7 +128,7 @@ public class GetAllUsersQueryHandlerTests
         resultArray[2].Role.Should().Be(expectedUsers[2].Role);
 
         _userRepositoryMock.Verify(
-            x => x.GetAllAsync(It.IsAny<CancellationToken>()), 
+            x => x.GetByOrganizationIdsAsync(It.IsAny<IEnumerable<Guid>>(), It.IsAny<CancellationToken>()), 
             Times.Once);
     }
 
@@ -103,10 +136,37 @@ public class GetAllUsersQueryHandlerTests
     public async Task Handle_WithEmptyRepository_ShouldReturnEmptyCollection()
     {
         // Arrange
+        var currentUserId = Guid.NewGuid();
+        var organizationId = Guid.NewGuid();
+        var currentEntraId = "current-entra-id";
+
+        var currentUser = new User
+        {
+            Id = currentUserId,
+            Email = "current@example.com",
+            Username = "currentuser",
+            Role = "User",
+            EntraId = currentEntraId,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+
         var query = new GetAllUsersQuery();
 
+        _authenticationServiceMock
+            .Setup(x => x.GetCurrentUserEntraIdAsync())
+            .ReturnsAsync(currentEntraId);
+
         _userRepositoryMock
-            .Setup(x => x.GetAllAsync(It.IsAny<CancellationToken>()))
+            .Setup(x => x.GetByEntraIdAsync(currentEntraId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(currentUser);
+
+        _organizationMemberRepositoryMock
+            .Setup(x => x.GetOrganizationIdsByUserIdAsync(currentUserId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new List<Guid> { organizationId });
+
+        _userRepositoryMock
+            .Setup(x => x.GetByOrganizationIdsAsync(It.IsAny<IEnumerable<Guid>>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Enumerable.Empty<User>());
 
         // Act
@@ -117,7 +177,7 @@ public class GetAllUsersQueryHandlerTests
         result.Should().BeEmpty();
 
         _userRepositoryMock.Verify(
-            x => x.GetAllAsync(It.IsAny<CancellationToken>()), 
+            x => x.GetByOrganizationIdsAsync(It.IsAny<IEnumerable<Guid>>(), It.IsAny<CancellationToken>()), 
             Times.Once);
     }
 
@@ -125,6 +185,21 @@ public class GetAllUsersQueryHandlerTests
     public async Task Handle_WithSingleUser_ShouldReturnSingleUserCollection()
     {
         // Arrange
+        var currentUserId = Guid.NewGuid();
+        var organizationId = Guid.NewGuid();
+        var currentEntraId = "current-entra-id";
+
+        var currentUser = new User
+        {
+            Id = currentUserId,
+            Email = "current@example.com",
+            Username = "currentuser",
+            Role = "User",
+            EntraId = currentEntraId,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+
         var singleUser = new User
         {
             Id = Guid.NewGuid(),
@@ -138,8 +213,20 @@ public class GetAllUsersQueryHandlerTests
 
         var query = new GetAllUsersQuery();
 
+        _authenticationServiceMock
+            .Setup(x => x.GetCurrentUserEntraIdAsync())
+            .ReturnsAsync(currentEntraId);
+
         _userRepositoryMock
-            .Setup(x => x.GetAllAsync(It.IsAny<CancellationToken>()))
+            .Setup(x => x.GetByEntraIdAsync(currentEntraId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(currentUser);
+
+        _organizationMemberRepositoryMock
+            .Setup(x => x.GetOrganizationIdsByUserIdAsync(currentUserId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new List<Guid> { organizationId });
+
+        _userRepositoryMock
+            .Setup(x => x.GetByOrganizationIdsAsync(It.IsAny<IEnumerable<Guid>>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new[] { singleUser });
 
         // Act
@@ -157,7 +244,7 @@ public class GetAllUsersQueryHandlerTests
         firstResult.Role.Should().Be(singleUser.Role);
 
         _userRepositoryMock.Verify(
-            x => x.GetAllAsync(It.IsAny<CancellationToken>()), 
+            x => x.GetByOrganizationIdsAsync(It.IsAny<IEnumerable<Guid>>(), It.IsAny<CancellationToken>()), 
             Times.Once);
     }
 
@@ -169,6 +256,21 @@ public class GetAllUsersQueryHandlerTests
     public async Task Handle_WithVariousUserCounts_ShouldReturnCorrectCount(int userCount)
     {
         // Arrange
+        var currentUserId = Guid.NewGuid();
+        var organizationId = Guid.NewGuid();
+        var currentEntraId = "current-entra-id";
+
+        var currentUser = new User
+        {
+            Id = currentUserId,
+            Email = "current@example.com",
+            Username = "currentuser",
+            Role = "User",
+            EntraId = currentEntraId,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+
         var users = Enumerable.Range(1, userCount)
             .Select(i => new User
             {
@@ -184,8 +286,20 @@ public class GetAllUsersQueryHandlerTests
 
         var query = new GetAllUsersQuery();
 
+        _authenticationServiceMock
+            .Setup(x => x.GetCurrentUserEntraIdAsync())
+            .ReturnsAsync(currentEntraId);
+
         _userRepositoryMock
-            .Setup(x => x.GetAllAsync(It.IsAny<CancellationToken>()))
+            .Setup(x => x.GetByEntraIdAsync(currentEntraId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(currentUser);
+
+        _organizationMemberRepositoryMock
+            .Setup(x => x.GetOrganizationIdsByUserIdAsync(currentUserId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new List<Guid> { organizationId });
+
+        _userRepositoryMock
+            .Setup(x => x.GetByOrganizationIdsAsync(It.IsAny<IEnumerable<Guid>>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(users);
 
         // Act
@@ -196,7 +310,7 @@ public class GetAllUsersQueryHandlerTests
         result.Should().HaveCount(userCount);
 
         _userRepositoryMock.Verify(
-            x => x.GetAllAsync(It.IsAny<CancellationToken>()), 
+            x => x.GetByOrganizationIdsAsync(It.IsAny<IEnumerable<Guid>>(), It.IsAny<CancellationToken>()), 
             Times.Once);
     }
 }
