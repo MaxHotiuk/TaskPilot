@@ -42,6 +42,7 @@ public static class ChatMappingExtensions
             SenderId = message.SenderId,
             SenderName = message.Sender.Username,
             Content = message.Content,
+            MessageType = message.MessageType,
             HasAttachments = message.HasAttachments,
             CreatedAt = message.CreatedAt,
             UpdatedAt = message.UpdatedAt
@@ -55,6 +56,7 @@ public static class ChatMappingExtensions
             Id = message.Id,
             SenderId = message.SenderId,
             Content = message.Content,
+            MessageType = message.MessageType,
             CreatedAt = message.CreatedAt
         };
     }

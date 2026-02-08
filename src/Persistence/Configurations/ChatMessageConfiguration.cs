@@ -15,6 +15,11 @@ public class ChatMessageConfiguration : IEntityTypeConfiguration<ChatMessage>
             .IsRequired()
             .HasMaxLength(2000);
 
+        builder.Property(message => message.MessageType)
+            .IsRequired()
+            .HasMaxLength(20)
+            .HasDefaultValue("Text");
+
         builder.Property(message => message.HasAttachments)
             .IsRequired()
             .HasDefaultValue(false);

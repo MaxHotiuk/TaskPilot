@@ -12,6 +12,9 @@ using Infrastructure.BackgroundJobs;
 using Azure.Messaging.ServiceBus;
 using Application.Abstractions.Messaging;
 using Infrastructure.Services;
+using Infrastructure.Services.Meetings;
+using Application.Abstractions.Meetings;
+using System.Net.Http.Headers;
 
 namespace Infrastructure;
 
@@ -32,6 +35,18 @@ public static class DependencyInjection
         services.AddScoped<IBoardNotifier, BoardNotifier>();
         services.AddScoped<INotificationNotifier, NotificationNotifier>();
         services.AddScoped<IChatNotifier, ChatNotifier>();
+
+        services.Configure<DailyOptions>(configuration.GetSection("Daily"));
+        services.AddHttpClient<IDailyRoomService, DailyRoomService>()
+            .ConfigureHttpClient((provider, client) =>
+            {
+                var options = provider.GetRequiredService<Microsoft.Extensions.Options.IOptions<DailyOptions>>().Value;
+                client.BaseAddress = new Uri(options.ApiBaseUrl);
+                if (!string.IsNullOrWhiteSpace(options.ApiKey))
+                {
+                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", options.ApiKey);
+                }
+            });
 
         services.AddSingleton(provider =>
         {

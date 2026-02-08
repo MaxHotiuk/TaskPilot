@@ -1,3 +1,4 @@
+using Application.Abstractions.Meetings;
 using Application.Abstractions.Messaging;
 using Application.Abstractions.Persistence;
 using Application.Common.Exceptions;
@@ -9,17 +10,22 @@ using MediatR;
 
 namespace Application.Commands.Chats;
 
-public class SendChatMessageCommandHandler : BaseCommandHandler, IRequestHandler<SendChatMessageCommand, ChatMessageDto>
+public class StartChatCallCommandHandler : BaseCommandHandler, IRequestHandler<StartChatCallCommand, StartChatCallResponseDto>
 {
     private readonly IChatNotifier _chatNotifier;
+    private readonly IDailyRoomService _dailyRoomService;
 
-    public SendChatMessageCommandHandler(IUnitOfWorkFactory unitOfWorkFactory, IChatNotifier chatNotifier)
+    public StartChatCallCommandHandler(
+        IUnitOfWorkFactory unitOfWorkFactory,
+        IChatNotifier chatNotifier,
+        IDailyRoomService dailyRoomService)
         : base(unitOfWorkFactory)
     {
         _chatNotifier = chatNotifier;
+        _dailyRoomService = dailyRoomService;
     }
 
-    public async Task<ChatMessageDto> Handle(SendChatMessageCommand request, CancellationToken cancellationToken)
+    public async Task<StartChatCallResponseDto> Handle(StartChatCallCommand request, CancellationToken cancellationToken)
     {
         return await ExecuteInTransactionAsync(async unitOfWork =>
         {
@@ -40,14 +46,17 @@ public class SendChatMessageCommandHandler : BaseCommandHandler, IRequestHandler
                 throw new ValidationException($"User with ID {request.SenderId} does not exist");
             }
 
+            var callId = Guid.NewGuid();
+            var roomUrl = await _dailyRoomService.CreateRoomAsync(callId, cancellationToken);
+
             var message = new ChatMessage
             {
                 Id = Guid.NewGuid(),
                 ChatId = request.ChatId,
                 SenderId = request.SenderId,
                 Sender = sender,
-                Content = request.Content.Trim(),
-                MessageType = "Text",
+                Content = roomUrl,
+                MessageType = "Call",
                 HasAttachments = false,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
@@ -59,10 +68,9 @@ public class SendChatMessageCommandHandler : BaseCommandHandler, IRequestHandler
             unitOfWork.Chats.Update(chat);
 
             var messageDto = message.ToDto();
-
             var memberIds = await unitOfWork.ChatMembers.GetMemberIdsAsync(request.ChatId, cancellationToken);
             var chatMembers = await unitOfWork.ChatMembers.GetMembersAsync(request.ChatId, cancellationToken);
-            var chatDto = new Domain.Dtos.Chats.ChatDto
+            var chatDto = new ChatDto
             {
                 Id = chat.Id,
                 OrganizationId = chat.OrganizationId,
@@ -78,7 +86,11 @@ public class SendChatMessageCommandHandler : BaseCommandHandler, IRequestHandler
             await _chatNotifier.NotifyChatMessageAsync(request.ChatId, messageDto);
             await _chatNotifier.NotifyChatUpdatedAsync(memberIds, chatDto);
 
-            return messageDto;
+            return new StartChatCallResponseDto
+            {
+                RoomUrl = roomUrl,
+                Message = messageDto
+            };
         }, cancellationToken);
     }
 }
