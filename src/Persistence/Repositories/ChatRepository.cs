@@ -34,6 +34,11 @@ public class ChatRepository : Repository<Chat, Guid>, IChatRepository
                 cancellationToken);
     }
 
+    public async Task<Chat?> GetBoardChatAsync(Guid boardId, CancellationToken cancellationToken = default)
+    {
+        return await DbSet.FirstOrDefaultAsync(chat => chat.BoardId == boardId, cancellationToken);
+    }
+
     public async Task<IEnumerable<ChatDto>> GetChatsForUserAsync(Guid userId, Guid? organizationId = null, CancellationToken cancellationToken = default)
     {
         var query = DbSet
@@ -52,6 +57,7 @@ public class ChatRepository : Repository<Chat, Guid>, IChatRepository
             {
                 Id = chat.Id,
                 OrganizationId = chat.OrganizationId,
+                BoardId = chat.BoardId,
                 Name = chat.Name,
                 Type = chat.Type,
                 CreatedById = chat.CreatedById,

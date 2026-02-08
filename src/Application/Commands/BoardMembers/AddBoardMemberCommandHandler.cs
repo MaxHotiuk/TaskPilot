@@ -3,6 +3,7 @@ using Application.Abstractions.Persistence;
 using Application.Common.Exceptions;
 using Application.Common.Handlers;
 using Domain.Entities;
+using Domain.Enums;
 using MediatR;
 
 namespace Application.Commands.BoardMembers;
@@ -67,6 +68,27 @@ public class AddBoardMemberCommandHandler : BaseCommandHandler, IRequestHandler<
             };
 
             await unitOfWork.BoardMembers.AddAsync(boardMember, cancellationToken);
+
+            var boardChat = await unitOfWork.Chats.GetBoardChatAsync(request.BoardId, cancellationToken);
+            if (boardChat is not null)
+            {
+                var existingChatMember = await unitOfWork.ChatMembers.GetMemberAsync(boardChat.Id, request.UserId, cancellationToken);
+                if (existingChatMember is null)
+                {
+                    var chatMember = new ChatMember
+                    {
+                        ChatId = boardChat.Id,
+                        UserId = request.UserId,
+                        Role = ChatMemberRole.Member,
+                        CreatedAt = DateTime.UtcNow,
+                        UpdatedAt = DateTime.UtcNow
+                    };
+
+                    await unitOfWork.ChatMembers.AddAsync(chatMember, cancellationToken);
+                    boardChat.UpdatedAt = DateTime.UtcNow;
+                    unitOfWork.Chats.Update(boardChat);
+                }
+            }
 
             var backlogEntry = new Backlog
             {

@@ -82,20 +82,52 @@ public class AddChatMembersCommandHandler : BaseCommandHandler, IRequestHandler<
             chat.UpdatedAt = DateTime.UtcNow;
             unitOfWork.Chats.Update(chat);
 
+            var sender = await unitOfWork.Users.GetByIdAsync(request.UserId, cancellationToken);
+            ChatMessage? updateMessage = null;
+            if (sender is not null)
+            {
+                var addedUsers = await unitOfWork.Users.FindAsync(user => membersToAdd.Contains(user.Id), cancellationToken);
+                var addedNames = addedUsers.Select(user => user.Username ?? user.Id.ToString()).ToList();
+                var content = addedNames.Any()
+                    ? $"Added members: {string.Join(", ", addedNames)}."
+                    : "Added members to the chat.";
+
+                var message = new ChatMessage
+                {
+                    Id = Guid.NewGuid(),
+                    ChatId = chat.Id,
+                    SenderId = sender.Id,
+                    Sender = sender,
+                    Content = content,
+                    MessageType = "Update",
+                    HasAttachments = false,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                };
+
+                updateMessage = message;
+                await unitOfWork.ChatMessages.AddAsync(message, cancellationToken);
+            }
+
             var chatMembers = await unitOfWork.ChatMembers.GetMembersAsync(request.ChatId, cancellationToken);
             var chatDto = new ChatDto
             {
                 Id = chat.Id,
                 OrganizationId = chat.OrganizationId,
+                BoardId = chat.BoardId,
                 Name = chat.Name,
                 Type = chat.Type,
                 CreatedById = chat.CreatedById,
                 CreatedAt = chat.CreatedAt,
                 UpdatedAt = chat.UpdatedAt,
-                LastMessage = null,
+                LastMessage = updateMessage?.ToPreviewDto(),
                 Members = chatMembers.Select(chatMember => chatMember.ToDto()).ToList()
             };
 
+            if (updateMessage is not null)
+            {
+                await _chatNotifier.NotifyChatMessageAsync(chat.Id, updateMessage.ToDto());
+            }
             await _chatNotifier.NotifyChatUpdatedAsync(chatMembers.Select(chatMember => chatMember.UserId), chatDto);
             await _chatNotifier.NotifyChatCreatedAsync(membersToAdd, chatDto);
         }, cancellationToken);

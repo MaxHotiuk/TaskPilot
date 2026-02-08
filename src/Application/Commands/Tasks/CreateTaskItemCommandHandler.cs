@@ -2,6 +2,8 @@ using Application.Abstractions.Messaging;
 using Application.Abstractions.Persistence;
 using Application.Common.Exceptions;
 using Application.Common.Handlers;
+using Application.Common.Mappings;
+using Domain.Dtos.Chats;
 using Domain.Entities;
 using MediatR;
 
@@ -11,12 +13,14 @@ public class CreateTaskItemCommandHandler : BaseCommandHandler, IRequestHandler<
 {
 
     private readonly IBoardNotifier _boardNotifier;
+    private readonly IChatNotifier _chatNotifier;
     private readonly INotificationNotifier _notificationNotifier;
 
-    public CreateTaskItemCommandHandler(IUnitOfWorkFactory unitOfWorkFactory, IBoardNotifier boardNotifier, INotificationNotifier notificationNotifier)
+    public CreateTaskItemCommandHandler(IUnitOfWorkFactory unitOfWorkFactory, IBoardNotifier boardNotifier, IChatNotifier chatNotifier, INotificationNotifier notificationNotifier)
         : base(unitOfWorkFactory)
     {
         _boardNotifier = boardNotifier;
+        _chatNotifier = chatNotifier;
         _notificationNotifier = notificationNotifier;
     }
 
@@ -66,6 +70,54 @@ public class CreateTaskItemCommandHandler : BaseCommandHandler, IRequestHandler<
                 );
                 await unitOfWork.Notifications.AddAsync(notification, cancellationToken);
                 await _notificationNotifier.NotifyUserAsync(request.AssigneeId.Value, notification);
+            }
+
+            var boardChat = await unitOfWork.Chats.GetBoardChatAsync(request.BoardId, cancellationToken);
+            if (boardChat is not null)
+            {
+                var sender = await unitOfWork.Users.GetByIdAsync(board.OwnerId, cancellationToken);
+                if (sender is not null)
+                {
+                    var message = new ChatMessage
+                    {
+                        Id = Guid.NewGuid(),
+                        ChatId = boardChat.Id,
+                        SenderId = sender.Id,
+                        Sender = sender,
+                        TaskId = taskItem.Id,
+                        AssigneeId = taskItem.AssigneeId,
+                        Content = $"Task created: {taskItem.Title}",
+                        MessageType = "Task",
+                        HasAttachments = false,
+                        CreatedAt = DateTime.UtcNow,
+                        UpdatedAt = DateTime.UtcNow
+                    };
+
+                    await unitOfWork.ChatMessages.AddAsync(message, cancellationToken);
+
+                    boardChat.UpdatedAt = DateTime.UtcNow;
+                    unitOfWork.Chats.Update(boardChat);
+
+                    var messageDto = message.ToDto();
+                    var memberIds = await unitOfWork.ChatMembers.GetMemberIdsAsync(boardChat.Id, cancellationToken);
+                    var chatMembers = await unitOfWork.ChatMembers.GetMembersAsync(boardChat.Id, cancellationToken);
+                    var chatDto = new ChatDto
+                    {
+                        Id = boardChat.Id,
+                        OrganizationId = boardChat.OrganizationId,
+                        BoardId = boardChat.BoardId,
+                        Name = boardChat.Name,
+                        Type = boardChat.Type,
+                        CreatedById = boardChat.CreatedById,
+                        CreatedAt = boardChat.CreatedAt,
+                        UpdatedAt = boardChat.UpdatedAt,
+                        LastMessage = message.ToPreviewDto(),
+                        Members = chatMembers.Select(member => member.ToDto()).ToList()
+                    };
+
+                    await _chatNotifier.NotifyChatMessageAsync(boardChat.Id, messageDto);
+                    await _chatNotifier.NotifyChatUpdatedAsync(memberIds, chatDto);
+                }
             }
 
             await _boardNotifier.NotifyBoardUpdatedAsync(request.BoardId.ToString(), new { action = "created", boardId = request.BoardId });

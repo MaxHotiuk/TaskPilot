@@ -66,6 +66,7 @@ public class SendChatMessageCommandHandler : BaseCommandHandler, IRequestHandler
             {
                 Id = chat.Id,
                 OrganizationId = chat.OrganizationId,
+                BoardId = chat.BoardId,
                 Name = chat.Name,
                 Type = chat.Type,
                 CreatedById = chat.CreatedById,

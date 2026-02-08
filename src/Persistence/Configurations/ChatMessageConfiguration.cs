@@ -37,7 +37,19 @@ public class ChatMessageConfiguration : IEntityTypeConfiguration<ChatMessage>
             .HasForeignKey(message => message.SenderId)
             .OnDelete(DeleteBehavior.NoAction);
 
+        builder.HasOne(message => message.Task)
+            .WithMany()
+            .HasForeignKey(message => message.TaskId)
+            .OnDelete(DeleteBehavior.NoAction);
+
+        builder.HasOne(message => message.Assignee)
+            .WithMany()
+            .HasForeignKey(message => message.AssigneeId)
+            .OnDelete(DeleteBehavior.NoAction);
+
         builder.HasIndex(message => message.ChatId);
         builder.HasIndex(message => message.SenderId);
+        builder.HasIndex(message => message.TaskId);
+        builder.HasIndex(message => message.AssigneeId);
     }
 }
