@@ -74,6 +74,7 @@ public class StartChatCallCommandHandler : BaseCommandHandler, IRequestHandler<S
             {
                 Id = chat.Id,
                 OrganizationId = chat.OrganizationId,
+                BoardId = chat.BoardId,
                 Name = chat.Name,
                 Type = chat.Type,
                 CreatedById = chat.CreatedById,

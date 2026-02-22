@@ -113,6 +113,7 @@ public class CreateChatCommandHandler : BaseCommandHandler, IRequestHandler<Crea
             {
                 Id = chat.Id,
                 OrganizationId = chat.OrganizationId,
+                BoardId = chat.BoardId,
                 Name = chat.Name,
                 Type = chat.Type,
                 CreatedById = chat.CreatedById,

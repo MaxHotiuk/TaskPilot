@@ -11,6 +11,7 @@ public static class ChatMappingExtensions
         {
             Id = chat.Id,
             OrganizationId = chat.OrganizationId,
+            BoardId = chat.BoardId,
             Name = chat.Name,
             Type = chat.Type,
             CreatedById = chat.CreatedById,
@@ -26,8 +27,8 @@ public static class ChatMappingExtensions
         return new ChatMemberDto
         {
             UserId = member.UserId,
-            Username = member.User.Username,
-            Email = member.User.Email,
+            Username = member.User?.Username ?? string.Empty,
+            Email = member.User?.Email ?? string.Empty,
             Role = member.Role,
             LastReadAt = member.LastReadAt
         };
@@ -40,6 +41,8 @@ public static class ChatMappingExtensions
             Id = message.Id,
             ChatId = message.ChatId,
             SenderId = message.SenderId,
+            TaskId = message.TaskId,
+            AssigneeId = message.AssigneeId,
             SenderName = message.Sender.Username,
             Content = message.Content,
             MessageType = message.MessageType,
@@ -55,6 +58,8 @@ public static class ChatMappingExtensions
         {
             Id = message.Id,
             SenderId = message.SenderId,
+            TaskId = message.TaskId,
+            AssigneeId = message.AssigneeId,
             Content = message.Content,
             MessageType = message.MessageType,
             CreatedAt = message.CreatedAt

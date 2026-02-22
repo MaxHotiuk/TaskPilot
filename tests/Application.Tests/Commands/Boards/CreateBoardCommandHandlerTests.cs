@@ -7,6 +7,7 @@ public class CreateBoardCommandHandlerTests
 {
     private readonly IFixture _fixture;
     private readonly Mock<IBoardRepository> _boardRepositoryMock;
+    private readonly Mock<IOrganizationMemberRepository> _organizationMemberRepositoryMock;
     private readonly Mock<IUnitOfWork> _unitOfWorkMock;
     private readonly Mock<IUnitOfWorkFactory> _unitOfWorkFactoryMock;
     private readonly Mock<IBoardNotifier> _boardNotifierMock;
@@ -16,13 +17,18 @@ public class CreateBoardCommandHandlerTests
     {
         _fixture = new Fixture().Customize(new AutoMoqCustomization());
         _boardRepositoryMock = _fixture.Freeze<Mock<IBoardRepository>>();
+        _organizationMemberRepositoryMock = _fixture.Freeze<Mock<IOrganizationMemberRepository>>();
         _unitOfWorkMock = _fixture.Freeze<Mock<IUnitOfWork>>();
         _unitOfWorkFactoryMock = _fixture.Freeze<Mock<IUnitOfWorkFactory>>();
-        
+
         _unitOfWorkMock.Setup(x => x.Boards).Returns(_boardRepositoryMock.Object);
+        _unitOfWorkMock.Setup(x => x.OrganizationMembers).Returns(_organizationMemberRepositoryMock.Object);
         _unitOfWorkFactoryMock.Setup(x => x.CreateAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(_unitOfWorkMock.Object);
-        
+
+        _organizationMemberRepositoryMock.Setup(x => x.GetOrganizationIdsByUserIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new List<Guid> { Guid.NewGuid() });
+
         _boardNotifierMock = _fixture.Freeze<Mock<IBoardNotifier>>();
         _handler = new CreateBoardCommandHandler(_unitOfWorkFactoryMock.Object, _boardNotifierMock.Object);
     }

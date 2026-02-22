@@ -28,6 +28,19 @@ public class DeleteBoardCommandHandler : BaseCommandHandler, IRequestHandler<Del
                 throw new NotFoundException($"Board with ID {request.Id} was not found");
             }
 
+            var boardChat = await unitOfWork.Chats.GetBoardChatAsync(board.Id, cancellationToken);
+            if (boardChat is not null)
+            {
+                unitOfWork.Chats.Remove(boardChat);
+            }
+
+            var notifications = await unitOfWork.Notifications
+                .FindAsync(notification => notification.BoardId == board.Id, cancellationToken);
+            foreach (var notification in notifications)
+            {
+                unitOfWork.Notifications.Remove(notification);
+            }
+
             unitOfWork.Boards.Remove(board);
 
             await _boardNotifier.NotifyBoardUpdatedAsync(board.Id.ToString(), new { action = "deleted", boardId = board.Id });

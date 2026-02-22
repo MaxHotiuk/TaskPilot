@@ -63,6 +63,7 @@ public class ClearChatHistoryCommandHandler : BaseCommandHandler, IRequestHandle
             {
                 Id = chat.Id,
                 OrganizationId = chat.OrganizationId,
+                BoardId = chat.BoardId,
                 Name = chat.Name,
                 Type = chat.Type,
                 CreatedById = chat.CreatedById,

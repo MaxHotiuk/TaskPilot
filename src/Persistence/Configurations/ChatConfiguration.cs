@@ -33,6 +33,11 @@ public class ChatConfiguration : IEntityTypeConfiguration<Chat>
             .HasForeignKey(chat => chat.OrganizationId)
             .OnDelete(DeleteBehavior.Cascade);
 
+        builder.HasOne(chat => chat.Board)
+            .WithMany(board => board.Chats)
+            .HasForeignKey(chat => chat.BoardId)
+            .OnDelete(DeleteBehavior.Cascade);
+
         builder.HasOne(chat => chat.CreatedBy)
             .WithMany(user => user.CreatedChats)
             .HasForeignKey(chat => chat.CreatedById)

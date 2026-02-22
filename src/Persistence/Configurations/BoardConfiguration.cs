@@ -55,5 +55,10 @@ public class BoardConfiguration : IEntityTypeConfiguration<Board>
             .WithOne(m => m.Board)
             .HasForeignKey(m => m.BoardId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasMany(b => b.Chats)
+            .WithOne(c => c.Board)
+            .HasForeignKey(c => c.BoardId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

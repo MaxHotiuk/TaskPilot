@@ -18,4 +18,5 @@ public class Board : AuditableEntity<Guid>
     public ICollection<ArchivalJob> ArchivalJobs { get; set; } = new List<ArchivalJob>();
     public ICollection<Backlog> Backlog { get; set; } = new List<Backlog>();
     public ICollection<Meeting> Meetings { get; set; } = new List<Meeting>();
+    public ICollection<Chat> Chats { get; set; } = new List<Chat>();
 }

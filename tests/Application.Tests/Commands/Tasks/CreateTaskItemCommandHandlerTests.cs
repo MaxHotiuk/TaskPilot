@@ -1,6 +1,8 @@
 using Application.Abstractions.Messaging;
+using Application.Abstractions.Persistence;
 using Application.Commands.Tasks;
 using Application.Common.Exceptions;
+using Domain.Entities;
 
 namespace Application.Tests.Commands.Tasks;
 
@@ -13,8 +15,10 @@ public class CreateTaskItemCommandHandlerTests
     private readonly Mock<IUnitOfWork> _unitOfWorkMock;
     private readonly Mock<IUnitOfWorkFactory> _unitOfWorkFactoryMock;
     private readonly Mock<IBoardNotifier> _boardNotifierMock;
+    private readonly Mock<IChatNotifier> _chatNotifierMock;
     private readonly CreateTaskItemCommandHandler _handler;
     private readonly Mock<INotificationNotifier> _notificationNotifierMock;
+    private readonly Mock<IChatRepository> _chatRepositoryMock;
 
     public CreateTaskItemCommandHandlerTests()
     {
@@ -22,18 +26,28 @@ public class CreateTaskItemCommandHandlerTests
         _taskItemRepositoryMock = _fixture.Freeze<Mock<ITaskItemRepository>>();
         _boardRepositoryMock = _fixture.Freeze<Mock<IBoardRepository>>();
         _stateRepositoryMock = _fixture.Freeze<Mock<IStateRepository>>();
+        _chatRepositoryMock = _fixture.Freeze<Mock<IChatRepository>>();
         _unitOfWorkMock = _fixture.Freeze<Mock<IUnitOfWork>>();
         _unitOfWorkFactoryMock = _fixture.Freeze<Mock<IUnitOfWorkFactory>>();
         
         _unitOfWorkMock.Setup(x => x.Tasks).Returns(_taskItemRepositoryMock.Object);
         _unitOfWorkMock.Setup(x => x.Boards).Returns(_boardRepositoryMock.Object);
         _unitOfWorkMock.Setup(x => x.States).Returns(_stateRepositoryMock.Object);
+        _unitOfWorkMock.Setup(x => x.Chats).Returns(_chatRepositoryMock.Object);
         _unitOfWorkFactoryMock.Setup(x => x.CreateAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(_unitOfWorkMock.Object);
         
         _boardNotifierMock = _fixture.Freeze<Mock<IBoardNotifier>>();
+        _chatNotifierMock = _fixture.Freeze<Mock<IChatNotifier>>();
         _notificationNotifierMock = new Mock<INotificationNotifier>();
-        _handler = new CreateTaskItemCommandHandler(_unitOfWorkFactoryMock.Object, _boardNotifierMock.Object, _notificationNotifierMock.Object);
+        _chatRepositoryMock
+            .Setup(x => x.GetBoardChatAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((Chat?)null);
+        _handler = new CreateTaskItemCommandHandler(
+            _unitOfWorkFactoryMock.Object,
+            _boardNotifierMock.Object,
+            _chatNotifierMock.Object,
+            _notificationNotifierMock.Object);
     }
 
     [Fact]
