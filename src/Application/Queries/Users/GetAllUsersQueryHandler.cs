@@ -1,5 +1,6 @@
 using Application.Abstractions.Authentication;
 using Application.Abstractions.Persistence;
+using Application.Common.Exceptions;
 using Domain.Dtos.Users;
 using Application.Common.Handlers;
 using Application.Common.Mappings;
@@ -33,15 +34,28 @@ public class GetAllUsersQueryHandler : BaseQueryHandler, IRequestHandler<GetAllU
                 return Enumerable.Empty<UserDto>();
             }
 
-            var organizationIds = await unitOfWork.OrganizationMembers
-                .GetOrganizationIdsByUserIdAsync(currentUser.Id, cancellationToken);
-
-            if (!organizationIds.Any())
+            // Verify the organization exists
+            var organization = await unitOfWork.Organizations.GetByIdAsync(request.OrganizationId, cancellationToken);
+            if (organization == null)
             {
-                return Enumerable.Empty<UserDto>();
+                throw new NotFoundException($"Organization with ID {request.OrganizationId} not found");
             }
 
-            var users = await unitOfWork.Users.GetByOrganizationIdsAsync(organizationIds, cancellationToken);
+            // Verify current user is a member of the requested organization
+            var isMember = await unitOfWork.OrganizationMembers.IsMemberOfOrganizationAsync(
+                request.OrganizationId, 
+                currentUser.Id, 
+                cancellationToken);
+
+            if (!isMember)
+            {
+                throw new ValidationException("You must be a member of this organization to view its users");
+            }
+
+            // Get all users in the organization
+            var users = await unitOfWork.Users.GetByOrganizationIdsAsync(
+                new[] { request.OrganizationId }, 
+                cancellationToken);
 
             return users.ToDto();
         }, cancellationToken);

@@ -27,6 +27,8 @@ public class UnitOfWork : IUnitOfWork
     private IChatRepository? _chats;
     private IChatMemberRepository? _chatMembers;
     private IChatMessageRepository? _chatMessages;
+    private IBoardInvitationRepository? _boardInvitations;
+    private IOrganizationInvitationRepository? _organizationInvitations;
 
     public UnitOfWork(ApplicationDbContext context, IDbContextTransaction transaction)
     {
@@ -50,6 +52,8 @@ public class UnitOfWork : IUnitOfWork
     public IChatRepository Chats => _chats ??= new ChatRepository(_context);
     public IChatMemberRepository ChatMembers => _chatMembers ??= new ChatMemberRepository(_context);
     public IChatMessageRepository ChatMessages => _chatMessages ??= new ChatMessageRepository(_context);
+    public IBoardInvitationRepository BoardInvitations => _boardInvitations ??= new BoardInvitationRepository(_context);
+    public IOrganizationInvitationRepository OrganizationInvitations => _organizationInvitations ??= new OrganizationInvitationRepository(_context);
 
     public bool HasActiveTransaction => _transaction != null && !_disposed;
 

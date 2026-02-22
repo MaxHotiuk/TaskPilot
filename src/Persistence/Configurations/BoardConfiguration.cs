@@ -22,6 +22,9 @@ public class BoardConfiguration : IEntityTypeConfiguration<Board>
         builder.Property(b => b.OwnerId)
             .IsRequired();
 
+        builder.Property(b => b.OrganizationId)
+            .IsRequired();
+
         builder.Property(b => b.CreatedAt)
             .IsRequired()
             .HasDefaultValueSql("GETUTCDATE()");
@@ -35,6 +38,11 @@ public class BoardConfiguration : IEntityTypeConfiguration<Board>
             .WithMany(u => u.OwnedBoards)
             .HasForeignKey(b => b.OwnerId)
             .OnDelete(DeleteBehavior.NoAction);
+
+        builder.HasOne(b => b.Organization)
+            .WithMany()
+            .HasForeignKey(b => b.OrganizationId)
+            .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasMany(b => b.States)
             .WithOne(s => s.Board)

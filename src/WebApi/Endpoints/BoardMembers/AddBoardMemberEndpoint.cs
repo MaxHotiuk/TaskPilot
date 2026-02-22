@@ -1,4 +1,5 @@
 using Application.Commands.BoardMembers;
+using Application.Abstractions.Authentication;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
@@ -14,14 +15,20 @@ public class AddBoardMemberEndpoint : EndpointBaseWithRequest<AddBoardMemberComm
                 Guid boardId,
                 AddBoardMemberRequestDto dto,
                 IMediator mediator,
+                IAuthenticationService authService,
                 CancellationToken cancellationToken) =>
             {
+                var inviterId = await authService.GetCurrentUserIdAsync();
+                if (string.IsNullOrEmpty(inviterId))
+                    return Results.Unauthorized();
+
                 var command = new AddBoardMemberCommand(
                     boardId,
                     dto.UserId,
-                    dto.Role
+                    dto.Role,
+                    Guid.Parse(inviterId)
                 );
-                
+
                 return await HandleAsync(command, mediator, cancellationToken);
             })
             .WithName("AddBoardMember")

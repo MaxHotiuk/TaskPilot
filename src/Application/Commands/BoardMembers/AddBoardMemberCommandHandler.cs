@@ -10,14 +10,12 @@ namespace Application.Commands.BoardMembers;
 
 public class AddBoardMemberCommandHandler : BaseCommandHandler, IRequestHandler<AddBoardMemberCommand>
 {
-    private readonly IBoardNotifier _boardNotifier;
-    private readonly INotificationNotifier _notificationNotifier;
+    private readonly IEmailService _emailService;
 
-    public AddBoardMemberCommandHandler(IUnitOfWorkFactory unitOfWorkFactory, IBoardNotifier boardNotifier, INotificationNotifier notificationNotifier)
+    public AddBoardMemberCommandHandler(IUnitOfWorkFactory unitOfWorkFactory, IEmailService emailService)
         : base(unitOfWorkFactory)
     {
-        _boardNotifier = boardNotifier;
-        _notificationNotifier = notificationNotifier;
+        _emailService = emailService;
     }
 
     public async Task Handle(AddBoardMemberCommand request, CancellationToken cancellationToken)
@@ -41,6 +39,12 @@ public class AddBoardMemberCommandHandler : BaseCommandHandler, IRequestHandler<
                 throw new ValidationException($"User {request.UserId} is already a member of board {request.BoardId}");
             }
 
+            // Check if there's already a pending invitation
+            if (await unitOfWork.BoardInvitations.HasPendingInvitationAsync(request.BoardId, request.UserId, cancellationToken))
+            {
+                throw new ValidationException($"User {request.UserId} already has a pending invitation for board {request.BoardId}");
+            }
+
             var boardOwner = await unitOfWork.Users.GetByIdAsync(board.OwnerId, cancellationToken);
             if (boardOwner is null)
             {
@@ -58,56 +62,44 @@ public class AddBoardMemberCommandHandler : BaseCommandHandler, IRequestHandler<
                 throw new ValidationException($"User {request.UserId} is not in the same organization as the board owner");
             }
 
-            var boardMember = new BoardMember
+            if (!request.InvitedBy.HasValue)
             {
+                throw new ValidationException("InvitedBy is required");
+            }
+
+            var inviter = await unitOfWork.Users.GetByIdAsync(request.InvitedBy.Value, cancellationToken);
+            if (inviter is null)
+            {
+                throw new ValidationException($"Inviter with ID {request.InvitedBy.Value} does not exist");
+            }
+
+            // Create invitation
+            var invitation = new BoardInvitation
+            {
+                Id = Guid.NewGuid(),
                 BoardId = request.BoardId,
                 UserId = request.UserId,
+                InvitedBy = request.InvitedBy.Value,
                 Role = request.Role,
+                Status = InvitationStatus.Pending,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
             };
 
-            await unitOfWork.BoardMembers.AddAsync(boardMember, cancellationToken);
+            await unitOfWork.BoardInvitations.AddAsync(invitation, cancellationToken);
 
-            var boardChat = await unitOfWork.Chats.GetBoardChatAsync(request.BoardId, cancellationToken);
-            if (boardChat is not null)
-            {
-                var existingChatMember = await unitOfWork.ChatMembers.GetMemberAsync(boardChat.Id, request.UserId, cancellationToken);
-                if (existingChatMember is null)
-                {
-                    var chatMember = new ChatMember
-                    {
-                        ChatId = boardChat.Id,
-                        UserId = request.UserId,
-                        Role = ChatMemberRole.Member,
-                        CreatedAt = DateTime.UtcNow,
-                        UpdatedAt = DateTime.UtcNow
-                    };
+            // Send invitation email
+            var emailBody = $@"
+                <p>Hello {user.Username ?? user.Email},</p>
+                <p><strong>{inviter.Username ?? inviter.Email}</strong> has invited you to join the board <strong>{board.Name}</strong> as a <strong>{request.Role}</strong>.</p>
+                <p>Please log in to TaskPilot to accept or decline this invitation.</p>
+                <p>Best regards,<br/>TaskPilot Team</p>";
 
-                    await unitOfWork.ChatMembers.AddAsync(chatMember, cancellationToken);
-                    boardChat.UpdatedAt = DateTime.UtcNow;
-                    unitOfWork.Chats.Update(boardChat);
-                }
-            }
-
-            var backlogEntry = new Backlog
-            {
-                BoardId = request.BoardId,
-                Description = $"User '{user.Username ?? user.Id.ToString()}' was added to the board as '{request.Role}'."
-            };
-            await unitOfWork.Backlogs.AddAsync(backlogEntry, cancellationToken);
-
-            var notification = unitOfWork.Notifications.BuildNotification(
-                userId: request.UserId,
-                type: Domain.Enums.NotificationType.AddedToBoard,
-                boardId: request.BoardId,
-                boardName: board.Name
-            );
-            await unitOfWork.Notifications.AddAsync(notification, cancellationToken);
-
-            await _notificationNotifier.NotifyUserAsync(request.UserId, notification);
-
-            await _boardNotifier.NotifyBoardUpdatedAsync(boardMember.BoardId.ToString(), new { action = "addedUser", boardId = boardMember.BoardId });
+            await _emailService.SendSystemEmailAsync(
+                user.Email,
+                $"Board Invitation: {board.Name}",
+                emailBody,
+                cancellationToken);
         }, cancellationToken);
     }
 }

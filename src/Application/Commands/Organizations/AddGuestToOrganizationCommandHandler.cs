@@ -57,6 +57,12 @@ public class AddGuestToOrganizationCommandHandler : BaseCommandHandler, IRequest
             if (existingMembership != null)
                 throw new ValidationException("User is already a member of this organization");
 
+            // Check if there's already a pending invitation
+            if (await unitOfWork.OrganizationInvitations.HasPendingInvitationAsync(request.OrganizationId, user.Id, cancellationToken))
+            {
+                throw new ValidationException("User already has a pending invitation for this organization");
+            }
+
             // Verify user belongs to at least one other organization (as a full member)
             var userOrganizations = await _organizationMemberRepository.GetByUserIdAsync(user.Id, cancellationToken);
             var hasPrimaryOrganization = userOrganizations.Any(om => om.Role != OrganizationMemberRole.Guest);
@@ -64,29 +70,37 @@ public class AddGuestToOrganizationCommandHandler : BaseCommandHandler, IRequest
             if (!hasPrimaryOrganization)
                 throw new ValidationException("User must belong to at least one organization as a full member before being added as a guest to another organization");
 
-            // Add as guest
-            var organizationMember = new OrganizationMember
+            var manager = await unitOfWork.Users.GetByIdAsync(request.ManagerId, cancellationToken);
+            if (manager == null)
+                throw new NotFoundException("Manager not found");
+
+            // Create invitation
+            var invitation = new OrganizationInvitation
             {
+                Id = Guid.NewGuid(),
                 OrganizationId = request.OrganizationId,
                 UserId = user.Id,
+                InvitedBy = request.ManagerId,
                 Role = OrganizationMemberRole.Guest,
-                IsInvited = true,
+                Status = InvitationStatus.Pending,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
             };
 
-            await unitOfWork.OrganizationMembers.AddAsync(organizationMember, cancellationToken);
+            await unitOfWork.OrganizationInvitations.AddAsync(invitation, cancellationToken);
 
             // Send invitation email
             var emailBody = $@"
-                <p>You have been invited as a guest to <strong>{organization.Name}</strong> organization.</p>
+                <p>Hello {user.Username ?? user.Email},</p>
+                <p><strong>{manager.Username ?? manager.Email}</strong> has invited you to join <strong>{organization.Name}</strong> organization as a guest.</p>
                 <p>As a guest, you can:</p>
                 <ul>
                     <li>Participate in chats and calls</li>
                     <li>Be added to boards and work on tasks</li>
                     <li>Collaborate with team members</li>
                 </ul>
-                <p>Login to TaskPilot to access this organization!</p>";
+                <p>Please log in to TaskPilot to accept or decline this invitation.</p>
+                <p>Best regards,<br/>TaskPilot Team</p>";
 
             await _emailService.SendSystemEmailAsync(
                 user.Email,

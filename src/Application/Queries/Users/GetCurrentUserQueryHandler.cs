@@ -35,10 +35,17 @@ public class GetCurrentUserQueryHandler : BaseQueryHandler, IRequestHandler<GetC
             }
 
             var organizations = await unitOfWork.Organizations.GetOrganizationsByUserIdAsync(user.Id, cancellationToken);
-            var organizationDtos = organizations.Select(org => new OrganizationSummaryDto
+            var organizationMembers = await unitOfWork.OrganizationMembers.GetByUserIdAsync(user.Id, cancellationToken);
+
+            var organizationDtos = organizations.Select(org =>
             {
-                Id = org.Id,
-                Name = org.Name
+                var memberInfo = organizationMembers.FirstOrDefault(om => om.OrganizationId == org.Id);
+                return new OrganizationSummaryDto
+                {
+                    Id = org.Id,
+                    Name = org.Name,
+                    Role = memberInfo?.Role.ToString() ?? "Member"
+                };
             });
 
             return new CurrentUserDto

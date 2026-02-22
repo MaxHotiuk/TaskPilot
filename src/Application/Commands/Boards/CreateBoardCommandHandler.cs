@@ -27,19 +27,27 @@ public class CreateBoardCommandHandler : BaseCommandHandler, IRequestHandler<Cre
     {
         return await ExecuteInTransactionAsync(async unitOfWork =>
         {
-            // Get organization memberships
-            var organizationIds = await unitOfWork.OrganizationMembers
-                .GetOrganizationIdsByUserIdAsync(request.OwnerId, cancellationToken);
-            var organizationId = organizationIds.FirstOrDefault();
-
-            if (organizationId == Guid.Empty)
+            // Verify organization exists
+            var organization = await unitOfWork.Organizations.GetByIdAsync(request.OrganizationId, cancellationToken);
+            if (organization == null)
             {
-                throw new ValidationException("Board owner must belong to an organization to create a board.");
+                throw new ValidationException($"Organization with ID {request.OrganizationId} does not exist");
+            }
+
+            // Verify user is a member of the organization
+            var isMember = await _organizationMemberRepository.IsMemberOfOrganizationAsync(
+                request.OrganizationId, 
+                request.OwnerId, 
+                cancellationToken);
+
+            if (!isMember)
+            {
+                throw new ValidationException("Board owner must be a member of the organization to create a board");
             }
 
             // Check if user is a guest - guests cannot create boards
             var orgMember = await _organizationMemberRepository.GetOrganizationMemberAsync(
-                organizationId, 
+                request.OrganizationId, 
                 request.OwnerId, 
                 cancellationToken);
 
@@ -54,6 +62,7 @@ public class CreateBoardCommandHandler : BaseCommandHandler, IRequestHandler<Cre
                 Name = request.Name,
                 Description = request.Description,
                 OwnerId = request.OwnerId,
+                OrganizationId = request.OrganizationId,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
             };
@@ -63,7 +72,7 @@ public class CreateBoardCommandHandler : BaseCommandHandler, IRequestHandler<Cre
             var boardChat = new Chat
             {
                 Id = Guid.NewGuid(),
-                OrganizationId = organizationId,
+                OrganizationId = request.OrganizationId,
                 BoardId = board.Id,
                 Name = board.Name,
                 Type = ChatType.Board,

@@ -3,4 +3,4 @@ using MediatR;
 
 namespace Application.Queries.Boards;
 
-public record SearchBoardsRangeForUserQuery(Guid UserId, string SearchTerm, int Page, int PageSize) : IRequest<IEnumerable<BoardSearchDto>>;
+public record SearchBoardsRangeForUserQuery(Guid UserId, Guid OrganizationId, string SearchTerm, int Page, int PageSize) : IRequest<IEnumerable<BoardSearchDto>>;
