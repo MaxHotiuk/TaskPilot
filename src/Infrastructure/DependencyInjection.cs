@@ -27,6 +27,7 @@ public static class DependencyInjection
         services.AddScoped<IAuthenticationService, AuthenticationService>();
         services.AddScoped<IBlobStorageService, BlobStorageService>();
         services.AddScoped<IAvatarService, AvatarService>();
+        services.AddScoped<IChatAvatarService, ChatAvatarService>();
         services.AddScoped<IAttachmentService, AttachmentService>();
         services.AddScoped<IArchivalService, ArchivalService>();
         services.AddScoped<IArchivalBackgroundJob, ArchivalBackgroundJob>();

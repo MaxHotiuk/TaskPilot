@@ -64,6 +64,17 @@ Server events:
   - Response: `AttachmentDto`
   - **Note:** `userId` query parameter is **required**
 
+- `GET /api/chats/{chatId}/avatar?userId={userId}`
+  - Response: `ChatAvatarDto`
+
+- `POST /api/chats/{chatId}/avatar?userId={userId}`
+  - Body: `multipart/form-data` with `file` field
+  - Response: `ChatAvatarDto`
+
+- `PUT /api/chats/{chatId}/avatar?userId={userId}`
+  - Body: `multipart/form-data` with `file` field
+  - Response: `ChatAvatarDto`
+
 - `GET /api/attachments/{messageId}`
   - Response: `IEnumerable<AttachmentDto>` (returns `404` if no attachments exist)
 
