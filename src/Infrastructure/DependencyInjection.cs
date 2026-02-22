@@ -15,6 +15,7 @@ using Infrastructure.Services;
 using Infrastructure.Services.Meetings;
 using Application.Abstractions.Meetings;
 using System.Net.Http.Headers;
+using Infrastructure.Services.Email;
 
 namespace Infrastructure;
 
@@ -36,6 +37,9 @@ public static class DependencyInjection
         services.AddScoped<IBoardNotifier, BoardNotifier>();
         services.AddScoped<INotificationNotifier, NotificationNotifier>();
         services.AddScoped<IChatNotifier, ChatNotifier>();
+
+        services.Configure<EmailOptions>(configuration.GetSection("Email"));
+        services.AddScoped<IEmailService, EmailService>();
 
         services.Configure<DailyOptions>(configuration.GetSection("Daily"));
         services.AddHttpClient<IDailyRoomService, DailyRoomService>()

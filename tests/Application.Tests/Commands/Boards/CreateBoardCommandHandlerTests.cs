@@ -30,7 +30,7 @@ public class CreateBoardCommandHandlerTests
             .ReturnsAsync(new List<Guid> { Guid.NewGuid() });
 
         _boardNotifierMock = _fixture.Freeze<Mock<IBoardNotifier>>();
-        _handler = new CreateBoardCommandHandler(_unitOfWorkFactoryMock.Object, _boardNotifierMock.Object);
+        _handler = new CreateBoardCommandHandler(_unitOfWorkFactoryMock.Object, _boardNotifierMock.Object, _organizationMemberRepositoryMock.Object);
     }
 
     [Fact]
