@@ -13,17 +13,21 @@ public class GetAllUsersEndpoint : EndpointBaseWithRequest<GetAllUsersQuery, IEn
     public override void MapEndpoint(IEndpointRouteBuilder app)
     {
         app.MapGet("/api/users", async (
+                Guid organizationId,
                 IMediator mediator,
                 CancellationToken cancellationToken) =>
             {
-                return await HandleAsync(new GetAllUsersQuery(), mediator, cancellationToken);
+                var query = new GetAllUsersQuery(organizationId);
+                return await HandleAsync(query, mediator, cancellationToken);
             })
             .WithName("GetAllUsers")
             .WithTags("Users")
             .RequireAuthorization(Policies.RequireUserRole)
             .Produces(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status401Unauthorized)
             .Produces(StatusCodes.Status403Forbidden)
+            .Produces(StatusCodes.Status404NotFound)
             .ProducesProblem(StatusCodes.Status500InternalServerError);
     }
 

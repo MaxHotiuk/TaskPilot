@@ -17,7 +17,7 @@ public class SearchBoardsRangeForOwnerQueryHandler : BaseQueryHandler, IRequestH
     {
         return await ExecuteQueryAsync(async unitOfWork =>
         {
-            var boards = await unitOfWork.Boards.SearchBoardsRangeForOwnerAsync(request.OwnerId, request.SearchTerm, request.Page, request.PageSize, cancellationToken);
+            var boards = await unitOfWork.Boards.SearchBoardsRangeForOwnerAsync(request.OwnerId, request.OrganizationId, request.SearchTerm, request.Page, request.PageSize, cancellationToken);
             return boards.OrderBy(b => b.Name);
         }, cancellationToken);
     }

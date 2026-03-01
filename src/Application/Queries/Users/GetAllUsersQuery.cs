@@ -3,4 +3,4 @@ using MediatR;
 
 namespace Application.Queries.Users;
 
-public record GetAllUsersQuery : IRequest<IEnumerable<UserDto>>;
+public record GetAllUsersQuery(Guid OrganizationId) : IRequest<IEnumerable<UserDto>>;

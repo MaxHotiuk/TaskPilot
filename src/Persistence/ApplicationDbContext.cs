@@ -22,9 +22,12 @@ public class ApplicationDbContext : DbContext
     public DbSet<MeetingMember> MeetingMembers { get; set; }
     public DbSet<Organization> Organizations { get; set; }
     public DbSet<OrganizationMember> OrganizationMembers { get; set; }
+    public DbSet<OrganizationManagerRequest> OrganizationManagerRequests { get; set; }
     public DbSet<Chat> Chats { get; set; }
     public DbSet<ChatMember> ChatMembers { get; set; }
     public DbSet<ChatMessage> ChatMessages { get; set; }
+    public DbSet<BoardInvitation> BoardInvitations { get; set; }
+    public DbSet<OrganizationInvitation> OrganizationInvitations { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

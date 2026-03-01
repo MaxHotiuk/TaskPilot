@@ -13,13 +13,14 @@ public class SearchBoardsRangeForUserEndpoint : EndpointBaseWithRequest<SearchBo
     {
         app.MapGet("/api/boards/user/search", async (
                 Guid userId,
+                Guid organizationId,
                 string searchTerm,
                 int page,
                 int pageSize,
                 IMediator mediator,
                 CancellationToken cancellationToken) =>
             {
-                var query = new SearchBoardsRangeForUserQuery(userId, searchTerm, page, pageSize);
+                var query = new SearchBoardsRangeForUserQuery(userId, organizationId, searchTerm, page, pageSize);
                 return await HandleAsync(query, mediator, cancellationToken);
             })
             .WithName("SearchBoardsRangeForUser")

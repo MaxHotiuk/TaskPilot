@@ -18,9 +18,10 @@ public class CreateBoardEndpoint : EndpointBaseWithRequest<CreateBoardCommand, G
                 var command = new CreateBoardCommand(
                     dto.Name,
                     dto.Description,
-                    dto.OwnerId
+                    dto.OwnerId,
+                    dto.OrganizationId
                 );
-                
+
                 return await HandleAsync(command, mediator, cancellationToken);
             })
             .WithName("CreateBoard")
@@ -40,4 +41,4 @@ public class CreateBoardEndpoint : EndpointBaseWithRequest<CreateBoardCommand, G
     }
 }
 
-public record CreateBoardRequestDto(string Name, string? Description, Guid OwnerId);
+public record CreateBoardRequestDto(string Name, string? Description, Guid OwnerId, Guid OrganizationId);

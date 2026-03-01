@@ -10,43 +10,69 @@ namespace Application.Commands.Boards;
 
 public class CreateBoardCommandHandler : BaseCommandHandler, IRequestHandler<CreateBoardCommand, Guid>
 {
-
     private readonly IBoardNotifier _boardNotifier;
+    private readonly IOrganizationMemberRepository _organizationMemberRepository;
 
-    public CreateBoardCommandHandler(IUnitOfWorkFactory unitOfWorkFactory, IBoardNotifier boardNotifier)
+    public CreateBoardCommandHandler(
+        IUnitOfWorkFactory unitOfWorkFactory, 
+        IBoardNotifier boardNotifier,
+        IOrganizationMemberRepository organizationMemberRepository)
         : base(unitOfWorkFactory)
     {
         _boardNotifier = boardNotifier;
+        _organizationMemberRepository = organizationMemberRepository;
     }
 
     public async Task<Guid> Handle(CreateBoardCommand request, CancellationToken cancellationToken)
     {
         return await ExecuteInTransactionAsync(async unitOfWork =>
         {
+            // Verify organization exists
+            var organization = await unitOfWork.Organizations.GetByIdAsync(request.OrganizationId, cancellationToken);
+            if (organization == null)
+            {
+                throw new ValidationException($"Organization with ID {request.OrganizationId} does not exist");
+            }
+
+            // Verify user is a member of the organization
+            var isMember = await _organizationMemberRepository.IsMemberOfOrganizationAsync(
+                request.OrganizationId, 
+                request.OwnerId, 
+                cancellationToken);
+
+            if (!isMember)
+            {
+                throw new ValidationException("Board owner must be a member of the organization to create a board");
+            }
+
+            // Check if user is a guest - guests cannot create boards
+            var orgMember = await _organizationMemberRepository.GetOrganizationMemberAsync(
+                request.OrganizationId, 
+                request.OwnerId, 
+                cancellationToken);
+
+            if (orgMember?.Role == OrganizationMemberRole.Guest)
+            {
+                throw new ValidationException("Guest users cannot create boards");
+            }
+
             var board = new Board
             {
                 Id = Guid.NewGuid(),
                 Name = request.Name,
                 Description = request.Description,
                 OwnerId = request.OwnerId,
+                OrganizationId = request.OrganizationId,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
             };
 
             await unitOfWork.Boards.AddAsync(board, cancellationToken);
 
-            var organizationIds = await unitOfWork.OrganizationMembers
-                .GetOrganizationIdsByUserIdAsync(request.OwnerId, cancellationToken);
-            var organizationId = organizationIds.FirstOrDefault();
-            if (organizationId == Guid.Empty)
-            {
-                throw new ValidationException("Board owner must belong to an organization to create a board chat.");
-            }
-
             var boardChat = new Chat
             {
                 Id = Guid.NewGuid(),
-                OrganizationId = organizationId,
+                OrganizationId = request.OrganizationId,
                 BoardId = board.Id,
                 Name = board.Name,
                 Type = ChatType.Board,

@@ -53,10 +53,10 @@ public class BoardRepository : Repository<Board, Guid>, IBoardRepository
             .FirstOrDefaultAsync(b => b.Id == boardId && !b.IsArchived, cancellationToken);
     }
 
-    public async Task<IEnumerable<BoardSearchDto>> SearchBoardsRangeForOwnerAsync(Guid ownerId, string searchTerm, int page, int pageSize, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<BoardSearchDto>> SearchBoardsRangeForOwnerAsync(Guid ownerId, Guid organizationId, string searchTerm, int page, int pageSize, CancellationToken cancellationToken = default)
     {
         return await DbSet
-            .Where(b => b.OwnerId == ownerId && !b.IsArchived && b.Name.Contains(searchTerm))
+            .Where(b => b.OwnerId == ownerId && b.OrganizationId == organizationId && !b.IsArchived && b.Name.Contains(searchTerm))
             .OrderByDescending(b => b.CreatedAt)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
@@ -69,15 +69,16 @@ public class BoardRepository : Repository<Board, Guid>, IBoardRepository
                 UpdatedAt = b.UpdatedAt,
                 NumberOfMembers = b.Members.Count,
                 NumberOfTasks = b.Tasks.Count,
-                OwnerId = b.OwnerId
+                OwnerId = b.OwnerId,
+                OrganizationId = b.OrganizationId
             })
             .ToListAsync(cancellationToken);
     }
 
-    public async Task<IEnumerable<BoardSearchDto>> SearchBoardsRangeForUserAsync(Guid userId, string searchTerm, int page, int pageSize, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<BoardSearchDto>> SearchBoardsRangeForUserAsync(Guid userId, Guid organizationId, string searchTerm, int page, int pageSize, CancellationToken cancellationToken = default)
     {
         return await DbSet
-            .Where(b => (b.OwnerId == userId || b.Members.Any(m => m.UserId == userId)) && !b.IsArchived && b.Name.Contains(searchTerm))
+            .Where(b => (b.OwnerId == userId || b.Members.Any(m => m.UserId == userId)) && b.OrganizationId == organizationId && !b.IsArchived && b.Name.Contains(searchTerm))
             .OrderByDescending(b => b.CreatedAt)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
@@ -90,15 +91,16 @@ public class BoardRepository : Repository<Board, Guid>, IBoardRepository
                 UpdatedAt = b.UpdatedAt,
                 NumberOfMembers = b.Members.Count,
                 NumberOfTasks = b.Tasks.Count,
-                OwnerId = b.OwnerId
+                OwnerId = b.OwnerId,
+                OrganizationId = b.OrganizationId
             })
             .ToListAsync(cancellationToken);
     }
 
-    public async Task<IEnumerable<BoardSearchDto>> SearchBoardsRangeForMemberAsync(Guid memberId, string searchTerm, int page, int pageSize, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<BoardSearchDto>> SearchBoardsRangeForMemberAsync(Guid memberId, Guid organizationId, string searchTerm, int page, int pageSize, CancellationToken cancellationToken = default)
     {
         return await DbSet
-            .Where(b => b.Members.Any(m => m.UserId == memberId) && !b.IsArchived && b.Name.Contains(searchTerm))
+            .Where(b => b.Members.Any(m => m.UserId == memberId) && b.OrganizationId == organizationId && !b.IsArchived && b.Name.Contains(searchTerm))
             .OrderByDescending(b => b.CreatedAt)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
@@ -111,7 +113,8 @@ public class BoardRepository : Repository<Board, Guid>, IBoardRepository
                 UpdatedAt = b.UpdatedAt,
                 NumberOfMembers = b.Members.Count,
                 NumberOfTasks = b.Tasks.Count,
-                OwnerId = b.OwnerId
+                OwnerId = b.OwnerId,
+                OrganizationId = b.OrganizationId
             })
             .ToListAsync(cancellationToken);
     }

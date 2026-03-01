@@ -12,11 +12,16 @@ namespace Application.Commands.Chats;
 public class CreateChatCommandHandler : BaseCommandHandler, IRequestHandler<CreateChatCommand, Guid>
 {
     private readonly IChatNotifier _chatNotifier;
+    private readonly IOrganizationMemberRepository _organizationMemberRepository;
 
-    public CreateChatCommandHandler(IUnitOfWorkFactory unitOfWorkFactory, IChatNotifier chatNotifier)
+    public CreateChatCommandHandler(
+        IUnitOfWorkFactory unitOfWorkFactory, 
+        IChatNotifier chatNotifier,
+        IOrganizationMemberRepository organizationMemberRepository)
         : base(unitOfWorkFactory)
     {
         _chatNotifier = chatNotifier;
+        _organizationMemberRepository = organizationMemberRepository;
     }
 
     public async Task<Guid> Handle(CreateChatCommand request, CancellationToken cancellationToken)
@@ -27,6 +32,20 @@ public class CreateChatCommandHandler : BaseCommandHandler, IRequestHandler<Crea
             if (organization is null)
             {
                 throw new ValidationException($"Organization with ID {request.OrganizationId} does not exist");
+            }
+
+            // Guests cannot create group chats
+            if (request.Type == ChatType.Group)
+            {
+                var creatorMember = await _organizationMemberRepository.GetOrganizationMemberAsync(
+                    request.OrganizationId, 
+                    request.CreatedById, 
+                    cancellationToken);
+
+                if (creatorMember?.Role == OrganizationMemberRole.Guest)
+                {
+                    throw new ValidationException("Guest users cannot create group chats");
+                }
             }
 
             var memberIds = request.MemberIds.Distinct().ToList();

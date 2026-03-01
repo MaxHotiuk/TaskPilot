@@ -13,13 +13,14 @@ public class SearchBoardsRangeForOwnerEndpoint : EndpointBaseWithRequest<SearchB
     {
         app.MapGet("/api/boards/owner/search", async (
                 Guid ownerId,
+                Guid organizationId,
                 string searchTerm,
                 int page,
                 int pageSize,
                 IMediator mediator,
                 CancellationToken cancellationToken) =>
             {
-                var query = new SearchBoardsRangeForOwnerQuery(ownerId, searchTerm, page, pageSize);
+                var query = new SearchBoardsRangeForOwnerQuery(ownerId, organizationId, searchTerm, page, pageSize);
                 return await HandleAsync(query, mediator, cancellationToken);
             })
             .WithName("SearchBoardsRangeForOwner")

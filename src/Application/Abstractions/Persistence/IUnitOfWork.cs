@@ -18,6 +18,8 @@ public interface IUnitOfWork : IDisposable
     IChatRepository Chats { get; }
     IChatMemberRepository ChatMembers { get; }
     IChatMessageRepository ChatMessages { get; }
+    IBoardInvitationRepository BoardInvitations { get; }
+    IOrganizationInvitationRepository OrganizationInvitations { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
     Task CommitTransactionAsync(CancellationToken cancellationToken = default);
