@@ -17,7 +17,7 @@ public class SearchBoardsRangeForUserMemberHandler : BaseQueryHandler, IRequestH
     {
         return await ExecuteQueryAsync(async unitOfWork =>
         {
-            var boards = await unitOfWork.Boards.SearchBoardsRangeForMemberAsync(request.UserId, request.SearchTerm, request.Page, request.PageSize, cancellationToken);
+            var boards = await unitOfWork.Boards.SearchBoardsRangeForMemberAsync(request.UserId, request.OrganizationId, request.SearchTerm, request.Page, request.PageSize, cancellationToken);
             return boards.OrderBy(b => b.Name);
         }, cancellationToken);
     }

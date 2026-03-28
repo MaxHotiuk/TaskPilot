@@ -7,4 +7,5 @@ public class Organization : AuditableEntity<Guid>
 
     // Navigation properties
     public ICollection<OrganizationMember> Members { get; set; } = new List<OrganizationMember>();
+    public ICollection<Chat> Chats { get; set; } = new List<Chat>();
 }

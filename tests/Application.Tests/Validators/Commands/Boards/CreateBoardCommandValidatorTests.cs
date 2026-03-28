@@ -19,7 +19,8 @@ public class CreateBoardCommandValidatorTests
         var command = new CreateBoardCommand(
             Name: "Test Board",
             Description: "Test Description",
-            OwnerId: Guid.NewGuid()
+            OwnerId: Guid.NewGuid(),
+            OrganizationId: Guid.NewGuid()
         );
 
         // Act
@@ -39,7 +40,8 @@ public class CreateBoardCommandValidatorTests
         var command = new CreateBoardCommand(
             Name: name,
             Description: "Test Description",
-            OwnerId: Guid.NewGuid()
+            OwnerId: Guid.NewGuid(),
+            OrganizationId: Guid.NewGuid()
         );
 
         // Act
@@ -57,7 +59,8 @@ public class CreateBoardCommandValidatorTests
         var command = new CreateBoardCommand(
             Name: null!,
             Description: "Test Description",
-            OwnerId: Guid.NewGuid()
+            OwnerId: Guid.NewGuid(),
+            OrganizationId: Guid.NewGuid()
         );
 
         // Act
@@ -76,7 +79,8 @@ public class CreateBoardCommandValidatorTests
         var command = new CreateBoardCommand(
             Name: longName,
             Description: "Test Description",
-            OwnerId: Guid.NewGuid()
+            OwnerId: Guid.NewGuid(),
+            OrganizationId: Guid.NewGuid()
         );
 
         // Act
@@ -94,7 +98,8 @@ public class CreateBoardCommandValidatorTests
         var command = new CreateBoardCommand(
             Name: "Test Board",
             Description: "Test Description",
-            OwnerId: Guid.Empty
+            OwnerId: Guid.Empty,
+            OrganizationId: Guid.NewGuid()
         );
 
         // Act
@@ -112,7 +117,8 @@ public class CreateBoardCommandValidatorTests
         var command = new CreateBoardCommand(
             Name: "Test Board",
             Description: null,
-            OwnerId: Guid.NewGuid()
+            OwnerId: Guid.NewGuid(),
+            OrganizationId: Guid.NewGuid()
         );
 
         // Act
@@ -131,7 +137,8 @@ public class CreateBoardCommandValidatorTests
         var command = new CreateBoardCommand(
             Name: "Test Board",
             Description: longDescription,
-            OwnerId: Guid.NewGuid()
+            OwnerId: Guid.NewGuid(),
+            OrganizationId: Guid.NewGuid()
         );
 
         // Act

@@ -16,7 +16,11 @@ public class OrganizationMemberConfiguration : IEntityTypeConfiguration<Organiza
         builder.Property(om => om.IsInvited)
             .IsRequired()
             .HasDefaultValue(false);
-            
+
+        builder.Property(om => om.Role)
+            .IsRequired()
+            .HasConversion<string>();
+
         builder.Property(om => om.CreatedAt)
             .IsRequired()
             .HasDefaultValueSql("GETUTCDATE()");

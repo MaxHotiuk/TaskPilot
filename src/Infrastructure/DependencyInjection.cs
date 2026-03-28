@@ -12,6 +12,10 @@ using Infrastructure.BackgroundJobs;
 using Azure.Messaging.ServiceBus;
 using Application.Abstractions.Messaging;
 using Infrastructure.Services;
+using Infrastructure.Services.Meetings;
+using Application.Abstractions.Meetings;
+using System.Net.Http.Headers;
+using Infrastructure.Services.Email;
 
 namespace Infrastructure;
 
@@ -24,6 +28,7 @@ public static class DependencyInjection
         services.AddScoped<IAuthenticationService, AuthenticationService>();
         services.AddScoped<IBlobStorageService, BlobStorageService>();
         services.AddScoped<IAvatarService, AvatarService>();
+        services.AddScoped<IChatAvatarService, ChatAvatarService>();
         services.AddScoped<IAttachmentService, AttachmentService>();
         services.AddScoped<IArchivalService, ArchivalService>();
         services.AddScoped<IArchivalBackgroundJob, ArchivalBackgroundJob>();
@@ -31,6 +36,22 @@ public static class DependencyInjection
 
         services.AddScoped<IBoardNotifier, BoardNotifier>();
         services.AddScoped<INotificationNotifier, NotificationNotifier>();
+        services.AddScoped<IChatNotifier, ChatNotifier>();
+
+        services.Configure<EmailOptions>(configuration.GetSection("Email"));
+        services.AddScoped<IEmailService, EmailService>();
+
+        services.Configure<DailyOptions>(configuration.GetSection("Daily"));
+        services.AddHttpClient<IDailyRoomService, DailyRoomService>()
+            .ConfigureHttpClient((provider, client) =>
+            {
+                var options = provider.GetRequiredService<Microsoft.Extensions.Options.IOptions<DailyOptions>>().Value;
+                client.BaseAddress = new Uri(options.ApiBaseUrl);
+                if (!string.IsNullOrWhiteSpace(options.ApiKey))
+                {
+                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", options.ApiKey);
+                }
+            });
 
         services.AddSingleton(provider =>
         {

@@ -1,13 +1,13 @@
 using Application.Abstractions.Authentication;
 using Application.Abstractions.Persistence;
+using Domain.Dtos.Organizations;
 using Domain.Dtos.Users;
 using Application.Common.Handlers;
-using Application.Common.Mappings;
 using MediatR;
 
 namespace Application.Queries.Users;
 
-public class GetCurrentUserQueryHandler : BaseQueryHandler, IRequestHandler<GetCurrentUserQuery, UserDto?>
+public class GetCurrentUserQueryHandler : BaseQueryHandler, IRequestHandler<GetCurrentUserQuery, CurrentUserDto?>
 {
     private readonly IAuthenticationService _authenticationService;
 
@@ -17,7 +17,7 @@ public class GetCurrentUserQueryHandler : BaseQueryHandler, IRequestHandler<GetC
         _authenticationService = authenticationService;
     }
 
-    public async Task<UserDto?> Handle(GetCurrentUserQuery request, CancellationToken cancellationToken)
+    public async Task<CurrentUserDto?> Handle(GetCurrentUserQuery request, CancellationToken cancellationToken)
     {
         var entraId = await _authenticationService.GetCurrentUserEntraIdAsync();
         
@@ -29,7 +29,36 @@ public class GetCurrentUserQueryHandler : BaseQueryHandler, IRequestHandler<GetC
         return await ExecuteQueryAsync(async unitOfWork =>
         {
             var user = await unitOfWork.Users.GetByEntraIdAsync(entraId, cancellationToken);
-            return user?.ToDto();
+            if (user is null)
+            {
+                return null;
+            }
+
+            var organizations = await unitOfWork.Organizations.GetOrganizationsByUserIdAsync(user.Id, cancellationToken);
+            var organizationMembers = await unitOfWork.OrganizationMembers.GetByUserIdAsync(user.Id, cancellationToken);
+
+            var organizationDtos = organizations.Select(org =>
+            {
+                var memberInfo = organizationMembers.FirstOrDefault(om => om.OrganizationId == org.Id);
+                return new OrganizationSummaryDto
+                {
+                    Id = org.Id,
+                    Name = org.Name,
+                    Role = memberInfo?.Role.ToString() ?? "Member"
+                };
+            });
+
+            return new CurrentUserDto
+            {
+                Id = user.Id,
+                EntraId = user.EntraId,
+                Username = user.Username,
+                Email = user.Email,
+                Role = user.Role,
+                CreatedAt = user.CreatedAt,
+                UpdatedAt = user.UpdatedAt,
+                Organizations = organizationDtos.ToList()
+            };
         }, cancellationToken);
     }
 }

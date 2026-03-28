@@ -25,6 +25,9 @@ public static class DependencyInjection
         
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IBoardRepository, BoardRepository>();
+        services.AddScoped<IOrganizationRepository, OrganizationRepository>();
+        services.AddScoped<IOrganizationMemberRepository, OrganizationMemberRepository>();
+        services.AddScoped<IOrganizationManagerRequestRepository, OrganizationManagerRequestRepository>();
         services.AddScoped<ITaskItemRepository, TaskItemRepository>();
         services.AddScoped<IStateRepository, StateRepository>();
         services.AddScoped<IBoardMemberRepository, BoardMemberRepository>();
@@ -34,6 +37,9 @@ public static class DependencyInjection
         services.AddScoped<IBacklogRepository, BacklogRepository>();
         services.AddScoped<IMeetingRepository, MeetingRepository>();
         services.AddScoped<IMeetingMemberRepository, MeetingMemberRepository>();
+        services.AddScoped<IChatRepository, ChatRepository>();
+        services.AddScoped<IChatMemberRepository, ChatMemberRepository>();
+        services.AddScoped<IChatMessageRepository, ChatMessageRepository>();
 
         services.AddScoped<ICosmosArchivalJobRepository, CosmosArchivalJobRepository>();
 

@@ -13,6 +13,7 @@ public static class BoardMappingExtensions
             Name = board.Name,
             Description = board.Description,
             OwnerId = board.OwnerId,
+            OrganizationId = board.OrganizationId,
             CreatedAt = board.CreatedAt,
             UpdatedAt = board.UpdatedAt
         };
@@ -33,6 +34,7 @@ public static class BoardMappingExtensions
             NumberOfMembers = board.Members.Count,
             NumberOfTasks = board.Tasks.Count,
             OwnerId = board.OwnerId,
+            OrganizationId = board.OrganizationId,
             CreatedAt = board.CreatedAt,
             UpdatedAt = board.UpdatedAt
         };

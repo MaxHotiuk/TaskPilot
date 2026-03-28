@@ -8,6 +8,7 @@ public record BoardSearchDto
     public int NumberOfMembers { get; init; }
     public int NumberOfTasks { get; init; }
     public Guid OwnerId { get; init; }
+    public Guid OrganizationId { get; init; }
     public DateTime CreatedAt { get; init; }
     public DateTime UpdatedAt { get; init; }
 }

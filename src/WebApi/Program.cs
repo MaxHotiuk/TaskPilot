@@ -90,6 +90,7 @@ using (var scope = app.Services.CreateScope())
     var faqService = scope.ServiceProvider.GetRequiredService<Application.Abstractions.Messaging.IFAQDataService>();
     await faqService.InitializeFAQDataAsync();
 }
+
 try
 {
     Database.DependencyInjection.RunDatabaseMigrations(app.Services);
@@ -98,6 +99,17 @@ try
 catch (Exception ex)
 {
     app.Logger.LogError(ex, "Database migration failed during application startup");
+    throw;
+}
+
+try
+{
+    await Database.DependencyInjection.EnsureCosmosDbCreatedAsync(app.Services);
+    app.Logger.LogInformation("CosmosDB initialization completed successfully");
+}
+catch (Exception ex)
+{
+    app.Logger.LogError(ex, "CosmosDB initialization failed during application startup");
     throw;
 }
 
@@ -139,5 +151,6 @@ app.MapEndpoints();
 app.MapHub<BoardHub>("/hubs/board");
 app.MapHub<WebRtcHub>("/webrtc");
 app.MapHub<NotificationHub>("/hubs/notification");
+app.MapHub<ChatHub>("/hubs/chat");
 
 app.Run();

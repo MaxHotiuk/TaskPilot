@@ -43,10 +43,30 @@ public static class DependencyInjection
         }
 
         var migrationSuccess = DbUpMigrator.MigrateDatabase(connectionString, logger);
-        
+
         if (!migrationSuccess)
         {
             throw new InvalidOperationException("Database migration failed. Application startup aborted.");
+        }
+    }
+
+    public static async Task EnsureCosmosDbCreatedAsync(IServiceProvider serviceProvider)
+    {
+        using var scope = serviceProvider.CreateScope();
+        var loggerFactory = scope.ServiceProvider.GetRequiredService<ILoggerFactory>();
+        var logger = loggerFactory.CreateLogger("CosmosDbInitialization");
+
+        try
+        {
+            var cosmosDbContext = scope.ServiceProvider.GetRequiredService<CosmosDbContext>();
+            logger.LogInformation("Ensuring CosmosDB database and container are created...");
+            await cosmosDbContext.Database.EnsureCreatedAsync();
+            logger.LogInformation("CosmosDB initialization completed successfully");
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Failed to initialize CosmosDB");
+            throw new InvalidOperationException("CosmosDB initialization failed. Please check your CosmosDB configuration and connection.", ex);
         }
     }
 }
