@@ -34,6 +34,8 @@ public class UpdateStateCommandHandler : BaseCommandHandler, IRequestHandler<Upd
             state.UpdatedAt = DateTime.UtcNow;
 
             unitOfWork.States.Update(state);
+
+            await unitOfWork.Boards.TouchBoardAsync(state.BoardId, cancellationToken);
         }, cancellationToken);
     }
 }

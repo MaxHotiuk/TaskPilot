@@ -37,6 +37,8 @@ public class UpdateBoardMemberRoleCommandHandler : BaseCommandHandler, IRequestH
             boardMember.UpdatedAt = DateTime.UtcNow;
 
             unitOfWork.BoardMembers.Update(boardMember);
+
+            await unitOfWork.Boards.TouchBoardAsync(request.BoardId, cancellationToken);
         }, cancellationToken);
     }
 }

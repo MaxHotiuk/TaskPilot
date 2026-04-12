@@ -23,6 +23,8 @@ public class DeleteTagCommandHandler : BaseCommandHandler, IRequestHandler<Delet
                 throw new ValidationException($"Tag with ID {request.Id} does not exist in board {request.BoardId}");
             }
 
+            await unitOfWork.Boards.TouchBoardAsync(tag.BoardId, cancellationToken);
+
             unitOfWork.Tags.Remove(tag);
         }, cancellationToken);
     }

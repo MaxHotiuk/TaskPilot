@@ -46,6 +46,8 @@ public class RemoveBoardMemberCommandHandler : BaseCommandHandler, IRequestHandl
             }
 
             unitOfWork.BoardMembers.Remove(boardMember);
+
+            await unitOfWork.Boards.TouchBoardAsync(request.BoardId, cancellationToken);
         }, cancellationToken);
     }
 }

@@ -40,6 +40,9 @@ public class CreateTagCommandHandler : BaseCommandHandler, IRequestHandler<Creat
 
             await unitOfWork.Tags.AddAsync(tag, cancellationToken);
 
+            board.UpdatedAt = DateTime.UtcNow;
+            unitOfWork.Boards.Update(board);
+
             return tag.Id;
         }, cancellationToken);
     }

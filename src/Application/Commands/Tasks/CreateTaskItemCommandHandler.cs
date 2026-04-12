@@ -56,6 +56,9 @@ public class CreateTaskItemCommandHandler : BaseCommandHandler, IRequestHandler<
 
             await unitOfWork.Tasks.AddAsync(taskItem, cancellationToken);
 
+            board.UpdatedAt = DateTime.UtcNow;
+            unitOfWork.Boards.Update(board);
+
             var backlogEntry = Application.Common.Helpers.BacklogEntryHelper.CreateBacklogForTaskCreate(taskItem, unitOfWork.States, unitOfWork.Users);
             await unitOfWork.Backlogs.AddAsync(backlogEntry, cancellationToken);
 

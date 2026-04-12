@@ -62,6 +62,8 @@ public class CreateCommentCommandHandler : BaseCommandHandler, IRequestHandler<C
                 await _notificationNotifier.NotifyUserAsync(task.AssigneeId.Value, notification);
             }
 
+            await unitOfWork.Boards.TouchBoardAsync(task.BoardId, cancellationToken);
+
             await _boardNotifier.NotifyTaskUpdatedAsync(comment.TaskId.ToString(), new { action = "commentCreated", commentId = comment.Id });
             return comment.Id;
         }, cancellationToken);

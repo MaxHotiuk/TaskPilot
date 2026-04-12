@@ -23,6 +23,8 @@ public class DeleteStateCommandHandler : BaseCommandHandler, IRequestHandler<Del
                 throw new NotFoundException($"State with ID {request.Id} was not found");
             }
 
+            await unitOfWork.Boards.TouchBoardAsync(state.BoardId, cancellationToken);
+
             unitOfWork.States.Remove(state);
         }, cancellationToken);
     }

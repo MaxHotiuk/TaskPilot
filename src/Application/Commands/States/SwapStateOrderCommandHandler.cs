@@ -30,6 +30,9 @@ public class SwapStateOrderCommandHandler : BaseCommandHandler, IRequestHandler<
             }
 
             await unitOfWork.States.SwapStateOrderAsync(request.FirstStateId, request.SecondStateId, request.BoardId, cancellationToken);
+
+            board.UpdatedAt = DateTime.UtcNow;
+            unitOfWork.Boards.Update(board);
         }, cancellationToken);
     }
 }

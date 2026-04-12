@@ -179,4 +179,23 @@ public class BoardRepository : Repository<Board, Guid>, IBoardRepository
         Context.Boards.Update(board);
         return await Context.SaveChangesAsync(cancellationToken) > 0;
     }
+
+    public async Task<IEnumerable<Guid>> GetStaleBoardIdsAsync(int staleDays = 30, CancellationToken cancellationToken = default)
+    {
+        var cutoffDate = DateTime.UtcNow.AddDays(-staleDays);
+        return await DbSet
+            .Where(b => b.UpdatedAt <= cutoffDate && !b.IsArchived)
+            .Select(b => b.Id)
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task TouchBoardAsync(Guid boardId, CancellationToken cancellationToken = default)
+    {
+        var board = await DbSet.FindAsync([boardId], cancellationToken);
+        if (board is not null)
+        {
+            board.UpdatedAt = DateTime.UtcNow;
+            DbSet.Update(board);
+        }
+    }
 }

@@ -40,6 +40,9 @@ public class CreateStateCommandHandler : BaseCommandHandler, IRequestHandler<Cre
 
             await unitOfWork.States.AddAsync(state, cancellationToken);
 
+            board.UpdatedAt = DateTime.UtcNow;
+            unitOfWork.Boards.Update(board);
+
             return state.Id;
         }, cancellationToken);
     }

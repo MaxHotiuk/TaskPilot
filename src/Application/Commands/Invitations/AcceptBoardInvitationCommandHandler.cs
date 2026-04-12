@@ -102,6 +102,9 @@ public class AcceptBoardInvitationCommandHandler : BaseCommandHandler, IRequestH
                 }
             }
 
+            board.UpdatedAt = DateTime.UtcNow;
+            unitOfWork.Boards.Update(board);
+
             // Create backlog entry
             var backlogEntry = new Backlog
             {

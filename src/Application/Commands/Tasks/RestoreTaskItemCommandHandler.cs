@@ -30,6 +30,8 @@ public class RestoreTaskItemCommandHandler : BaseCommandHandler, IRequestHandler
 
             await unitOfWork.Tasks.RestoreTaskAsync(request.TaskId, cancellationToken);
 
+            await unitOfWork.Boards.TouchBoardAsync(task.BoardId, cancellationToken);
+
             await _boardNotifier.NotifyBoardUpdatedAsync(task.BoardId.ToString(), new { action = "restored", boardId = task.BoardId });
             return task.Id;
         }, cancellationToken);

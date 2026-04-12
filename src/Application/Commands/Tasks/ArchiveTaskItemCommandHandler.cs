@@ -30,6 +30,8 @@ public class ArchiveTaskItemCommandHandler : BaseCommandHandler, IRequestHandler
 
             await unitOfWork.Tasks.ArchiveTaskAsync(request.TaskId, cancellationToken);
 
+            await unitOfWork.Boards.TouchBoardAsync(task.BoardId, cancellationToken);
+
             await _boardNotifier.NotifyBoardUpdatedAsync(task.BoardId.ToString(), new { action = "archived", boardId = task.BoardId });
             return task.Id;
         }, cancellationToken);

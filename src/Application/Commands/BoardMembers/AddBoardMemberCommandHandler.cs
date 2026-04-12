@@ -88,6 +88,9 @@ public class AddBoardMemberCommandHandler : BaseCommandHandler, IRequestHandler<
 
             await unitOfWork.BoardInvitations.AddAsync(invitation, cancellationToken);
 
+            board.UpdatedAt = DateTime.UtcNow;
+            unitOfWork.Boards.Update(board);
+
             // Send invitation email
             var emailBody = $@"
                 <p>Hello {user.Username ?? user.Email},</p>

@@ -34,6 +34,8 @@ public class UpdateTagCommandHandler : BaseCommandHandler, IRequestHandler<Updat
             tag.UpdatedAt = DateTime.UtcNow;
 
             unitOfWork.Tags.Update(tag);
+
+            await unitOfWork.Boards.TouchBoardAsync(tag.BoardId, cancellationToken);
         }, cancellationToken);
     }
 }

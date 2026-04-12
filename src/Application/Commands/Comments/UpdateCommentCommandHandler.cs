@@ -33,6 +33,9 @@ public class UpdateCommentCommandHandler : BaseCommandHandler, IRequestHandler<U
 
             unitOfWork.Comments.Update(comment);
 
+            var task = await unitOfWork.Tasks.GetByIdAsync(comment.TaskId, cancellationToken);
+            await unitOfWork.Boards.TouchBoardAsync(task!.BoardId, cancellationToken);
+
             await _boardNotifier.NotifyTaskUpdatedAsync(comment.TaskId.ToString(), new { action = "commentUpdated", commentId = comment.Id });
         }, cancellationToken);
     }

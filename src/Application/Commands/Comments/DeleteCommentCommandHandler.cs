@@ -28,7 +28,11 @@ public class DeleteCommentCommandHandler : BaseCommandHandler, IRequestHandler<D
                 throw new NotFoundException($"Comment with ID {request.Id} was not found");
             }
 
+            var task = await unitOfWork.Tasks.GetByIdAsync(comment.TaskId, cancellationToken);
+
             unitOfWork.Comments.Remove(comment);
+
+            await unitOfWork.Boards.TouchBoardAsync(task!.BoardId, cancellationToken);
 
             await _boardNotifier.NotifyTaskUpdatedAsync(comment.TaskId.ToString(), new { action = "commentDeleted", commentId = comment.Id });
         }, cancellationToken);
