@@ -11,11 +11,13 @@ public class ArchiveTaskItemCommandHandler : BaseCommandHandler, IRequestHandler
 {
 
     private readonly IBoardNotifier _boardNotifier;
+    private readonly IAiSyncEnqueuer _aiSyncEnqueuer;
 
-    public ArchiveTaskItemCommandHandler(IUnitOfWorkFactory unitOfWorkFactory, IBoardNotifier boardNotifier)
+    public ArchiveTaskItemCommandHandler(IUnitOfWorkFactory unitOfWorkFactory, IBoardNotifier boardNotifier, IAiSyncEnqueuer aiSyncEnqueuer)
         : base(unitOfWorkFactory)
     {
         _boardNotifier = boardNotifier;
+        _aiSyncEnqueuer = aiSyncEnqueuer;
     }
 
     public async Task Handle(ArchiveTaskItemCommand request, CancellationToken cancellationToken)
@@ -35,5 +37,7 @@ public class ArchiveTaskItemCommandHandler : BaseCommandHandler, IRequestHandler
             await _boardNotifier.NotifyBoardUpdatedAsync(task.BoardId.ToString(), new { action = "archived", boardId = task.BoardId });
             return task.Id;
         }, cancellationToken);
+
+        _aiSyncEnqueuer.EnqueueDelete(request.TaskId);
     }
 }

@@ -28,4 +28,10 @@
     <ProjectReference Include="..\Database\Database.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Update="faqData.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
 </Project>

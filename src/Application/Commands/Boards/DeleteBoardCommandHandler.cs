@@ -10,11 +10,13 @@ public class DeleteBoardCommandHandler : BaseCommandHandler, IRequestHandler<Del
 {
 
     private readonly IBoardNotifier _boardNotifier;
+    private readonly IAiSyncEnqueuer _aiSyncEnqueuer;
 
-    public DeleteBoardCommandHandler(IUnitOfWorkFactory unitOfWorkFactory, IBoardNotifier boardNotifier)
+    public DeleteBoardCommandHandler(IUnitOfWorkFactory unitOfWorkFactory, IBoardNotifier boardNotifier, IAiSyncEnqueuer aiSyncEnqueuer)
         : base(unitOfWorkFactory)
     {
         _boardNotifier = boardNotifier;
+        _aiSyncEnqueuer = aiSyncEnqueuer;
     }
 
     public async Task Handle(DeleteBoardCommand request, CancellationToken cancellationToken)
@@ -45,5 +47,7 @@ public class DeleteBoardCommandHandler : BaseCommandHandler, IRequestHandler<Del
 
             await _boardNotifier.NotifyBoardUpdatedAsync(board.Id.ToString(), new { action = "deleted", boardId = board.Id });
         }, cancellationToken);
+
+        _aiSyncEnqueuer.EnqueueDeleteBoard(request.Id);
     }
 }

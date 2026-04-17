@@ -1,4 +1,5 @@
 
+using Application.Abstractions.Messaging;
 using Application.Abstractions.Persistence;
 using Application.Common.Exceptions;
 using Application.Common.Handlers;
@@ -8,9 +9,12 @@ namespace Application.Commands.Meetings;
 
 public class DeleteMeetingCommandHandler : BaseCommandHandler, IRequestHandler<DeleteMeetingCommand>
 {
-    public DeleteMeetingCommandHandler(IUnitOfWorkFactory unitOfWorkFactory)
+    private readonly IAiSyncEnqueuer _aiSyncEnqueuer;
+
+    public DeleteMeetingCommandHandler(IUnitOfWorkFactory unitOfWorkFactory, IAiSyncEnqueuer aiSyncEnqueuer)
         : base(unitOfWorkFactory)
     {
+        _aiSyncEnqueuer = aiSyncEnqueuer;
     }
 
     public async Task Handle(DeleteMeetingCommand request, CancellationToken cancellationToken)
@@ -21,5 +25,7 @@ public class DeleteMeetingCommandHandler : BaseCommandHandler, IRequestHandler<D
                 ?? throw new NotFoundException($"Meeting with ID {request.Id} was not found");
             unitOfWork.Meetings.Remove(meeting);
         }, cancellationToken);
+
+        _aiSyncEnqueuer.EnqueueDeleteMeeting(request.Id);
     }
 }

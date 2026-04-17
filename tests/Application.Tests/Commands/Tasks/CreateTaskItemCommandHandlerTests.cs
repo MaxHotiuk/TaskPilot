@@ -19,6 +19,7 @@ public class CreateTaskItemCommandHandlerTests
     private readonly CreateTaskItemCommandHandler _handler;
     private readonly Mock<INotificationNotifier> _notificationNotifierMock;
     private readonly Mock<IChatRepository> _chatRepositoryMock;
+    private readonly Mock<IAiSyncEnqueuer> _aiSyncEnqueuerMock;
 
     public CreateTaskItemCommandHandlerTests()
     {
@@ -43,11 +44,13 @@ public class CreateTaskItemCommandHandlerTests
         _chatRepositoryMock
             .Setup(x => x.GetBoardChatAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((Chat?)null);
+        _aiSyncEnqueuerMock = new Mock<IAiSyncEnqueuer>();
         _handler = new CreateTaskItemCommandHandler(
             _unitOfWorkFactoryMock.Object,
             _boardNotifierMock.Object,
             _chatNotifierMock.Object,
-            _notificationNotifierMock.Object);
+            _notificationNotifierMock.Object,
+            _aiSyncEnqueuerMock.Object);
     }
 
     [Fact]

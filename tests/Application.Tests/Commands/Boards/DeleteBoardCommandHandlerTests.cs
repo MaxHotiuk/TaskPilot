@@ -12,6 +12,7 @@ public class DeleteBoardCommandHandlerTests
     private readonly Mock<IUnitOfWorkFactory> _unitOfWorkFactoryMock;
     private readonly Mock<IBoardNotifier> _boardNotifierMock;
     private readonly DeleteBoardCommandHandler _handler;
+    private readonly Mock<IAiSyncEnqueuer> _aiSyncEnqueuerMock;
 
     public DeleteBoardCommandHandlerTests()
     {
@@ -25,7 +26,8 @@ public class DeleteBoardCommandHandlerTests
             .ReturnsAsync(_unitOfWorkMock.Object);
         
         _boardNotifierMock = _fixture.Freeze<Mock<IBoardNotifier>>();
-        _handler = new DeleteBoardCommandHandler(_unitOfWorkFactoryMock.Object, _boardNotifierMock.Object);
+        _aiSyncEnqueuerMock = new Mock<IAiSyncEnqueuer>();
+        _handler = new DeleteBoardCommandHandler(_unitOfWorkFactoryMock.Object, _boardNotifierMock.Object, _aiSyncEnqueuerMock.Object);
     }
 
     [Fact]

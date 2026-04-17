@@ -9,10 +9,13 @@ namespace Application.Commands.Meetings;
 public class UpdateMeetingCommandHandler : BaseCommandHandler, IRequestHandler<UpdateMeetingCommand>
 {
     private readonly IBoardNotifier _boardNotifier;
-    public UpdateMeetingCommandHandler(IUnitOfWorkFactory unitOfWorkFactory, IBoardNotifier boardNotifier)
+    private readonly IAiSyncEnqueuer _aiSyncEnqueuer;
+
+    public UpdateMeetingCommandHandler(IUnitOfWorkFactory unitOfWorkFactory, IBoardNotifier boardNotifier, IAiSyncEnqueuer aiSyncEnqueuer)
         : base(unitOfWorkFactory)
     {
         _boardNotifier = boardNotifier;
+        _aiSyncEnqueuer = aiSyncEnqueuer;
     }
 
     public async Task Handle(UpdateMeetingCommand request, CancellationToken cancellationToken)
@@ -35,5 +38,7 @@ public class UpdateMeetingCommandHandler : BaseCommandHandler, IRequestHandler<U
                 new { action = "meeting_updated", meetingId = meeting.Id, meetingTitle = meeting.Title }
             );
         }, cancellationToken);
+
+        _aiSyncEnqueuer.EnqueueSyncMeeting(request.Id);
     }
 }

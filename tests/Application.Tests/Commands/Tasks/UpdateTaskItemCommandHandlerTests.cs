@@ -14,6 +14,7 @@ public class UpdateTaskItemCommandHandlerTests
     private readonly Mock<IBoardNotifier> _boardNotifierMock;
     private readonly UpdateTaskItemCommandHandler _handler;
     private readonly Mock<INotificationNotifier> _notificationNotifierMock;
+    private readonly Mock<IAiSyncEnqueuer> _aiSyncEnqueuerMock;
 
     public UpdateTaskItemCommandHandlerTests()
     {
@@ -30,7 +31,8 @@ public class UpdateTaskItemCommandHandlerTests
         
         _boardNotifierMock = _fixture.Freeze<Mock<IBoardNotifier>>();
         _notificationNotifierMock = new Mock<INotificationNotifier>();
-        _handler = new UpdateTaskItemCommandHandler(_unitOfWorkFactoryMock.Object, _boardNotifierMock.Object, _notificationNotifierMock.Object);
+        _aiSyncEnqueuerMock = new Mock<IAiSyncEnqueuer>();
+        _handler = new UpdateTaskItemCommandHandler(_unitOfWorkFactoryMock.Object, _boardNotifierMock.Object, _notificationNotifierMock.Object, _aiSyncEnqueuerMock.Object);
     }
 
     [Fact]

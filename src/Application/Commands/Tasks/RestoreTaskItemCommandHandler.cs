@@ -11,11 +11,13 @@ public class RestoreTaskItemCommandHandler : BaseCommandHandler, IRequestHandler
 {
 
     private readonly IBoardNotifier _boardNotifier;
+    private readonly IAiSyncEnqueuer _aiSyncEnqueuer;
 
-    public RestoreTaskItemCommandHandler(IUnitOfWorkFactory unitOfWorkFactory, IBoardNotifier boardNotifier)
+    public RestoreTaskItemCommandHandler(IUnitOfWorkFactory unitOfWorkFactory, IBoardNotifier boardNotifier, IAiSyncEnqueuer aiSyncEnqueuer)
         : base(unitOfWorkFactory)
     {
         _boardNotifier = boardNotifier;
+        _aiSyncEnqueuer = aiSyncEnqueuer;
     }
 
     public async Task Handle(RestoreTaskItemCommand request, CancellationToken cancellationToken)
@@ -35,5 +37,7 @@ public class RestoreTaskItemCommandHandler : BaseCommandHandler, IRequestHandler
             await _boardNotifier.NotifyBoardUpdatedAsync(task.BoardId.ToString(), new { action = "restored", boardId = task.BoardId });
             return task.Id;
         }, cancellationToken);
+
+        _aiSyncEnqueuer.EnqueueSync(request.TaskId);
     }
 }

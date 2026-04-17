@@ -12,20 +12,23 @@ public class CreateBoardCommandHandler : BaseCommandHandler, IRequestHandler<Cre
 {
     private readonly IBoardNotifier _boardNotifier;
     private readonly IOrganizationMemberRepository _organizationMemberRepository;
+    private readonly IAiSyncEnqueuer _aiSyncEnqueuer;
 
     public CreateBoardCommandHandler(
-        IUnitOfWorkFactory unitOfWorkFactory, 
+        IUnitOfWorkFactory unitOfWorkFactory,
         IBoardNotifier boardNotifier,
-        IOrganizationMemberRepository organizationMemberRepository)
+        IOrganizationMemberRepository organizationMemberRepository,
+        IAiSyncEnqueuer aiSyncEnqueuer)
         : base(unitOfWorkFactory)
     {
         _boardNotifier = boardNotifier;
         _organizationMemberRepository = organizationMemberRepository;
+        _aiSyncEnqueuer = aiSyncEnqueuer;
     }
 
     public async Task<Guid> Handle(CreateBoardCommand request, CancellationToken cancellationToken)
     {
-        return await ExecuteInTransactionAsync(async unitOfWork =>
+        var createdId = await ExecuteInTransactionAsync(async unitOfWork =>
         {
             // Verify organization exists
             var organization = await unitOfWork.Organizations.GetByIdAsync(request.OrganizationId, cancellationToken);
@@ -104,5 +107,8 @@ public class CreateBoardCommandHandler : BaseCommandHandler, IRequestHandler<Cre
             await _boardNotifier.NotifyBoardUpdatedAsync(board.Id.ToString(), new { action = "created", boardId = board.Id });
             return board.Id;
         }, cancellationToken);
+
+        _aiSyncEnqueuer.EnqueueSyncBoard(createdId);
+        return createdId;
     }
 }

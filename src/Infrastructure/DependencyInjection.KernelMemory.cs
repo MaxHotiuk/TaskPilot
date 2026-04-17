@@ -1,4 +1,5 @@
 using Application.Abstractions.Messaging;
+using Infrastructure.BackgroundJobs;
 using Infrastructure.Services.OpenAI;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -12,33 +13,38 @@ public static class DependencyInjectionKernelMemory
     {
         services.AddSingleton<IKernelMemory>(provider =>
         {
+            var apiKey = configuration["Gemini:ApiKey"]
+                ?? throw new InvalidOperationException("Gemini:ApiKey is not configured.");
+
+            var httpClientFactory = provider.GetRequiredService<IHttpClientFactory>();
+            var embeddingGenerator = new GeminiEmbeddingGenerator(
+                httpClient: httpClientFactory.CreateClient("Gemini"),
+                apiKey: apiKey);
+
             var memory = new KernelMemoryBuilder()
-                .WithAzureOpenAITextGeneration(new AzureOpenAIConfig
+                .WithoutTextGenerator()
+                .WithCustomEmbeddingGenerator(embeddingGenerator)
+                .WithSqlServerMemoryDb(
+                    configuration.GetConnectionString("DefaultConnection")
+                        ?? throw new InvalidOperationException("Connection string 'DefaultConnection' is not configured."))
+                .WithAzureBlobsDocumentStorage(new AzureBlobsConfig
                 {
-                    Auth = AzureOpenAIConfig.AuthTypes.APIKey,
-                    APIKey = configuration["AzureOpenAI:ApiKey"] ?? throw new ArgumentNullException("AzureOpenAI:ApiKey"),
-                    Endpoint = configuration["AzureOpenAI:Endpoint"] ?? throw new ArgumentNullException("AzureOpenAI:Endpoint"),
-                    Deployment = configuration["AzureOpenAI:DeploymentName"] ?? throw new ArgumentNullException("AzureOpenAI:DeploymentName")
+                    Auth = AzureBlobsConfig.AuthTypes.ConnectionString,
+                    ConnectionString = configuration["AzureBlob:ConnectionString"]
+                        ?? throw new InvalidOperationException("AzureBlob:ConnectionString is not configured."),
+                    Container = configuration["AzureBlob:KernelMemoryContainerName"] ?? "kernel-memory"
                 })
-                .WithAzureOpenAITextEmbeddingGeneration(new AzureOpenAIConfig
-                {
-                    Auth = AzureOpenAIConfig.AuthTypes.APIKey,
-                    APIKey = configuration["KernelMemory:EmbeddingGenerator:ApiKey"] ?? throw new ArgumentNullException("KernelMemory:EmbeddingGenerator:ApiKey"),
-                    Endpoint = configuration["KernelMemory:EmbeddingGenerator:Endpoint"] ?? throw new ArgumentNullException("KernelMemory:EmbeddingGenerator:Endpoint"),
-                    Deployment = configuration["KernelMemory:EmbeddingGenerator:DeploymentName"] ?? throw new ArgumentNullException("KernelMemory:EmbeddingGenerator:DeploymentName")
-                })
-                .WithAzureAISearchMemoryDb(new AzureAISearchConfig
-                {
-                    Auth = AzureAISearchConfig.AuthTypes.APIKey,
-                    APIKey = configuration["AzureAISearch:ApiKey"] ?? throw new ArgumentNullException("AzureAISearch:APIKey"),
-                    Endpoint = configuration["AzureAISearch:Endpoint"] ?? throw new ArgumentNullException("AzureAISearch:Endpoint")
-                })
-                .Build(new KernelMemoryBuilderBuildOptions { AllowMixingVolatileAndPersistentData = true });
+                .Build();
             return memory;
         });
 
+        services.AddHttpClient("Gemini");
+
         services.AddScoped<IChatService, ChatService>();
         services.AddScoped<IFAQDataService, FAQDataService>();
+        services.AddScoped<IAiContextSyncService, AiContextSyncService>();
+        services.AddScoped<IAiSyncEnqueuer, AiSyncEnqueuer>();
         return services;
     }
 }
+

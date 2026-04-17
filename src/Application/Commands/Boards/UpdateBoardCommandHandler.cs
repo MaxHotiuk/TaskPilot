@@ -11,11 +11,13 @@ public class UpdateBoardCommandHandler : BaseCommandHandler, IRequestHandler<Upd
 {
 
     private readonly IBoardNotifier _boardNotifier;
+    private readonly IAiSyncEnqueuer _aiSyncEnqueuer;
 
-    public UpdateBoardCommandHandler(IUnitOfWorkFactory unitOfWorkFactory, IBoardNotifier boardNotifier)
+    public UpdateBoardCommandHandler(IUnitOfWorkFactory unitOfWorkFactory, IBoardNotifier boardNotifier, IAiSyncEnqueuer aiSyncEnqueuer)
         : base(unitOfWorkFactory)
     {
         _boardNotifier = boardNotifier;
+        _aiSyncEnqueuer = aiSyncEnqueuer;
     }
 
     public async Task Handle(UpdateBoardCommand request, CancellationToken cancellationToken)
@@ -50,5 +52,7 @@ public class UpdateBoardCommandHandler : BaseCommandHandler, IRequestHandler<Upd
 
             await _boardNotifier.NotifyBoardUpdatedAsync(board.Id.ToString(), new { action = "updated", boardId = board.Id });
         }, cancellationToken);
+
+        _aiSyncEnqueuer.EnqueueSyncBoard(request.Id);
     }
 }

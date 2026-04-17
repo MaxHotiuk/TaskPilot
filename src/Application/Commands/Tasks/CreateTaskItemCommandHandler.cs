@@ -15,18 +15,20 @@ public class CreateTaskItemCommandHandler : BaseCommandHandler, IRequestHandler<
     private readonly IBoardNotifier _boardNotifier;
     private readonly IChatNotifier _chatNotifier;
     private readonly INotificationNotifier _notificationNotifier;
+    private readonly IAiSyncEnqueuer _aiSyncEnqueuer;
 
-    public CreateTaskItemCommandHandler(IUnitOfWorkFactory unitOfWorkFactory, IBoardNotifier boardNotifier, IChatNotifier chatNotifier, INotificationNotifier notificationNotifier)
+    public CreateTaskItemCommandHandler(IUnitOfWorkFactory unitOfWorkFactory, IBoardNotifier boardNotifier, IChatNotifier chatNotifier, INotificationNotifier notificationNotifier, IAiSyncEnqueuer aiSyncEnqueuer)
         : base(unitOfWorkFactory)
     {
         _boardNotifier = boardNotifier;
         _chatNotifier = chatNotifier;
         _notificationNotifier = notificationNotifier;
+        _aiSyncEnqueuer = aiSyncEnqueuer;
     }
 
     public async Task<Guid> Handle(CreateTaskItemCommand request, CancellationToken cancellationToken)
     {
-        return await ExecuteInTransactionAsync(async unitOfWork =>
+        var createdId = await ExecuteInTransactionAsync(async unitOfWork =>
         {
             var board = await unitOfWork.Boards.GetByIdAsync(request.BoardId, cancellationToken);
             if (board is null)
@@ -126,5 +128,8 @@ public class CreateTaskItemCommandHandler : BaseCommandHandler, IRequestHandler<
             await _boardNotifier.NotifyBoardUpdatedAsync(request.BoardId.ToString(), new { action = "created", boardId = request.BoardId });
             return taskItem.Id;
         }, cancellationToken);
+
+        _aiSyncEnqueuer.EnqueueSync(createdId);
+        return createdId;
     }
 }

@@ -11,12 +11,14 @@ public class UpdateTaskItemCommandHandler : BaseCommandHandler, IRequestHandler<
 
     private readonly IBoardNotifier _boardNotifier;
     private readonly INotificationNotifier _notificationNotifier;
+    private readonly IAiSyncEnqueuer _aiSyncEnqueuer;
 
-    public UpdateTaskItemCommandHandler(IUnitOfWorkFactory unitOfWorkFactory, IBoardNotifier boardNotifier, INotificationNotifier notificationNotifier)
+    public UpdateTaskItemCommandHandler(IUnitOfWorkFactory unitOfWorkFactory, IBoardNotifier boardNotifier, INotificationNotifier notificationNotifier, IAiSyncEnqueuer aiSyncEnqueuer)
         : base(unitOfWorkFactory)
     {
         _boardNotifier = boardNotifier;
         _notificationNotifier = notificationNotifier;
+        _aiSyncEnqueuer = aiSyncEnqueuer;
     }
 
     public async Task Handle(UpdateTaskItemCommand request, CancellationToken cancellationToken)
@@ -87,5 +89,7 @@ public class UpdateTaskItemCommandHandler : BaseCommandHandler, IRequestHandler<
             await _boardNotifier.NotifyBoardUpdatedAsync(taskItem.BoardId.ToString(), new { action = "updated", boardId = taskItem.BoardId });
             await _boardNotifier.NotifyTaskUpdatedAsync(taskItem.Id.ToString(), new { action = "updated", taskId = taskItem.Id });
         }, cancellationToken);
+
+        _aiSyncEnqueuer.EnqueueSync(request.Id);
     }
 }

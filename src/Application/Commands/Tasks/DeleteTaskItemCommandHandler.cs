@@ -10,11 +10,13 @@ public class DeleteTaskItemCommandHandler : BaseCommandHandler, IRequestHandler<
 {
 
     private readonly IBoardNotifier _boardNotifier;
+    private readonly IAiSyncEnqueuer _aiSyncEnqueuer;
 
-    public DeleteTaskItemCommandHandler(IUnitOfWorkFactory unitOfWorkFactory, IBoardNotifier boardNotifier)
+    public DeleteTaskItemCommandHandler(IUnitOfWorkFactory unitOfWorkFactory, IBoardNotifier boardNotifier, IAiSyncEnqueuer aiSyncEnqueuer)
         : base(unitOfWorkFactory)
     {
         _boardNotifier = boardNotifier;
+        _aiSyncEnqueuer = aiSyncEnqueuer;
     }
 
     public async Task Handle(DeleteTaskItemCommand request, CancellationToken cancellationToken)
@@ -22,7 +24,7 @@ public class DeleteTaskItemCommandHandler : BaseCommandHandler, IRequestHandler<
         await ExecuteInTransactionAsync(async unitOfWork =>
         {
             var taskItem = await unitOfWork.Tasks.GetByIdAsync(request.Id, cancellationToken);
-            
+
             if (taskItem is null)
             {
                 throw new NotFoundException($"Task with ID {request.Id} was not found");
@@ -34,5 +36,7 @@ public class DeleteTaskItemCommandHandler : BaseCommandHandler, IRequestHandler<
 
             await _boardNotifier.NotifyBoardUpdatedAsync(taskItem.BoardId.ToString(), new { action = "deleted", boardId = taskItem.BoardId });
         }, cancellationToken);
+
+        _aiSyncEnqueuer.EnqueueDelete(request.Id);
     }
 }

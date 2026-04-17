@@ -22,6 +22,8 @@
     <PackageReference Include="Microsoft.KernelMemory" Version="0.98.250508.3" />
     <PackageReference Include="Microsoft.KernelMemory.Abstractions" Version="0.98.250508.3" />
     <PackageReference Include="Microsoft.KernelMemory.Core" Version="0.98.250508.3" />
+    <PackageReference Include="Microsoft.KernelMemory.DocumentStorage.AzureBlobs" Version="0.98.250508.3" />
+    <PackageReference Include="Microsoft.KernelMemory.MemoryDb.SqlServer" Version="0.98.250508.3" />
     <PackageReference Include="SixLabors.ImageSharp" Version="3.1.11" />
   </ItemGroup>
 

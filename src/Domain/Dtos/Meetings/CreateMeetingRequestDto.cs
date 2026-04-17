@@ -9,5 +9,6 @@ public record CreateMeetingRequestDto
     public Guid CreatedBy { get; init; }
     public DateTime? ScheduledAt { get; init; }
     public int? Duration { get; init; }
+    public string? ExternalUrl { get; init; }
     public List<Guid> MemberIds { get; init; } = new List<Guid>();
 }

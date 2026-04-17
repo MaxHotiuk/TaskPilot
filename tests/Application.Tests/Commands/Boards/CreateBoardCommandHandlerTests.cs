@@ -17,6 +17,7 @@ public class CreateBoardCommandHandlerTests
     private readonly Mock<IUnitOfWorkFactory> _unitOfWorkFactoryMock;
     private readonly Mock<IBoardNotifier> _boardNotifierMock;
     private readonly CreateBoardCommandHandler _handler;
+    private readonly Mock<IAiSyncEnqueuer> _aiSyncEnqueuerMock;
 
     public CreateBoardCommandHandlerTests()
     {
@@ -49,7 +50,8 @@ public class CreateBoardCommandHandlerTests
             .ReturnsAsync(new OrganizationMember { Role = OrganizationMemberRole.Member });
 
         _boardNotifierMock = _fixture.Freeze<Mock<IBoardNotifier>>();
-        _handler = new CreateBoardCommandHandler(_unitOfWorkFactoryMock.Object, _boardNotifierMock.Object, _organizationMemberRepositoryMock.Object);
+        _aiSyncEnqueuerMock = new Mock<IAiSyncEnqueuer>();
+        _handler = new CreateBoardCommandHandler(_unitOfWorkFactoryMock.Object, _boardNotifierMock.Object, _organizationMemberRepositoryMock.Object, _aiSyncEnqueuerMock.Object);
     }
 
     [Fact]
