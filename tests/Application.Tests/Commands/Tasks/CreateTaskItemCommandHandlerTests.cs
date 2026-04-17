@@ -3,6 +3,7 @@ using Application.Abstractions.Persistence;
 using Application.Commands.Tasks;
 using Application.Common.Exceptions;
 using Domain.Entities;
+using MediatR;
 
 namespace Application.Tests.Commands.Tasks;
 
@@ -17,9 +18,9 @@ public class CreateTaskItemCommandHandlerTests
     private readonly Mock<IBoardNotifier> _boardNotifierMock;
     private readonly Mock<IChatNotifier> _chatNotifierMock;
     private readonly CreateTaskItemCommandHandler _handler;
-    private readonly Mock<INotificationNotifier> _notificationNotifierMock;
     private readonly Mock<IChatRepository> _chatRepositoryMock;
     private readonly Mock<IAiSyncEnqueuer> _aiSyncEnqueuerMock;
+    private readonly Mock<ISender> _senderMock;
 
     public CreateTaskItemCommandHandlerTests()
     {
@@ -40,17 +41,17 @@ public class CreateTaskItemCommandHandlerTests
         
         _boardNotifierMock = _fixture.Freeze<Mock<IBoardNotifier>>();
         _chatNotifierMock = _fixture.Freeze<Mock<IChatNotifier>>();
-        _notificationNotifierMock = new Mock<INotificationNotifier>();
         _chatRepositoryMock
             .Setup(x => x.GetBoardChatAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((Chat?)null);
         _aiSyncEnqueuerMock = new Mock<IAiSyncEnqueuer>();
+        _senderMock = new Mock<ISender>();
         _handler = new CreateTaskItemCommandHandler(
             _unitOfWorkFactoryMock.Object,
             _boardNotifierMock.Object,
             _chatNotifierMock.Object,
-            _notificationNotifierMock.Object,
-            _aiSyncEnqueuerMock.Object);
+            _aiSyncEnqueuerMock.Object,
+            _senderMock.Object);
     }
 
     [Fact]

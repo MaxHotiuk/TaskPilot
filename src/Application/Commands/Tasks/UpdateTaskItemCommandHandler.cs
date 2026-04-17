@@ -1,28 +1,33 @@
 using Application.Abstractions.Messaging;
 using Application.Abstractions.Persistence;
+using Application.Commands.Notifications;
 using Application.Common.Exceptions;
 using Application.Common.Handlers;
+using Domain.Enums;
 using MediatR;
 
 namespace Application.Commands.Tasks;
 
 public class UpdateTaskItemCommandHandler : BaseCommandHandler, IRequestHandler<UpdateTaskItemCommand>
 {
-
     private readonly IBoardNotifier _boardNotifier;
-    private readonly INotificationNotifier _notificationNotifier;
     private readonly IAiSyncEnqueuer _aiSyncEnqueuer;
+    private readonly ISender _sender;
 
-    public UpdateTaskItemCommandHandler(IUnitOfWorkFactory unitOfWorkFactory, IBoardNotifier boardNotifier, INotificationNotifier notificationNotifier, IAiSyncEnqueuer aiSyncEnqueuer)
+    public UpdateTaskItemCommandHandler(IUnitOfWorkFactory unitOfWorkFactory, IBoardNotifier boardNotifier, IAiSyncEnqueuer aiSyncEnqueuer, ISender sender)
         : base(unitOfWorkFactory)
     {
         _boardNotifier = boardNotifier;
-        _notificationNotifier = notificationNotifier;
         _aiSyncEnqueuer = aiSyncEnqueuer;
+        _sender = sender;
     }
 
     public async Task Handle(UpdateTaskItemCommand request, CancellationToken cancellationToken)
     {
+        Guid? notificationAssigneeId = null;
+        Guid notificationTaskId = default;
+        Guid notificationBoardId = default;
+
         await ExecuteInTransactionAsync(async unitOfWork =>
         {
             var taskItem = await unitOfWork.Tasks.GetByIdAsync(request.Id, cancellationToken);
@@ -73,15 +78,9 @@ public class UpdateTaskItemCommandHandler : BaseCommandHandler, IRequestHandler<
 
             if (request.AssigneeId != null && request.AssigneeId != previousAssigneeId)
             {
-                var notification = unitOfWork.Notifications.BuildNotification(
-                    userId: request.AssigneeId.Value,
-                    type: Domain.Enums.NotificationType.AssignedToTask,
-                    taskId: taskItem.Id,
-                    boardId: taskItem.BoardId,
-                    taskName: taskItem.Title
-                );
-                await unitOfWork.Notifications.AddAsync(notification, cancellationToken);
-                await _notificationNotifier.NotifyUserAsync(request.AssigneeId.Value, notification);
+                notificationAssigneeId = request.AssigneeId;
+                notificationTaskId = taskItem.Id;
+                notificationBoardId = taskItem.BoardId;
             }
 
             await unitOfWork.Boards.TouchBoardAsync(taskItem.BoardId, cancellationToken);
@@ -89,6 +88,17 @@ public class UpdateTaskItemCommandHandler : BaseCommandHandler, IRequestHandler<
             await _boardNotifier.NotifyBoardUpdatedAsync(taskItem.BoardId.ToString(), new { action = "updated", boardId = taskItem.BoardId });
             await _boardNotifier.NotifyTaskUpdatedAsync(taskItem.Id.ToString(), new { action = "updated", taskId = taskItem.Id });
         }, cancellationToken);
+
+        if (notificationAssigneeId.HasValue)
+        {
+            await _sender.Send(new CreateNotificationCommand(
+                UserId: notificationAssigneeId.Value,
+                Type: NotificationType.AssignedToTask,
+                TaskId: notificationTaskId,
+                BoardId: notificationBoardId,
+                TaskName: request.Title
+            ), cancellationToken);
+        }
 
         _aiSyncEnqueuer.EnqueueSync(request.Id);
     }

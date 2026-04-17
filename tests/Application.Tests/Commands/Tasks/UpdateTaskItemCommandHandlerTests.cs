@@ -1,6 +1,7 @@
 using Application.Abstractions.Messaging;
 using Application.Commands.Tasks;
 using Application.Common.Exceptions;
+using MediatR;
 
 namespace Application.Tests.Commands.Tasks;
 
@@ -13,8 +14,8 @@ public class UpdateTaskItemCommandHandlerTests
     private readonly Mock<IUnitOfWorkFactory> _unitOfWorkFactoryMock;
     private readonly Mock<IBoardNotifier> _boardNotifierMock;
     private readonly UpdateTaskItemCommandHandler _handler;
-    private readonly Mock<INotificationNotifier> _notificationNotifierMock;
     private readonly Mock<IAiSyncEnqueuer> _aiSyncEnqueuerMock;
+    private readonly Mock<ISender> _senderMock;
 
     public UpdateTaskItemCommandHandlerTests()
     {
@@ -30,9 +31,9 @@ public class UpdateTaskItemCommandHandlerTests
             .ReturnsAsync(_unitOfWorkMock.Object);
         
         _boardNotifierMock = _fixture.Freeze<Mock<IBoardNotifier>>();
-        _notificationNotifierMock = new Mock<INotificationNotifier>();
         _aiSyncEnqueuerMock = new Mock<IAiSyncEnqueuer>();
-        _handler = new UpdateTaskItemCommandHandler(_unitOfWorkFactoryMock.Object, _boardNotifierMock.Object, _notificationNotifierMock.Object, _aiSyncEnqueuerMock.Object);
+        _senderMock = new Mock<ISender>();
+        _handler = new UpdateTaskItemCommandHandler(_unitOfWorkFactoryMock.Object, _boardNotifierMock.Object, _aiSyncEnqueuerMock.Object, _senderMock.Object);
     }
 
     [Fact]

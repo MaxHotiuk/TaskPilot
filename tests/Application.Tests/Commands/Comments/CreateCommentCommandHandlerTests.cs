@@ -1,6 +1,7 @@
 using Application.Abstractions.Messaging;
 using Application.Commands.Comments;
 using Application.Common.Exceptions;
+using MediatR;
 
 namespace Application.Tests.Commands.Comments;
 
@@ -14,7 +15,7 @@ public class CreateCommentCommandHandlerTests
     private readonly Mock<IUnitOfWorkFactory> _unitOfWorkFactoryMock;
     private readonly Mock<IBoardNotifier> _boardNotifierMock;
     private readonly CreateCommentCommandHandler _handler;
-    private readonly Mock<INotificationNotifier> _notificationNotifierMock;
+    private readonly Mock<ISender> _senderMock;
 
     public CreateCommentCommandHandlerTests()
     {
@@ -32,8 +33,8 @@ public class CreateCommentCommandHandlerTests
             .ReturnsAsync(_unitOfWorkMock.Object);
         
         _boardNotifierMock = _fixture.Freeze<Mock<IBoardNotifier>>();
-        _notificationNotifierMock = new Mock<INotificationNotifier>();
-        _handler = new CreateCommentCommandHandler(_unitOfWorkFactoryMock.Object, _boardNotifierMock.Object, _notificationNotifierMock.Object);
+        _senderMock = new Mock<ISender>();
+        _handler = new CreateCommentCommandHandler(_unitOfWorkFactoryMock.Object, _boardNotifierMock.Object, _senderMock.Object);
     }
 
     [Fact]

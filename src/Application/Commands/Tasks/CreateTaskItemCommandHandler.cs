@@ -1,10 +1,12 @@
 using Application.Abstractions.Messaging;
 using Application.Abstractions.Persistence;
+using Application.Commands.Notifications;
 using Application.Common.Exceptions;
 using Application.Common.Handlers;
 using Application.Common.Mappings;
 using Domain.Dtos.Chats;
 using Domain.Entities;
+using Domain.Enums;
 using MediatR;
 
 namespace Application.Commands.Tasks;
@@ -14,16 +16,16 @@ public class CreateTaskItemCommandHandler : BaseCommandHandler, IRequestHandler<
 
     private readonly IBoardNotifier _boardNotifier;
     private readonly IChatNotifier _chatNotifier;
-    private readonly INotificationNotifier _notificationNotifier;
     private readonly IAiSyncEnqueuer _aiSyncEnqueuer;
+    private readonly ISender _sender;
 
-    public CreateTaskItemCommandHandler(IUnitOfWorkFactory unitOfWorkFactory, IBoardNotifier boardNotifier, IChatNotifier chatNotifier, INotificationNotifier notificationNotifier, IAiSyncEnqueuer aiSyncEnqueuer)
+    public CreateTaskItemCommandHandler(IUnitOfWorkFactory unitOfWorkFactory, IBoardNotifier boardNotifier, IChatNotifier chatNotifier, IAiSyncEnqueuer aiSyncEnqueuer, ISender sender)
         : base(unitOfWorkFactory)
     {
         _boardNotifier = boardNotifier;
         _chatNotifier = chatNotifier;
-        _notificationNotifier = notificationNotifier;
         _aiSyncEnqueuer = aiSyncEnqueuer;
+        _sender = sender;
     }
 
     public async Task<Guid> Handle(CreateTaskItemCommand request, CancellationToken cancellationToken)
@@ -64,18 +66,7 @@ public class CreateTaskItemCommandHandler : BaseCommandHandler, IRequestHandler<
             var backlogEntry = Application.Common.Helpers.BacklogEntryHelper.CreateBacklogForTaskCreate(taskItem, unitOfWork.States, unitOfWork.Users);
             await unitOfWork.Backlogs.AddAsync(backlogEntry, cancellationToken);
 
-            if (request.AssigneeId != null)
-            {
-                var notification = unitOfWork.Notifications.BuildNotification(
-                    userId: request.AssigneeId.Value,
-                    type: Domain.Enums.NotificationType.AssignedToTask,
-                    taskId: taskItem.Id,
-                    boardId: request.BoardId,
-                    taskName: taskItem.Title
-                );
-                await unitOfWork.Notifications.AddAsync(notification, cancellationToken);
-                await _notificationNotifier.NotifyUserAsync(request.AssigneeId.Value, notification);
-            }
+
 
             var boardChat = await unitOfWork.Chats.GetBoardChatAsync(request.BoardId, cancellationToken);
             if (boardChat is not null)
@@ -128,6 +119,17 @@ public class CreateTaskItemCommandHandler : BaseCommandHandler, IRequestHandler<
             await _boardNotifier.NotifyBoardUpdatedAsync(request.BoardId.ToString(), new { action = "created", boardId = request.BoardId });
             return taskItem.Id;
         }, cancellationToken);
+
+        if (request.AssigneeId.HasValue)
+        {
+            await _sender.Send(new CreateNotificationCommand(
+                UserId: request.AssigneeId.Value,
+                Type: NotificationType.AssignedToTask,
+                TaskId: createdId,
+                BoardId: request.BoardId,
+                TaskName: request.Title
+            ), cancellationToken);
+        }
 
         _aiSyncEnqueuer.EnqueueSync(createdId);
         return createdId;
