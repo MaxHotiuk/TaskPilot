@@ -35,7 +35,19 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.Property(u => u.UpdatedAt)
             .IsRequired()
             .HasDefaultValueSql("GETUTCDATE()");
-            
+
+        builder.Property(u => u.GoogleAccessToken)
+            .HasMaxLength(2048);
+
+        builder.Property(u => u.GoogleRefreshToken)
+            .HasMaxLength(512);
+
+        builder.Property(u => u.GoogleTokenExpiry);
+
+        builder.Property(u => u.IsGoogleCalendarConnected)
+            .IsRequired()
+            .HasDefaultValue(false);
+
         // Indexes
         builder.HasIndex(u => u.EntraId)
             .IsUnique();

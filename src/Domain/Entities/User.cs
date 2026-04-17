@@ -7,6 +7,12 @@ public class User : AuditableEntity<Guid>
     public string Email { get; set; } = string.Empty;
     public string Role { get; set; } = string.Empty;
 
+    // Google Calendar integration
+    public string? GoogleAccessToken { get; set; }
+    public string? GoogleRefreshToken { get; set; }
+    public DateTime? GoogleTokenExpiry { get; set; }
+    public bool IsGoogleCalendarConnected { get; set; } = false;
+
     // Navigation properties
     public ICollection<Board> OwnedBoards { get; set; } = new List<Board>();
     public ICollection<TaskItem> AssignedTasks { get; set; } = new List<TaskItem>();

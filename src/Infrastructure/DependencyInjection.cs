@@ -16,6 +16,8 @@ using Infrastructure.Services.Meetings;
 using Application.Abstractions.Meetings;
 using System.Net.Http.Headers;
 using Infrastructure.Services.Email;
+using Application.Abstractions.Calendar;
+using Infrastructure.Services.Calendar;
 
 namespace Infrastructure;
 
@@ -40,6 +42,9 @@ public static class DependencyInjection
 
         services.Configure<EmailOptions>(configuration.GetSection("Email"));
         services.AddScoped<IEmailService, EmailService>();
+
+        services.Configure<GoogleCalendarOptions>(configuration.GetSection("GoogleCalendar"));
+        services.AddScoped<IGoogleCalendarService, GoogleCalendarService>();
 
         services.Configure<DailyOptions>(configuration.GetSection("Daily"));
         services.AddHttpClient<IDailyRoomService, DailyRoomService>()

@@ -11,5 +11,6 @@ public record CurrentUserDto
     public string Role { get; init; } = string.Empty;
     public DateTime CreatedAt { get; init; }
     public DateTime UpdatedAt { get; init; }
+    public bool IsGoogleCalendarConnected { get; init; }
     public IEnumerable<OrganizationSummaryDto> Organizations { get; init; } = new List<OrganizationSummaryDto>();
 }

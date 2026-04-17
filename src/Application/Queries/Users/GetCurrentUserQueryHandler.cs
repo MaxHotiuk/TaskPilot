@@ -57,6 +57,7 @@ public class GetCurrentUserQueryHandler : BaseQueryHandler, IRequestHandler<GetC
                 Role = user.Role,
                 CreatedAt = user.CreatedAt,
                 UpdatedAt = user.UpdatedAt,
+                IsGoogleCalendarConnected = user.IsGoogleCalendarConnected,
                 Organizations = organizationDtos.ToList()
             };
         }, cancellationToken);
